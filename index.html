@@ -206,7 +206,8 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
       <h1 id="pageTitle" class="text-sm font-black truncate"></h1>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
-      <div id="clock" class="text-[10px] font-mono text-right leading-tight tabular-nums"></div>
+      <div id="clock" class="hidden min-[400px]:block text-[10px] font-mono text-right leading-tight tabular-nums"></div>
+      <button id="bellBtn" aria-label="알림" aria-haspopup="dialog" class="relative w-11 h-11 rounded-full bg-white/80 dark:bg-white/10 border border-purple-400/40 flex items-center justify-center text-lg">🔔<span id="bellBadge" class="hidden absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] font-black leading-[16px] text-center border-2 border-white dark:border-indigo-950 tabular-nums">0</span></button>
       <button id="themeBtn" role="switch" aria-label="밤 모드" class="w-14 h-11 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center px-1"><span id="knob" class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm transition-transform duration-300">☀️</span></button>
       <button data-go="profile" id="meBtn" aria-label="내 프로필" class="w-11 h-11 rounded-full flex items-center justify-center"></button>
     </div>
@@ -523,6 +524,14 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <div id="ptr" class="fixed left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg pointer-events-none" style="top:calc(64px + env(safe-area-inset-top,0px));transform:translateY(-60px);opacity:0;transition:opacity .15s">↓ 당겨서 새로고침</div>
 <button id="updBar" onclick="location.reload()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
+<div id="nPanel" class="hidden fixed inset-0 z-[90]" role="dialog" aria-label="알림">
+  <div id="nDim" class="absolute inset-0 bg-black/25"></div>
+  <div class="absolute left-2 right-2 max-w-xl mx-auto rounded-2xl bg-white dark:bg-[#1E1B4B] text-slate-800 dark:text-white shadow-2xl overflow-hidden" style="top:calc(64px + env(safe-area-inset-top,0px))">
+    <div class="flex items-center gap-2 px-4 pt-3 pb-2"><b class="text-base">알림</b><span id="nUnread" class="text-[11px] font-black px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300"></span><span class="flex-1"></span><button id="nAll" class="text-xs font-bold text-[#7C3AED] dark:text-purple-300 min-h-[36px] px-2">모두 읽음</button><button id="nClose" aria-label="닫기" class="w-9 h-9 rounded-full text-sm">✕</button></div>
+    <div id="nTabs" class="flex gap-1.5 px-3 pb-2 overflow-x-auto"></div>
+    <div id="nList" class="max-h-[65vh] overflow-y-auto overscroll-contain"></div>
+  </div>
+</div>
 <!-- ADMIN -->
 <section id="p-admin" class="page pt-4 space-y-4" data-title="관리자">
   <div class="card !p-4" style="background:linear-gradient(135deg,#4C1D95,#6D28D9);color:#fff;border:none">
@@ -786,7 +795,7 @@ function render(){
   renderHeader();$('#wxChip').textContent=wxLine();
   ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
-  checkLogin();renderHomeAcct();
+  checkLogin();renderHomeAcct();renderBell();
 }
 function renderHeader(){
   $('#meBtn').innerHTML=avatar(myId,36);$('#wAv').innerHTML=avatar(myId,36);
@@ -2031,6 +2040,50 @@ setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*10
   document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy>0){const el=ind();el.style.transform=`translateY(${Math.min(dy,110)-60}px)`;el.style.opacity=Math.min(dy/90,1);el.textContent=dy>90?'↻ 놓으면 새로고침':'↓ 당겨서 새로고침'}},{passive:true});
   document.addEventListener('touchend',()=>{if(y0==null)return;const el=ind();if(dy>90){el.textContent='↻ 새로고침 중…';location.reload()}else{el.style.transform='translateY(-60px)';el.style.opacity=0}y0=null;dy=0});
 })();
+
+/* ===== 알림함 (안 읽은 알림 모아 보기) ===== */
+const NSEEN=new Set(store.get('koelsa_nseen',[]));let NBASE=store.get('koelsa_nbase',0);if(!NBASE){NBASE=Date.now();store.set('koelsa_nbase',NBASE)}
+let nTab='all',nItemsCache=[];
+const relT=t=>{const m=Math.floor((Date.now()-t)/6e4);if(m<1)return '방금';if(m<60)return m+'분 전';const h=Math.floor(m/60);if(h<24)return h+'시간 전';const d=Math.floor(h/24);return d===1?'어제':d+'일 전'};
+function notifItems(){
+  if(!myId)return [];const wk=Date.now()-7*864e5,L=[];
+  D.alerts.forEach(a=>{if(a.by===myId||a.at<wk)return;
+    if(a.kind==='sos')L.push({id:'a_'+a.id,cat:'urgent',ic:'🚨',tone:'bg-red-100 dark:bg-red-500/20',k:'긴급 SOS',d:`${nmFull(a.by)} · ${a.type||''}${a.addr?' · '+a.addr:''}`,at:a.at,go:()=>go('sos')});
+    else if(a.kind==='hazard')L.push({id:'a_'+a.id,cat:'field',ic:'⚠️',tone:'bg-orange-100 dark:bg-orange-500/20',k:'위험현장 (긴급)',d:a.msg||'',at:a.at,go:()=>go('haz')});
+    else L.push({id:'a_'+a.id,cat:'field',ic:'📣',tone:'bg-green-100 dark:bg-green-500/20',k:'현장목소리 긴급 전파',d:`${nm(a.by)}: ${a.msg||''}`,at:a.at,go:()=>a.post?openPost(a.post):go('voice')});
+  });
+  D.notices.forEach(n=>{if(!pubd(n)||n.by===myId||n.at<wk-23*864e5)return;const urg=n.level==='urgent';
+    L.push({id:'n_'+n.id,cat:urg?'urgent':'notice',ic:'📌',tone:'bg-purple-100 dark:bg-purple-500/20',k:urg?'긴급 공지':'공지',d:n.title||'',at:n.at,nread:isRead(n),go:()=>{markRead(n);go('notice')}})});
+  D.comments.forEach(c=>{if(c.by===myId||c.at<wk)return;const p=D.voices.find(v=>v.id===c.post);if(!(c.to===myId||(p&&p.by===myId)))return;
+    L.push({id:'c_'+c.id,cat:'cmt',ic:'💬',tone:'bg-blue-100 dark:bg-blue-500/20',k:c.to===myId?'내 댓글에 답글':'내 글에 댓글',d:`${nm(c.by)}: ${c.text||''}`,at:c.at,go:()=>openPost(c.post)})});
+  L.forEach(x=>{x.unread=!NSEEN.has(x.id)&&(x.nread!==undefined?!x.nread:x.at>NBASE)});
+  return L.sort((a,b)=>b.at-a.at).slice(0,60);
+}
+function renderBell(){
+  const L=notifItems(),n=L.filter(x=>x.unread).length,b=$('#bellBadge');
+  b.textContent=n>99?'99+':n;b.classList.toggle('hidden',!n);$('#bellBtn').setAttribute('aria-label',n?`알림 ${n}개 안 읽음`:'알림');
+  if(!$('#nPanel').classList.contains('hidden'))renderNPanel(L);
+}
+function renderNPanel(L){
+  L=L||notifItems();nItemsCache=L;const un=L.filter(x=>x.unread),cnt=c=>un.filter(x=>c==='all'||x.cat===c).length;
+  $('#nUnread').textContent=un.length?`안 읽음 ${un.length}`:'모두 읽었어요';
+  $('#nTabs').innerHTML=[['all','전체'],['notice','공지'],['urgent','긴급'],['cmt','댓글'],['field','현장']].map(([k,l])=>`<button data-ntab="${k}" class="shrink-0 min-h-[32px] px-3 rounded-full text-xs font-bold ${nTab===k?'bg-[#6D28D9] text-white':'bg-purple-50 dark:bg-white/10'}">${l}${cnt(k)?' '+cnt(k):''}</button>`).join('');
+  const V=L.filter(x=>nTab==='all'||x.cat===nTab);
+  $('#nList').innerHTML=V.length?V.map((x,i)=>`<button data-nit="${esc(x.id)}" class="w-full flex items-center gap-3 px-4 py-3 text-left border-t border-purple-100 dark:border-white/10 ${x.unread?'bg-purple-50/80 dark:bg-white/5':''}">
+      <span class="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-base ${x.tone}">${x.ic}</span>
+      <span class="flex-1 min-w-0"><span class="flex items-center gap-1.5 text-sm font-black">${esc(x.k)}${x.unread?'<span class="w-2 h-2 rounded-full bg-[#FF3B30] inline-block"></span>':''}</span><span class="block text-xs opacity-75 truncate">${esc(x.d)}</span></span>
+      <span class="text-[10px] opacity-60 shrink-0">${relT(x.at)}</span></button>`).join(''):'<p class="px-4 py-10 text-center text-sm opacity-70">최근 7일 동안 받은 알림이 없어요.</p>';
+}
+function openNPanel(){$('#nPanel').classList.remove('hidden');renderNPanel()}
+function closeNPanel(){$('#nPanel').classList.add('hidden')}
+$('#bellBtn').onclick=()=>{$('#nPanel').classList.contains('hidden')?openNPanel():closeNPanel()};
+$('#nDim').onclick=closeNPanel;$('#nClose').onclick=closeNPanel;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#nPanel').classList.contains('hidden'))closeNPanel()});
+$('#nTabs').onclick=e=>{const b=e.target.closest('[data-ntab]');if(b){nTab=b.dataset.ntab;renderNPanel()}};
+$('#nList').onclick=e=>{const b=e.target.closest('[data-nit]');if(!b)return;const x=nItemsCache.find(i=>i.id===b.dataset.nit);if(!x)return;
+  NSEEN.add(x.id);store.set('koelsa_nseen',[...NSEEN].slice(-500));closeNPanel();x.go();renderBell()};
+$('#nAll').onclick=()=>{nItemsCache.filter(x=>x.unread).forEach(x=>{NSEEN.add(x.id);if(x.id.startsWith('n_')){const n=D.notices.find(v=>'n_'+v.id===x.id);if(n)markRead(n)}});
+  store.set('koelsa_nseen',[...NSEEN].slice(-500));renderBell();renderNPanel();toast('모든 알림을 읽음으로 표시했어요.','ok')};
 
 /* ===== 관리자 ===== */
 let ACC=null,admTab='wait',admQ='';
