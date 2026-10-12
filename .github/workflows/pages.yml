@@ -18,11 +18,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
+      - uses: actions/setup-node@v4
         with:
-          enablement: true
+          node-version: 20
+      - name: Tailwind CSS 빌드 (CDN 없이 앱 안에 포함)
+        run: |
+          npm install --no-save tailwindcss@3.4.17
+          npx tailwindcss -c tailwind.config.js -i tailwind.src.css -o tailwind.css --minify
+          ls -la tailwind.css
+      - name: Firebase 라이브러리 내려받기 (CDN 없이 앱 안에 포함)
+        run: |
+          mkdir -p vendor
+          for f in firebase-app-compat firebase-auth-compat firebase-firestore-compat; do
+            curl -fsSL "https://www.gstatic.com/firebasejs/10.14.1/$f.js" -o "vendor/$f.js"
+          done
+          ls -la vendor
+      - name: 배포 폴더 만들기
+        run: |
+          mkdir -p site
+          cp -r index.html config.js manifest.webmanifest sw.js icon-192.png icon-512.png tailwind.css vendor data README.md site/
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
       - id: deployment
         uses: actions/deploy-pages@v4
