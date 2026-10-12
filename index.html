@@ -532,6 +532,13 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <div id="nList" class="max-h-[65vh] overflow-y-auto overscroll-contain"></div>
   </div>
 </div>
+<div id="pmSheet" class="hidden fixed inset-0 z-[95]" role="dialog" aria-label="글 메뉴">
+  <div data-pmclose class="absolute inset-0 bg-black/35"></div>
+  <div class="absolute left-0 right-0 bottom-0 max-w-xl mx-auto rounded-t-3xl bg-white dark:bg-[#1E1B4B] text-slate-800 dark:text-white p-4 space-y-2" style="padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))">
+    <div class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 mx-auto mb-2"></div>
+    <div id="pmBody" class="space-y-2"></div>
+  </div>
+</div>
 <!-- ADMIN -->
 <section id="p-admin" class="page pt-4 space-y-4" data-title="관리자">
   <div class="card !p-4" style="background:linear-gradient(135deg,#4C1D95,#6D28D9);color:#fff;border:none">
@@ -995,7 +1002,7 @@ function photoGrid(ids,postId){
 function postCard(v,compact){
   const c=cOf(v.cat),lk=likes(v.id),liked=lk.some(r=>r.by===myId),cm=cmts(v.id).length;
   return `<article class="card !p-3">
-    <div class="flex items-center gap-2">${avatar(v.by,40)}<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">${esc(nmFull(v.by))}</div><div class="text-[11px] opacity-60 truncate">${ago(v.at)}${v.place?' · 📍 '+esc(v.place):''}</div></div>${v.urgent?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white shrink-0">긴급전파</span>':''}</div>
+    <div class="flex items-center gap-2">${avatar(v.by,40)}<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">${esc(nmFull(v.by))}</div><div class="text-[11px] opacity-60 truncate">${ago(v.at)}${v.editedAt?' · 수정됨':''}${v.place?' · 📍 '+esc(v.place):''}</div></div>${canDel(v.by)?`<button data-pmenu="${v.id}" aria-label="글 메뉴" class="w-9 h-9 shrink-0 rounded-full text-lg leading-none opacity-70 hover:bg-purple-500/10">⋯</button>`:''}${v.urgent?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white shrink-0">긴급전파</span>':''}</div>
     <div class="flex items-center gap-1.5 mt-2"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${c.c}">${c.i} ${esc(c.k)}</span></div>
     <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${compact?'line-clamp-3':''}">${esc(v.text)}</p></button>
     ${photoGrid(v.photos,v.id)}
@@ -1073,6 +1080,24 @@ function renderPost(){
   const one=(c,rep)=>`<div class="flex gap-2 ${rep?'ml-9 pl-3 border-l-2 border-purple-400/40':''}">${avatar(c.by,rep?26:32)}<div class="flex-1 min-w-0"><div class="text-xs"><b>${esc(nmFull(c.by))}</b> <span class="opacity-60">${ago(c.at)}</span></div><p class="text-sm break-words">${rep&&c.to?`<span class="font-bold text-purple-600 dark:text-purple-300">@${esc(nm(c.to))}</span> `:''}${esc(c.text)}</p><button data-rp="${c.id}" class="text-[11px] font-bold opacity-70 min-h-[30px]">↳ 답글</button></div>${canDel(c.by)?`<button data-cx="${c.id}" aria-label="댓글 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">✕</button>`:''}</div>`;
   $('#cmtList').innerHTML=tops.length?tops.map(t=>one(t)+cs.filter(r=>r.parent===t.id).map(r=>one(r,1)).join('')).join(''):'<p class="text-xs opacity-70">첫 댓글로 확인·조치 내용을 남겨 주세요.</p>';
 }
+/* 내 글 메뉴: 수정 · 삭제 */
+let pmId=null;
+function openPm(id,mode){pmId=id;const v=D.voices.find(x=>x.id===id);if(!v)return;const B=$('#pmBody');
+  if(mode==='edit'){B.innerHTML=`<div class="font-black text-sm">✏️ 글 수정</div><textarea id="pmText" rows="5" maxlength="800" class="inp">${esc(v.text||'')}</textarea><input id="pmPlace" class="inp" maxlength="50" placeholder="📍 현장 위치" value="${esc(v.place||'')}"><div class="grid grid-cols-2 gap-2"><button data-pmclose class="min-h-[48px] rounded-xl border border-purple-400/50 font-bold text-sm">취소</button><button id="pmSave" class="min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">저장</button></div>`;setTimeout(()=>$('#pmText').focus(),50)}
+  else B.innerHTML=`<button id="pmEdit" class="w-full min-h-[52px] rounded-xl bg-purple-50 dark:bg-white/10 font-bold text-sm text-left px-4">✏️ 글 수정</button><button id="pmDel" class="w-full min-h-[52px] rounded-xl bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-300 font-bold text-sm text-left px-4">🗑️ 글 삭제 <span class="text-[11px] font-normal opacity-70">사진·좋아요도 함께 지워져요</span></button><button data-pmclose class="w-full min-h-[48px] rounded-xl border border-purple-400/40 font-bold text-sm">취소</button>`;
+  $('#pmSheet').classList.remove('hidden');
+}
+function closePm(){$('#pmSheet').classList.add('hidden');pmId=null}
+document.addEventListener('click',async e=>{
+  const m=e.target.closest('[data-pmenu]');if(m){e.stopPropagation();openPm(m.dataset.pmenu);return}
+  if(e.target.closest('[data-pmclose]')){closePm();return}
+  if(e.target.closest('#pmEdit')){openPm(pmId,'edit');return}
+  const d=e.target.closest('#pmDel');if(d){if(!d.dataset.arm){d.dataset.arm=1;d.innerHTML='한 번 더 누르면 삭제돼요';return}
+    const v=D.voices.find(x=>x.id===pmId);if(!v)return closePm();
+    try{await del('voices',v.id);(v.photos||[]).forEach(photoDel);D.reacts.filter(r=>r.post===v.id&&r.by===myId).forEach(r=>del('reacts',r.id).catch(()=>{}));toast('글을 삭제했어요.','ok');closePm();if(cur==='post'){curPost=null;navStack.pop();location.replace('#voice')}}catch(err){toast(errMsg(err),'error')}return}
+  if(e.target.closest('#pmSave')){const t=$('#pmText').value.trim();if(!t)return toast('내용을 입력해 주세요.','error');
+    try{await patch('voices',pmId,{text:t,place:$('#pmPlace').value.trim(),editedAt:Date.now()});toast('수정했어요.','ok');closePm()}catch(err){toast(errMsg(err),'error')}}
+});
 $('#postBox').onclick=async e=>{
   if(e.target.closest('#postDel')){
     const b=e.target.closest('#postDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='한 번 더 누르면 삭제됩니다';return}
