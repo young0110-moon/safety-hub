@@ -634,7 +634,16 @@ function toast(msg,type='info'){
   setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity=0;setTimeout(()=>t.remove(),300)},2800);
 }
 let lastPos=null;
-function getPos(){return new Promise(r=>{if(!navigator.geolocation)return r(null);navigator.geolocation.getCurrentPosition(p=>{lastPos={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy};r(lastPos)},()=>r(null),{timeout:12000,enableHighAccuracy:true,maximumAge:30000})})}
+let lastGeoErr=0;
+function getPos(){return new Promise(r=>{if(!navigator.geolocation){lastGeoErr=9;return r(null)}navigator.geolocation.getCurrentPosition(p=>{lastGeoErr=0;lastPos={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy};r(lastPos)},e=>{lastGeoErr=(e&&e.code)||2;r(null)},{timeout:15000,enableHighAccuracy:true,maximumAge:60000})})}
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const inApp=/KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent);
+function geoHelp(){
+  if(inApp)return '카카오톡·네이버 등 <b>앱 안 브라우저</b>에서는 위치를 쓸 수 없어요. 오른쪽 위 메뉴 → <b>"Safari로 열기"</b>(아이폰) 또는 <b>"다른 브라우저로 열기"</b>를 눌러 주세요.';
+  if(lastGeoErr===1)return isIOS?'아이폰 위치가 꺼져 있어요.<br>① <b>설정 → 개인정보 보호 및 보안 → 위치 서비스</b> 켜기<br>② 같은 화면 아래 <b>Safari 웹 사이트</b>(홈 화면 앱이면 그 이름) → <b>"앱을 사용하는 동안"</b> + <b>정확한 위치</b> 켜기<br>③ Safari 주소창 왼쪽 <b>"가가"</b> → 웹 사이트 설정 → 위치 <b>허용</b><br>그다음 이 화면을 새로고침하고 다시 눌러 주세요.':'위치 권한이 꺼져 있어요. 주소창 왼쪽 자물쇠 → 권한 → <b>위치 허용</b>을 켜고 다시 눌러 주세요.';
+  if(lastGeoErr===3)return 'GPS 신호를 잡는 데 시간이 걸려요. 실내라면 창가에서 다시 눌러 주세요.';
+  return '위치를 확인하지 못했어요. 휴대폰 위치(GPS)가 켜져 있는지 확인해 주세요.';
+}
 async function getLoc(){const p=await getPos();return p?`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`:null}
 async function revGeo(p){try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${p.lat}&lon=${p.lng}&accept-language=ko&zoom=18`,{headers:{'Accept':'application/json'}});const j=await r.json();const a=j.address||{};return [a.city||a.province||'',a.borough||a.city_district||a.county||'',a.suburb||a.quarter||a.neighbourhood||'',a.road||'',a.house_number||'',a.building||a.amenity||''].filter(Boolean).join(' ')||j.display_name||''}catch(e){return ''}}
 const mapLink=p=>`https://map.kakao.com/link/map/현재위치,${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
@@ -967,7 +976,7 @@ $('#wFile').onchange=async e=>{
   for(const f of fs){try{pending.push(await compress(f,db?1280:900,db?.7:.55))}catch(err){toast('이 파일은 사진으로 읽을 수 없습니다.','error')}}
   renderWrite();
 };
-$('#wGps').onclick=async()=>{toast('위치를 확인하는 중…');const p=await getPos();if(!p)return toast('위치를 확인하지 못했어요. 위치 허용을 켜거나 직접 적어 주세요.','error');const a=await revGeo(p);$('#wPlace').value=($('#wPlace').value?$('#wPlace').value+' ':'')+(a||`(${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`);toast('현재 위치를 넣었어요.','ok')};
+$('#wGps').onclick=async()=>{toast('위치를 확인하는 중…');const p=await getPos();if(!p){toast('위치를 확인하지 못했어요. 아래 안내를 확인해 주세요.','error');$('#wPlace').placeholder='📍 위치를 직접 적어 주세요';const h=document.createElement('p');h.className='text-[11px] opacity-80 leading-relaxed';h.innerHTML=geoHelp();$('#wPlace').after(h);setTimeout(()=>h.remove(),15000);return}const a=await revGeo(p);$('#wPlace').value=($('#wPlace').value?$('#wPlace').value+' ':'')+(a||`(${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`);toast('현재 위치를 넣었어요.','ok')};
 let sending=false;
 $('#wSend').onclick=async()=>{
   if(sending)return;
@@ -1243,9 +1252,10 @@ $('#sosBtn').onclick=async()=>{
   if(navigator.vibrate)try{navigator.vibrate([300,100,300,100,600])}catch(e){}
   toast(db?`🚨 [${TYPES[stype]}] 지사 전체에 긴급 알림을 전송했습니다.`:`🚨 [${TYPES[stype]}] 기록했습니다. (공유 연결 시 지사 전체 전송)`,'error');
   $('#sosLoc').innerHTML='📍 현재 위치를 확인하는 중… (위치 허용을 눌러 주세요)';
+  const posP=getPos(); /* 버튼을 누른 순간 바로 요청해야 아이폰에서 허용 창이 떠요 */
   try{const id=await put('alerts',{kind:'sos',type:TYPES[stype],by:myId,at:Date.now()});
-    const p=await getPos();
-    if(!p){$('#sosLoc').innerHTML='📍 위치를 받지 못했어요. 휴대폰 설정에서 이 앱의 위치 허용을 켜고 다시 누르거나, 전화로 건물명·주소를 말해 주세요.';return}
+    const p=await posP;
+    if(!p){const tel=ctrlTel().replace(/[^0-9+]/g,'');$('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2 leading-relaxed"><div>📍 ${geoHelp()}</div><a href="tel:${tel}" class="flex min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-black text-sm items-center justify-center">📞 상황실 전화 (건물명·주소 말하기)</a></div>`;return}
     const addr=await revGeo(p);const loc=`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
     patch('alerts',id,{loc,addr,lat:p.lat,lng:p.lng}).catch(()=>{});
     const who=(me()||{}).name||'직원',body=`[SOS ${TYPES[stype]}] ${who}\n위치: ${addr||loc}\n지도: ${mapLink(p)}`;
