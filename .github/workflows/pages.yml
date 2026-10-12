@@ -33,10 +33,17 @@ jobs:
             curl -fsSL "https://www.gstatic.com/firebasejs/10.14.1/$f.js" -o "vendor/$f.js"
           done
           ls -la vendor
+      - name: 버전 표시 (폰 앱이 새 버전을 알아채도록)
+        run: |
+          V="${GITHUB_SHA::12}"
+          sed -i "s/__BUILD__/$V/" index.html
+          sed -i "s/const VER='hub-[^']*';/const VER='hub-$V';/" sw.js
+          echo "{\"v\":\"$V\"}" > version.json
+          cat version.json
       - name: 배포 폴더 만들기
         run: |
           mkdir -p site
-          cp -r index.html config.js manifest.webmanifest sw.js icon-192.png icon-512.png apple-touch-icon.png tailwind.css vendor data README.md site/
+          cp -r index.html version.json config.js manifest.webmanifest sw.js icon-192.png icon-512.png apple-touch-icon.png tailwind.css vendor data README.md site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

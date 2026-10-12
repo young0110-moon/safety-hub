@@ -234,6 +234,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="homeAcct" class="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-purple-400/30 bg-white/60 dark:bg-white/5">
     <span class="text-lg" aria-hidden="true">👤</span>
     <div class="flex-1 min-w-0 leading-tight"><div id="haName" class="text-xs font-black truncate"></div><div id="haMail" class="text-[10px] opacity-70 truncate">자동 로그인 중</div></div>
+    <button id="homeRef" aria-label="새로고침" title="새 버전 확인" class="shrink-0 w-10 h-10 rounded-xl border border-purple-400/50 text-base">↻</button>
     <button data-go="admin" id="homeAdm" class="hidden shrink-0 min-h-[40px] px-3 rounded-xl bg-[#4C1D95] text-white text-xs font-bold">🛡️ 관리자</button>
     <button id="homeOut" class="shrink-0 min-h-[40px] px-4 rounded-xl border border-red-400/60 text-red-500 dark:text-red-300 text-xs font-bold">로그아웃</button>
   </div>
@@ -501,6 +502,8 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
 
+<div id="ptr" class="fixed left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg pointer-events-none" style="top:calc(64px + env(safe-area-inset-top,0px));transform:translateY(-60px);opacity:0;transition:opacity .15s">↓ 당겨서 새로고침</div>
+<button id="updBar" onclick="location.reload()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
 <!-- ADMIN -->
 <section id="p-admin" class="page pt-4 space-y-4" data-title="관리자">
   <div class="card !p-4" style="background:linear-gradient(135deg,#4C1D95,#6D28D9);color:#fff;border:none">
@@ -800,6 +803,7 @@ let outArm=0,homeOutArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
   if(!$('#haName'))return;$('#homeAdm').classList.toggle('hidden',!isAdmin);$('#haName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#haMail').textContent=fu&&fu.email?`${fu.email} · 자동 로그인`:'자동 로그인 중'}
+$('#homeRef').onclick=()=>{toast('새 버전 확인 중…');checkUpdate(true).then(()=>{})};
 $('#homeOut').onclick=()=>{if(Date.now()-homeOutArm>4000){homeOutArm=Date.now();$('#homeOut').textContent='한 번 더 누르면 로그아웃';$('#homeOut').classList.add('bg-red-500','text-white');setTimeout(()=>{$('#homeOut').textContent='로그아웃';$('#homeOut').classList.remove('bg-red-500','text-white')},4000);return}doLogout()};
 $('#pfOut').onclick=async()=>{
   if(Date.now()-outArm>4000){outArm=Date.now();$('#pfOut').textContent='한 번 더 누르면 로그아웃됩니다';setTimeout(()=>$('#pfOut').textContent='로그아웃',4000);return}
@@ -1978,6 +1982,30 @@ if($('#geoBtn'))$('#geoBtn').onclick=async()=>{
   const [la,lo]=g.split(',').map(Number);let best=null,bd=1e9;Object.entries(GU_C).forEach(([k,[a,b]])=>{const d=(a-la)**2+(b-lo)**2;if(d<bd){bd=d;best=k}});
   gu=best;store.set('koelsa_gu',gu);renderDepts();toast(`가장 가까운 지역: ${gu}`,'ok');
 };
+
+/* ===== 새 버전 자동 반영 (아이폰 홈 화면 앱은 새로고침 버튼이 없어서) ===== */
+const BUILD='__BUILD__';
+let updBusy=false;
+async function checkUpdate(manual){
+  if(updBusy||!location.protocol.startsWith('http'))return;updBusy=true;
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});const j=await r.json();
+    if(j.v&&BUILD!=='__BUILD__'&&j.v!==BUILD){
+      const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.value;
+      if(typing||cur==='write'){$('#updBar').classList.remove('hidden');$('#updBar').classList.add('flex')}
+      else{toast('새 버전으로 바꾸는 중…','ok');setTimeout(()=>location.reload(),400)}
+    }else if(manual)toast('이미 최신 버전이에요.','ok');
+  }catch(e){if(manual)toast('확인하지 못했어요. 인터넷 연결을 확인해 주세요.','error')}
+  updBusy=false;
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
+window.addEventListener('pageshow',()=>checkUpdate());
+setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*1000);
+/* 메인 화면 맨 위에서 아래로 당기면 새로고침 */
+(()=>{let y0=null,dy=0;const ind=()=>$('#ptr');
+  document.addEventListener('touchstart',e=>{if(cur!=='home'||window.scrollY>0||document.querySelector('#sbSheetWrap.on'))return;y0=e.touches[0].clientY;dy=0},{passive:true});
+  document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy>0){const el=ind();el.style.transform=`translateY(${Math.min(dy,110)-60}px)`;el.style.opacity=Math.min(dy/90,1);el.textContent=dy>90?'↻ 놓으면 새로고침':'↓ 당겨서 새로고침'}},{passive:true});
+  document.addEventListener('touchend',()=>{if(y0==null)return;const el=ind();if(dy>90){el.textContent='↻ 새로고침 중…';location.reload()}else{el.style.transform='translateY(-60px)';el.style.opacity=0}y0=null;dy=0});
+})();
 
 /* ===== 관리자 ===== */
 let ACC=null,admTab='wait',admQ='';
