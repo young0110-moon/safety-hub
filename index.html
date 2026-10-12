@@ -231,6 +231,11 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   </div>
   <div class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리</h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
+  <div id="homeAcct" class="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-purple-400/30 bg-white/60 dark:bg-white/5">
+    <span class="text-lg" aria-hidden="true">👤</span>
+    <div class="flex-1 min-w-0 leading-tight"><div id="haName" class="text-xs font-black truncate"></div><div id="haMail" class="text-[10px] opacity-70 truncate">자동 로그인 중</div></div>
+    <button id="homeOut" class="shrink-0 min-h-[40px] px-4 rounded-xl border border-red-400/60 text-red-500 dark:text-red-300 text-xs font-bold">로그아웃</button>
+  </div>
 </section>
 
 <!-- NOTICE -->
@@ -737,7 +742,7 @@ function render(){
   renderHeader();$('#wxChip').textContent=wxLine();
   ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
-  checkLogin();
+  checkLogin();renderHomeAcct();
 }
 function renderHeader(){
   $('#meBtn').innerHTML=avatar(myId,36);$('#wAv').innerHTML=avatar(myId,36);
@@ -772,10 +777,14 @@ function renderProfile(){
 function fillProfile(){const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||''}
 $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
   try{await put('members',{name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim(),at:(me()||{}).at||Date.now()},myId);toast('프로필을 저장했습니다.','ok')}catch(e){toast(errMsg(e),'error')}};
-let outArm=0;
+let outArm=0,homeOutArm=0;
+async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
+function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
+  if(!$('#haName'))return;$('#haName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#haMail').textContent=fu&&fu.email?`${fu.email} · 자동 로그인`:'자동 로그인 중'}
+$('#homeOut').onclick=()=>{if(Date.now()-homeOutArm>4000){homeOutArm=Date.now();$('#homeOut').textContent='한 번 더 누르면 로그아웃';$('#homeOut').classList.add('bg-red-500','text-white');setTimeout(()=>{$('#homeOut').textContent='로그아웃';$('#homeOut').classList.remove('bg-red-500','text-white')},4000);return}doLogout()};
 $('#pfOut').onclick=async()=>{
   if(Date.now()-outArm>4000){outArm=Date.now();$('#pfOut').textContent='한 번 더 누르면 로그아웃됩니다';setTimeout(()=>$('#pfOut').textContent='로그아웃',4000);return}
-  try{await firebase.auth().signOut();location.hash='home';location.reload()}catch(e){toast(errMsg(e),'error')}
+  doLogout()
 };
 
 /* ===== 공용 일정 ===== */
@@ -1961,6 +1970,7 @@ async function init(){
     if(!window.FIREBASE_CONFIG||!FIREBASE_CONFIG.apiKey||FIREBASE_CONFIG.apiKey.startsWith('붙여')){$('#lockMsg').innerHTML='아직 서버(Firebase) 설정이 연결되지 않았어요.<br><span class="text-xs opacity-80">config.js에 Firebase 설정값을 넣어 주세요.</span>';$('#login').classList.add('hidden');return}
     if(!window.firebase){$('#lockMsg').innerHTML='서버 라이브러리를 불러오지 못했어요.<br><span class="text-xs opacity-80">인터넷 연결을 확인하고 새로고침해 주세요.</span>';$('#login').classList.add('hidden');return}
     firebase.initializeApp(FIREBASE_CONFIG);const auth=firebase.auth();
+    try{await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)}catch(e){}
     const to=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(undefined),ms))]);
     try{await to(auth.getRedirectResult(),4000)}catch(e){console.warn(e)}
     fu=await to(new Promise(r=>{const un=auth.onAuthStateChanged(u=>{un();r(u)})}),8000);
