@@ -744,7 +744,7 @@ function checkLogin(){
   const show_=!ready||!me();
   $('#login').classList.toggle('hidden',!show_);
   $('#lgWait').classList.toggle('hidden',ready);$('#lgForm').classList.toggle('hidden',!ready);
-  const fu=(window.firebase&&firebase.auth&&firebase.auth().currentUser)||null;
+  const fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
   $('#lgMode').textContent=fu?`${fu.email} 계정으로 가입돼요. 다음부터는 자동으로 로그인됩니다.`:'';
 }
 $('#lgForm').onsubmit=async e=>{
