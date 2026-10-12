@@ -36,7 +36,7 @@ jobs:
       - name: 배포 폴더 만들기
         run: |
           mkdir -p site
-          cp -r index.html config.js manifest.webmanifest sw.js icon-192.png icon-512.png tailwind.css vendor data README.md site/
+          cp -r index.html config.js manifest.webmanifest sw.js icon-192.png icon-512.png apple-touch-icon.png tailwind.css vendor data README.md site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
