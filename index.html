@@ -219,7 +219,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
   <div class="flex items-center justify-between text-[11px] mb-3 gap-2"><button data-go="weather" id="wxChip" class="min-h-[36px] font-bold px-3 py-1 rounded-full bg-[#5B21B6] text-white shrink-0 max-w-[62%] truncate">🌤 오늘의 날씨</button><span id="sync" class="opacity-80 truncate">⚪ 연결 확인 중…</span></div>
-  <button id="banner" class="hidden w-full min-h-[48px] mb-3 px-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold text-left animate-pulse"></button>
+  <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
     <span class="flex-1 min-w-0"><span class="block text-[10px] font-bold opacity-80" id="nbTag">공지</span><span id="nbTitle" class="block text-sm font-black truncate">공지 불러오는 중…</span></span>
@@ -795,7 +795,7 @@ function render(){
   renderHeader();$('#wxChip').textContent=wxLine();
   ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
-  checkLogin();renderHomeAcct();renderBell();
+  checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
 function renderHeader(){
   $('#meBtn').innerHTML=avatar(myId,36);$('#wAv').innerHTML=avatar(myId,36);
@@ -931,10 +931,14 @@ function fireNotice(n){aoTarget='notice';aoNotice=n;aoPost=null;openAlert('📢 
 function closeAlert(){$('#alertOv').classList.add('hidden');$('#alertOv').classList.remove('flex');try{navigator.vibrate(0);speechSynthesis.cancel()}catch(e){}}
 $('#aoOk').onclick=()=>{if(aoNotice)markRead(aoNotice);closeAlert()};
 $('#aoGo').onclick=()=>{if(aoNotice)markRead(aoNotice);closeAlert();if(aoTarget==='post'&&aoPost)openPost(aoPost);else go(aoTarget)};
+/* 긴급 배너: 1시간 지나거나, ✕로 닫거나, 보낸 사람·관리자가 '상황 종료'하면 사라짐 */
 function renderBanner(){
-  const a=D.alerts.slice().sort((x,y)=>y.at-x.at)[0],b=$('#banner'),ack=store.get('koelsa_ack','');
-  if(db&&a&&Date.now()-a.at<36e5&&a.id!==ack){b.textContent=`🚨 ${aTitle(a)} · ${nm(a.by)} · ${tstr(a.at)}`;b.classList.remove('hidden');b.onclick=()=>{store.set('koelsa_ack',a.id);b.classList.add('hidden');if(a.kind==='voice'&&a.post)openPost(a.post);else go(a.kind==='hazard'?'haz':'sos')}}
-  else b.classList.add('hidden');
+  const a=D.alerts.filter(x=>!x.resolved).sort((x,y)=>y.at-x.at)[0],b=$('#banner'),ack=store.get('koelsa_ack','');
+  if(db&&a&&Date.now()-a.at<36e5&&a.id!==ack){
+    $('#bnGo').textContent=`🚨 ${aTitle(a)} · ${nm(a.by)} · ${tstr(a.at)}`;b.classList.remove('hidden');b.classList.add('flex');
+    $('#bnGo').onclick=()=>{store.set('koelsa_ack',a.id);if(a.kind==='voice'&&a.post)openPost(a.post);else go(a.kind==='hazard'?'haz':'sos')};
+    $('#bnX').onclick=()=>{store.set('koelsa_ack',a.id);b.classList.add('hidden');b.classList.remove('flex');toast('배너를 닫았어요. SOS 화면 기록에서 다시 볼 수 있어요.')};
+  }else{b.classList.add('hidden');b.classList.remove('flex')}
 }
 /* 예약 스케줄러 */
 let lastPub=-1;
@@ -1311,8 +1315,17 @@ function renderSOS(){
   const base=[{n:'부산동부지사 상황실',t:ctrlTel(),f:1},...contacts];
   $('#contacts').innerHTML=base.map((c,i)=>`<div class="flex items-center gap-2"><a href="tel:${esc(c.t.replace(/[^0-9+]/g,''))}" class="flex-1 min-w-0 flex justify-between items-center min-h-[52px] px-3 rounded-xl text-white font-bold text-sm ${c.f?'bg-[#6D28D9]':'bg-[#5B21B6]'}"><span class="truncate">📞 ${esc(c.n)}</span><span class="shrink-0 ml-2 select-all">${esc(c.t)}</span></a>${c.f?`<button id="ctrlEditBtn" aria-label="상황실 번호 수정" class="w-11 h-11 shrink-0">✏️</button>`:`<button data-dc="${c.id}" aria-label="연락처 삭제" class="w-11 h-11 shrink-0">🗑️</button>`}</div>`).join('');
   const L=D.alerts.slice().sort((a,b)=>b.at-a.at).slice(0,10);
-  $('#sosLog').innerHTML=L.length?L.map(a=>`<div class="p-2 rounded-xl sub text-xs"><b>${esc(aTitle(a))}</b><br><span class="opacity-70">${esc(nmFull(a.by))} · ${tstr(a.at)}${a.loc?' · 📍 '+esc(a.loc):''}</span></div>`).join(''):'<p class="text-xs opacity-70">전송 이력이 없습니다.</p>';
+  $('#sosLog').innerHTML=L.length?L.map(a=>{const own=a.by===myId||isAdmin,live=!a.resolved&&Date.now()-a.at<36e5;
+    return `<div class="p-3 rounded-xl sub text-xs ${a.resolved?'opacity-70':''}"><div class="flex items-start gap-2"><b class="flex-1 min-w-0">${esc(aTitle(a))}</b>${a.resolved?'<span class="shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full bg-green-600 text-white">상황 종료</span>':live?'<span class="shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white">진행 중</span>':''}</div>
+      <div class="opacity-70 mt-0.5">${esc(nmFull(a.by))} · ${tstr(a.at)}${a.addr?' · 📍 '+esc(a.addr):a.loc?' · 📍 '+esc(a.loc):''}${a.resolved?` · ${esc(nm(a.resolvedBy))} 종료 ${tstr(a.resolvedAt)}`:''}</div>
+      ${own?`<div class="flex gap-1.5 mt-2">${!a.resolved?`<button data-ares="${a.id}" class="min-h-[34px] px-3 rounded-lg bg-green-600 text-white font-bold">✅ 상황 종료</button>`:''}<button data-adel="${a.id}" class="min-h-[34px] px-3 rounded-lg border border-red-400/60 text-red-500 font-bold">기록 삭제</button></div>`:''}</div>`}).join(''):'<p class="text-xs opacity-70">전송 이력이 없습니다.</p>';
 }
+document.addEventListener('click',async e=>{
+  const r=e.target.closest('[data-ares]'),d=e.target.closest('[data-adel]');if(!r&&!d)return;
+  const b=r||d;if(!(b.dataset.armed&&Date.now()-b.dataset.armed<4000)){b.dataset.armed=Date.now();const o=b.textContent;b.textContent=r?'한 번 더 누르면 종료':'한 번 더 누르면 삭제';setTimeout(()=>{if(b.isConnected){b.textContent=o;delete b.dataset.armed}},4000);return}
+  try{if(r){await patch('alerts',r.dataset.ares,{resolved:true,resolvedBy:myId,resolvedAt:Date.now()});toast('상황 종료로 표시했어요. 모든 직원 화면에서 배너가 내려가요.','ok')}
+      else{await del('alerts',d.dataset.adel);toast('기록을 삭제했어요.','ok')}}catch(err){toast(errMsg(err),'error')}
+});
 $('#sosType').onclick=e=>{const b=e.target.closest('[data-t]');if(b){stype=+b.dataset.t;renderSOS()}};
 /* SOS 단체 문자: 상황실 + 연락처를 등록한 지사 멤버 + 내 비상연락처. 앱이 꺼진 사람도 문자로 받아요. */
 const telN=t=>String(t||'').replace(/[^0-9+]/g,'');
@@ -2048,7 +2061,7 @@ const relT=t=>{const m=Math.floor((Date.now()-t)/6e4);if(m<1)return '방금';if(
 function notifItems(){
   if(!myId)return [];const wk=Date.now()-7*864e5,L=[];
   D.alerts.forEach(a=>{if(a.by===myId||a.at<wk)return;
-    if(a.kind==='sos')L.push({id:'a_'+a.id,cat:'urgent',ic:'🚨',tone:'bg-red-100 dark:bg-red-500/20',k:'긴급 SOS',d:`${nmFull(a.by)} · ${a.type||''}${a.addr?' · '+a.addr:''}`,at:a.at,go:()=>go('sos')});
+    if(a.kind==='sos')L.push({id:'a_'+a.id,cat:'urgent',ic:a.resolved?'✅':'🚨',tone:a.resolved?'bg-green-100 dark:bg-green-500/20':'bg-red-100 dark:bg-red-500/20',k:a.resolved?'긴급 SOS (상황 종료)':'긴급 SOS',d:`${nmFull(a.by)} · ${a.type||''}${a.addr?' · '+a.addr:''}`,at:a.at,go:()=>go('sos')});
     else if(a.kind==='hazard')L.push({id:'a_'+a.id,cat:'field',ic:'⚠️',tone:'bg-orange-100 dark:bg-orange-500/20',k:'위험현장 (긴급)',d:a.msg||'',at:a.at,go:()=>go('haz')});
     else L.push({id:'a_'+a.id,cat:'field',ic:'📣',tone:'bg-green-100 dark:bg-green-500/20',k:'현장목소리 긴급 전파',d:`${nm(a.by)}: ${a.msg||''}`,at:a.at,go:()=>a.post?openPost(a.post):go('voice')});
   });
