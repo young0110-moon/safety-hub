@@ -1919,14 +1919,19 @@ if($('#geoBtn'))$('#geoBtn').onclick=async()=>{
 };
 
 /* ===== 시작 ===== */
+window.addEventListener('error',e=>{const l=$('#lock');if(l&&!l.classList.contains('hidden'))$('#lockMsg').innerHTML='앱을 여는 중 오류가 났어요.<br><span class="text-xs opacity-80">'+esc(String(e.message||e.error||'')).slice(0,160)+'</span><br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">다시 시도</button>'});
+window.addEventListener('unhandledrejection',e=>{const l=$('#lock');if(l&&!l.classList.contains('hidden')&&/^접속 권한/.test($('#lockMsg').textContent))$('#lockMsg').innerHTML='서버 응답이 없어요.<br><span class="text-xs opacity-80">'+esc(String(e.reason&&(e.reason.code||e.reason.message)||e.reason||'')).slice(0,160)+'</span><br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">다시 시도</button>'});
 async function init(){
   if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
   let fu=null;
   try{
     if(!window.FIREBASE_CONFIG||!FIREBASE_CONFIG.apiKey||FIREBASE_CONFIG.apiKey.startsWith('붙여')){$('#lockMsg').innerHTML='아직 서버(Firebase) 설정이 연결되지 않았어요.<br><span class="text-xs opacity-80">config.js에 Firebase 설정값을 넣어 주세요.</span>';$('#login').classList.add('hidden');return}
+    if(!window.firebase){$('#lockMsg').innerHTML='서버 라이브러리를 불러오지 못했어요.<br><span class="text-xs opacity-80">인터넷 연결을 확인하고 새로고침해 주세요.</span>';$('#login').classList.add('hidden');return}
     firebase.initializeApp(FIREBASE_CONFIG);const auth=firebase.auth();
-    try{await auth.getRedirectResult()}catch(e){console.warn(e)}
-    fu=await new Promise(r=>{const un=auth.onAuthStateChanged(u=>{un();r(u)})});
+    const to=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(undefined),ms))]);
+    try{await to(auth.getRedirectResult(),4000)}catch(e){console.warn(e)}
+    fu=await to(new Promise(r=>{const un=auth.onAuthStateChanged(u=>{un();r(u)})}),8000);
+    if(fu===undefined)fu=auth.currentUser||null;
     if(!fu){
       $('#lockMsg').innerHTML='부산동부지사 직원 전용 공간입니다.';$('#gBtn').classList.remove('hidden');$('#lockHelp').classList.remove('hidden');$('#login').classList.add('hidden');
       $('#gBtn').onclick=async()=>{const pv=new firebase.auth.GoogleAuthProvider();pv.setCustomParameters({prompt:'select_account'});try{await auth.signInWithPopup(pv);location.reload()}catch(e){if(e&&/popup|operation-not-supported|cancelled/.test(e.code||''))auth.signInWithRedirect(pv);else toast('로그인하지 못했어요 ('+(e.code||'')+')','error')}};
