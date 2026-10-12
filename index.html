@@ -234,6 +234,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="homeAcct" class="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-purple-400/30 bg-white/60 dark:bg-white/5">
     <span class="text-lg" aria-hidden="true">👤</span>
     <div class="flex-1 min-w-0 leading-tight"><div id="haName" class="text-xs font-black truncate"></div><div id="haMail" class="text-[10px] opacity-70 truncate">자동 로그인 중</div></div>
+    <button data-go="admin" id="homeAdm" class="hidden shrink-0 min-h-[40px] px-3 rounded-xl bg-[#4C1D95] text-white text-xs font-bold">🛡️ 관리자</button>
     <button id="homeOut" class="shrink-0 min-h-[40px] px-4 rounded-xl border border-red-400/60 text-red-500 dark:text-red-300 text-xs font-bold">로그아웃</button>
   </div>
 </section>
@@ -500,6 +501,22 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
 
+<!-- ADMIN -->
+<section id="p-admin" class="page pt-4 space-y-4" data-title="관리자">
+  <div class="card !p-4" style="background:linear-gradient(135deg,#4C1D95,#6D28D9);color:#fff;border:none">
+    <div class="text-[11px] font-bold opacity-80">🛡️ 관리자 전용</div>
+    <div class="text-lg font-black mt-0.5">지사 앱 관리</div>
+    <div id="admStats" class="grid grid-cols-4 gap-2 mt-3 text-center"></div>
+  </div>
+  <div class="flex gap-1.5 overflow-x-auto -mx-3 px-3" role="tablist">
+    <button data-admtab="wait" class="chip !min-h-[40px] shrink-0">⏳ 가입 대기</button>
+    <button data-admtab="mem" class="chip !min-h-[40px] shrink-0">👥 멤버</button>
+    <button data-admtab="block" class="chip !min-h-[40px] shrink-0">⛔ 내보낸 계정</button>
+    <button data-admtab="set" class="chip !min-h-[40px] shrink-0">⚙️ 설정</button>
+  </div>
+  <div id="admBody" class="space-y-3"></div>
+</section>
+
 <!-- PROFILE -->
 <section id="p-profile" class="page pt-4 space-y-4" data-title="내 프로필">
   <div class="card space-y-2">
@@ -701,7 +718,7 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',food:'food',insp:'inspection'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
@@ -720,6 +737,7 @@ function show(name,back){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.go===name));
   window.scrollTo({top:0});
   if(name==='profile')fillProfile();
+  if(name==='admin'){if(!isAdmin){location.hash='home';return}loadAccess()}
   if(typeof sbCloseSheet==='function'&&name!=='insp')sbCloseSheet(true);
   if(name!=='fortune'){ftShown=null;$('#ftBirth').value='';$('#ftOut').innerHTML=''}
   render();
@@ -740,7 +758,7 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();$('#wxChip').textContent=wxLine();
-  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,write:renderWrite}[cur]||(()=>{}))();
+  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();
 }
@@ -767,9 +785,10 @@ $('#lgForm').onsubmit=async e=>{
   if(!$('#lgAgree').checked)return toast('멤버 공개 동의에 체크해 주세요.','error');
   const code=$('#lgCode').value.trim();if(!code)return toast('지사 입장 코드를 입력해 주세요.','error');
   const fu=firebase.auth().currentUser;
-  try{await db.doc('members/'+myId).set({name,rank:$('#lgRank').value,team:$('#lgTeam').value.trim(),tel:$('#lgTel').value.trim(),email:(fu&&fu.email)||'',code,at:Date.now()});
+  const tryJoin=st=>db.doc('members/'+myId).set({name,rank:$('#lgRank').value,team:$('#lgTeam').value.trim(),tel:$('#lgTel').value.trim(),email:((fu&&fu.email)||'').toLowerCase(),code,status:st,at:Date.now()});
+  try{try{await tryJoin('active')}catch(e1){if(e1&&e1.code==='permission-denied')await tryJoin('pending');else throw e1}
     toast(`${name}님, 부산동부지사 안전 허브에 오신 것을 환영합니다!`,'ok');setTimeout(()=>location.reload(),600)}
-  catch(err){toast(err&&err.code==='permission-denied'?'입장 코드가 맞지 않아요. 지사에서 받은 코드를 다시 확인해 주세요.':errMsg(err),'error')}
+  catch(err){toast(err&&err.code==='permission-denied'?'입장 코드가 맞지 않거나 가입이 제한된 계정이에요. 지사에서 받은 코드를 다시 확인해 주세요.':errMsg(err),'error')}
 };
 function renderProfile(){
   const m=me()||{};$('#pAv').innerHTML=avatar(myId,52);$('#pName').textContent=m.name||'';$('#pSub').textContent=[m.rank,m.team].filter(Boolean).join(' · ');
@@ -780,7 +799,7 @@ $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)ret
 let outArm=0,homeOutArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
-  if(!$('#haName'))return;$('#haName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#haMail').textContent=fu&&fu.email?`${fu.email} · 자동 로그인`:'자동 로그인 중'}
+  if(!$('#haName'))return;$('#homeAdm').classList.toggle('hidden',!isAdmin);$('#haName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#haMail').textContent=fu&&fu.email?`${fu.email} · 자동 로그인`:'자동 로그인 중'}
 $('#homeOut').onclick=()=>{if(Date.now()-homeOutArm>4000){homeOutArm=Date.now();$('#homeOut').textContent='한 번 더 누르면 로그아웃';$('#homeOut').classList.add('bg-red-500','text-white');setTimeout(()=>{$('#homeOut').textContent='로그아웃';$('#homeOut').classList.remove('bg-red-500','text-white')},4000);return}doLogout()};
 $('#pfOut').onclick=async()=>{
   if(Date.now()-outArm>4000){outArm=Date.now();$('#pfOut').textContent='한 번 더 누르면 로그아웃됩니다';setTimeout(()=>$('#pfOut').textContent='로그아웃',4000);return}
@@ -1960,6 +1979,79 @@ if($('#geoBtn'))$('#geoBtn').onclick=async()=>{
   gu=best;store.set('koelsa_gu',gu);renderDepts();toast(`가장 가까운 지역: ${gu}`,'ok');
 };
 
+/* ===== 관리자 ===== */
+let ACC=null,admTab='wait',admQ='';
+async function loadAccess(){try{const d=await db.doc('settings/access').get();ACC=d.exists?d.data():{};changed()}catch(e){ACC=null}}
+const fmtDay=t=>{if(!t)return '-';const d=new Date(t);return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`};
+function admRow(m,btns){return `<div class="flex items-start gap-3 p-3"><div class="shrink-0">${avatar(m.id,40)}</div><div class="flex-1 min-w-0">
+  <div class="text-sm font-black truncate">${esc(m.name||'-')} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${(ACC&&(ACC.admins||[]).includes(m.email))?' <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-[#4C1D95] text-white font-bold">관리자</span>':''}${m.id===myId?' <span class="text-[10px] opacity-60">(나)</span>':''}</div>
+  <div class="text-[11px] opacity-75 truncate">${esc([m.team,m.tel].filter(Boolean).join(' · ')||'팀·연락처 미입력')}</div>
+  <div class="text-[10px] opacity-60 truncate">${esc(m.email||'')} · 가입 ${fmtDay(m.at)}</div>
+  <div class="flex flex-wrap gap-1.5 mt-2">${btns}</div></div></div>`}
+const ab=(attr,label,cls='')=>`<button ${attr} class="min-h-[36px] px-3 rounded-lg text-xs font-bold ${cls||'border border-purple-400/50'}">${label}</button>`;
+let admBlocks=[];
+async function loadBlocks(){try{const q=await db.collection('blocks').orderBy('at','desc').limit(200).get();admBlocks=q.docs.map(d=>({id:d.id,...d.data()}))}catch(e){admBlocks=[]}renderAdmin()}
+function renderAdmin(){
+  if(cur!=='admin')return;
+  const all=D.membersAll||D.members,wait=all.filter(m=>m.status==='pending'),act=all.filter(m=>(m.status||'active')==='active');
+  const today=new Date().setHours(0,0,0,0),posts=D.voices.filter(v=>v.at>=today).length;
+  $('#admStats').innerHTML=[['멤버',act.length],['대기',wait.length],['오늘 글',posts],['관리자',ACC?(ACC.admins||[]).length:'-']].map(([k,v])=>`<div class="rounded-xl bg-white/15 py-2"><div class="text-lg font-black tabular-nums">${v}</div><div class="text-[10px] opacity-85">${k}</div></div>`).join('');
+  document.querySelectorAll('[data-admtab]').forEach(b=>b.classList.toggle('sel',b.dataset.admtab===admTab));
+  const B=$('#admBody');
+  if(admTab==='wait'){
+    B.innerHTML=`<div class="text-xs opacity-80 px-1">${ACC&&ACC.approval?'✅ 지금은 <b>관리자 승인 후 입장</b> 방식이에요.':'지금은 <b>입장 코드만 맞으면 바로 입장</b> 방식이라 대기자가 생기지 않아요. 설정 탭에서 바꿀 수 있어요.'}</div>
+      <div class="card !p-0 divide-y divide-purple-400/20 overflow-hidden">${wait.length?wait.map(m=>admRow(m,ab(`data-adm="approve" data-id="${m.id}"`,'✅ 승인','bg-[#16A34A] text-white')+ab(`data-adm="reject" data-id="${m.id}"`,'거절','border border-red-400/60 text-red-500'))).join(''):'<p class="p-6 text-center text-sm opacity-70">가입 대기 중인 사람이 없어요.</p>'}</div>`;
+  }else if(admTab==='mem'){
+    const q=admQ.trim(),list=act.filter(m=>!q||[m.name,m.rank,m.team,m.email].join(' ').includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
+    B.innerHTML=`<input id="admQ" class="inp" placeholder="🔍 이름·팀·이메일 검색" value="${esc(admQ)}">
+      <div class="card !p-0 divide-y divide-purple-400/20 overflow-hidden">${list.map(m=>{const isA=ACC&&(ACC.admins||[]).includes(m.email),self=m.id===myId;
+        return admRow(m,(self?'<span class="text-[11px] opacity-60">본인 계정은 여기서 바꿀 수 없어요</span>':
+          (m.email?ab(`data-adm="${isA?'unadmin':'mkadmin'}" data-id="${m.id}"`,isA?'관리자 해제':'🛡️ 관리자 지정'):'')+ab(`data-adm="expel" data-id="${m.id}"`,'⛔ 내보내기','border border-red-400/60 text-red-500')))}).join('')||'<p class="p-6 text-center text-sm opacity-70">검색 결과가 없어요.</p>'}</div>
+      <p class="text-[11px] opacity-70 px-1 leading-relaxed">⛔ 내보내기: 앱에서 바로 나가지고, 입장 코드를 알아도 다시 가입할 수 없어요. '내보낸 계정' 탭에서 되돌릴 수 있어요.</p>`;
+    const qi=$('#admQ');qi.oninput=()=>{admQ=qi.value;const pos=qi.selectionStart;renderAdmin();const n=$('#admQ');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
+  }else if(admTab==='block'){
+    B.innerHTML=`<div class="card !p-0 divide-y divide-purple-400/20 overflow-hidden">${admBlocks.length?admBlocks.map(b=>`<div class="flex items-center gap-3 p-3"><div class="flex-1 min-w-0"><div class="text-sm font-black truncate">${esc(b.name||'-')}</div><div class="text-[10px] opacity-70 truncate">${esc(b.email||'')} · ${fmtDay(b.at)} 내보냄</div></div>${ab(`data-adm="unblock" data-id="${b.id}"`,'되돌리기')}</div>`).join(''):'<p class="p-6 text-center text-sm opacity-70">내보낸 계정이 없어요.</p>'}</div>
+      <p class="text-[11px] opacity-70 px-1">되돌리면 그 사람은 입장 코드로 다시 가입할 수 있어요.</p>`;
+  }else{
+    const a=ACC||{};
+    B.innerHTML=ACC===null?'<div class="card text-sm">설정을 불러오지 못했어요. 관리자 이메일이 서버에 등록돼 있는지 확인해 주세요.</div>':`
+      <div class="card space-y-2"><h3 class="font-black text-sm">🔑 지사 입장 코드</h3>
+        <div class="flex gap-2"><input id="admCode" class="inp flex-1 min-w-0 font-mono" maxlength="12" value="${esc(a.code||'')}"><button data-adm="savecode" class="shrink-0 min-h-[44px] px-4 rounded-xl bg-[#6D28D9] text-white text-sm font-bold">저장</button></div>
+        <p class="text-[11px] opacity-70">바꿔도 이미 가입한 직원은 그대로 써요. 새로 가입할 사람만 새 코드가 필요해요.</p></div>
+      <div class="card space-y-2"><h3 class="font-black text-sm">🚪 가입 방식</h3>
+        <div class="grid grid-cols-2 gap-2">${[[false,'코드만 맞으면 바로 입장'],[true,'관리자 승인 후 입장']].map(([v,l])=>`<button data-adm="approval" data-v="${v}" class="opt min-h-[52px] rounded-xl border border-purple-400/50 text-xs font-bold ${!!a.approval===v?'sel':''}">${l}</button>`).join('')}</div>
+        <p class="text-[11px] opacity-70">'관리자 승인'으로 바꾸면 새로 가입한 사람은 '가입 대기' 탭에서 승인해야 들어올 수 있어요.</p></div>
+      <div class="card space-y-2"><h3 class="font-black text-sm">🛡️ 관리자 이메일</h3>
+        <div class="space-y-1.5">${(a.admins||[]).map(e=>`<div class="flex items-center gap-2 text-sm"><span class="flex-1 min-w-0 truncate">${esc(e)}</span>${(a.admins||[]).length>1?ab(`data-adm="rmadmin" data-e="${esc(e)}"`,'삭제','border border-red-400/60 text-red-500'):''}</div>`).join('')}</div>
+        <div class="flex gap-2"><input id="admNewA" class="inp flex-1 min-w-0" type="email" placeholder="추가할 구글 이메일"><button data-adm="addadmin" class="shrink-0 min-h-[44px] px-4 rounded-xl border border-purple-400/50 text-sm font-bold">추가</button></div>
+        <p class="text-[11px] opacity-70">관리자는 이 화면을 보고, 멤버 승인·내보내기와 모든 글 삭제를 할 수 있어요. 최소 1명은 남아야 해요.</p></div>
+      <div class="card space-y-2"><h3 class="font-black text-sm">📞 상황실 번호</h3>
+        <div class="flex gap-2"><input id="admCtrl" class="inp flex-1 min-w-0" inputmode="tel" value="${esc(ctrlTel())}"><button data-adm="savectrl" class="shrink-0 min-h-[44px] px-4 rounded-xl bg-[#6D28D9] text-white text-sm font-bold">저장</button></div>
+        <p class="text-[11px] opacity-70">SOS 전화·단체 문자에 쓰여요.</p></div>`;
+  }
+}
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-admtab]');if(t){admTab=t.dataset.admtab;if(admTab==='block')loadBlocks();if(admTab==='set'||!ACC)loadAccess();renderAdmin();return}
+  const b=e.target.closest('[data-adm]');if(!b||cur!=='admin')return;
+  const act=b.dataset.adm,id=b.dataset.id,all=D.membersAll||D.members,m=all.find(x=>x.id===id);
+  const confirm2=(msg)=>{if(b.dataset.armed&&Date.now()-b.dataset.armed<4000)return true;b.dataset.armed=Date.now();const o=b.textContent;b.textContent=msg;setTimeout(()=>{if(b.isConnected){b.textContent=o;delete b.dataset.armed}},4000);return false};
+  try{
+    if(act==='approve'){await db.doc('members/'+id).update({status:'active',approvedBy:myId,approvedAt:Date.now()});toast(`${m.name}님을 승인했어요.`,'ok')}
+    else if(act==='reject'||act==='expel'){if(!confirm2(act==='expel'?'한 번 더 누르면 내보내요':'한 번 더 누르면 거절'))return;
+      await db.doc('blocks/'+id).set({name:m.name||'',email:m.email||'',by:myId,at:Date.now()});await db.doc('members/'+id).delete();
+      if(m.email&&ACC&&(ACC.admins||[]).includes(m.email))await db.doc('settings/access').update({admins:firebase.firestore.FieldValue.arrayRemove(m.email)});
+      toast(`${m.name}님을 ${act==='expel'?'내보냈어요':'거절했어요'}.`,'ok');loadAccess()}
+    else if(act==='unblock'){await db.doc('blocks/'+id).delete();admBlocks=admBlocks.filter(x=>x.id!==id);toast('되돌렸어요. 다시 가입할 수 있어요.','ok');renderAdmin()}
+    else if(act==='mkadmin'){await db.doc('settings/access').update({admins:firebase.firestore.FieldValue.arrayUnion(m.email)});toast(`${m.name}님을 관리자로 지정했어요.`,'ok');loadAccess()}
+    else if(act==='unadmin'){if((ACC.admins||[]).length<=1)return toast('관리자는 최소 1명 있어야 해요.','error');await db.doc('settings/access').update({admins:firebase.firestore.FieldValue.arrayRemove(m.email)});toast('관리자에서 해제했어요.','ok');loadAccess()}
+    else if(act==='savecode'){const v=$('#admCode').value.trim();if(v.length<4)return toast('입장 코드는 4자 이상으로 정해 주세요.','error');await db.doc('settings/access').update({code:v});toast('입장 코드를 바꿨어요.','ok');loadAccess()}
+    else if(act==='approval'){await db.doc('settings/access').update({approval:b.dataset.v==='true'});toast('가입 방식을 바꿨어요.','ok');loadAccess()}
+    else if(act==='addadmin'){const v=$('#admNewA').value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))return toast('이메일을 확인해 주세요.','error');await db.doc('settings/access').update({admins:firebase.firestore.FieldValue.arrayUnion(v)});toast('관리자를 추가했어요.','ok');loadAccess()}
+    else if(act==='rmadmin'){const v=b.dataset.e;if((ACC.admins||[]).length<=1)return;if(!confirm2('한 번 더 누르면 삭제'))return;await db.doc('settings/access').update({admins:firebase.firestore.FieldValue.arrayRemove(v)});toast('관리자에서 뺐어요.','ok');loadAccess()}
+    else if(act==='savectrl'){const v=$('#admCtrl').value.trim();if(!/^[0-9+\-\s]{3,16}$/.test(v))return toast('올바른 전화번호를 입력해 주세요.','error');await put('settings',{ctrlTel:v,by:myId,at:Date.now()},'main');toast('상황실 번호를 저장했어요.','ok')}
+  }catch(err){toast(err&&err.code==='permission-denied'?'권한이 없어요. 서버 규칙이 최신인지 확인해 주세요.':errMsg(err),'error')}
+});
+
 /* ===== 시작 ===== */
 window.addEventListener('error',e=>{const l=$('#lock');if(l&&!l.classList.contains('hidden'))$('#lockMsg').innerHTML='앱을 여는 중 오류가 났어요.<br><span class="text-xs opacity-80">'+esc(String(e.message||e.error||'')).slice(0,160)+'</span><br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">다시 시도</button>'});
 window.addEventListener('unhandledrejection',e=>{const l=$('#lock');if(l&&!l.classList.contains('hidden')&&/^접속 권한/.test($('#lockMsg').textContent))$('#lockMsg').innerHTML='서버 응답이 없어요.<br><span class="text-xs opacity-80">'+esc(String(e.reason&&(e.reason.code||e.reason.message)||e.reason||'')).slice(0,160)+'</span><br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">다시 시도</button>'});
@@ -1981,16 +2073,26 @@ async function init(){
       return;
     }
     db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true})}catch(e){}
-    myId=fu.uid;isAdmin=(window.ADMIN_EMAILS||[]).includes(fu.email||'');
+    myId=fu.uid;
   }catch(e){$('#lockMsg').innerHTML='서버에 연결하지 못했어요.<br><span class="text-xs opacity-80">'+esc(String(e&&e.message||e))+'</span>';$('#login').classList.add('hidden');return}
   $('#lock').classList.add('hidden');
   if($('#pfAcct')&&fu.email)$('#pfAcct').textContent=`${fu.email} 계정으로 자동 로그인됩니다. 다른 기기에서도 같은 계정으로 열면 같은 프로필로 들어옵니다.`;
+  /* 멤버 상태 확인: 없음 → 가입, 대기 → 승인 대기 화면, 내보냄 → 차단 화면 */
+  let mine=null;try{const d=await db.doc('members/'+myId).get();mine=d.exists?{id:d.id,...d.data()}:null}catch(e){}
+  const lockWith=(html)=>{$('#lock').classList.remove('hidden');$('#lockMsg').innerHTML=html+`<br><button id="lockOut" class="mt-5 px-5 min-h-[44px] rounded-xl bg-white/20 text-sm font-bold">다른 계정으로 로그인</button>`;$('#login').classList.add('hidden');$('#lockOut').onclick=doLogout};
+  if(!mine){
+    let blocked=false;try{blocked=(await db.doc('blocks/'+myId).get()).exists}catch(e){}
+    if(blocked)return lockWith('이 계정은 지사 관리자가 이용을 제한했어요.<br><span class="text-xs opacity-80">문의는 지사 관리자에게 해 주세요.</span>');
+    D.members=[];ready=true;checkLogin();return;
+  }
+  if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
+  try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
   setSync();
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   COLS.forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{
     const rows=sn.docs.map(d=>({id:d.id,...d.data()}));
     if(c==='alerts'){if(got.has('alerts'))rows.forEach(a=>{if(!D.alerts.some(x=>x.id===a.id)&&a.by!==myId&&a.at>t0-6e4)fireAlert(a)})}
-    D[c]=rows;got.add(c);if(c==='members'&&!ready){ready=true}
+    if(c==='members'){D.membersAll=rows;D[c]=rows.filter(m=>(m.status||'active')==='active')}else D[c]=rows;got.add(c);if(c==='members'&&!ready){ready=true}
     setSync();changed();
   },e=>{setSync(e.code);if(c==='members'&&!ready){ready=true;changed()}}));
   loadWeather();

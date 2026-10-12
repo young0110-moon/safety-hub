@@ -1,5 +1,5 @@
 /* 오프라인·빠른 실행용 캐시. 앱 파일과 연혁집 데이터는 캐시, 서버(Firebase)·날씨는 항상 네트워크. */
-const VER='hub-v6';
+const VER='hub-v7';
 const SHELL=['./','./index.html','./config.js','./tailwind.css','./vendor/firebase-app-compat.js','./vendor/firebase-auth-compat.js','./vendor/firebase-firestore-compat.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VER).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VER).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

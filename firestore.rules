@@ -1,29 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 로그인 + 지사 멤버(members/{uid} 문서가 있음)만 사용
     function signedIn() { return request.auth != null; }
-    function isMember() { return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid)); }
     function access() { return get(/databases/$(database)/documents/settings/access).data; }
-    function isAdmin() { return signedIn() && (request.auth.token.email in access().admins); }
+    function myMember() { return /databases/$(database)/documents/members/$(request.auth.uid); }
+    function isMember() { return signedIn() && exists(myMember()) && get(myMember()).data.get('status', 'active') == 'active'; }
+    function isAdmin() { return signedIn() && request.auth.token.email != null && request.auth.token.email.lower() in access().admins; }
+    function approvalOn() { return access().get('approval', false) == true; }
 
-    // 입장 코드·관리자 목록: 콘솔에서만 수정, 클라이언트는 읽지 못함(규칙 안에서만 참조)
-    match /settings/access { allow read, write: if false; }
+    // 입장 코드·관리자 목록·가입 방식: 관리자만 읽고 고침 (관리자는 최소 1명)
+    match /settings/access {
+      allow read: if isAdmin();
+      allow update: if isAdmin() && request.resource.data.admins is list && request.resource.data.admins.size() > 0
+                    && request.resource.data.code is string && request.resource.data.code.size() >= 4;
+      allow create, delete: if false;
+    }
 
-    // 멤버 가입: 본인 uid 문서를 만들 때 입장 코드가 맞아야 함
+    // 내보낸 계정: 관리자만 관리, 본인은 차단 여부만 확인
+    match /blocks/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
     match /members/{uid} {
-      allow read: if isMember();
+      allow read: if isMember() || isAdmin() || (signedIn() && request.auth.uid == uid);
+      // 가입: 입장 코드 일치 + 내보낸 계정 아님 + 가입 방식에 맞는 상태
       allow create: if signedIn() && request.auth.uid == uid
+                    && !exists(/databases/$(database)/documents/blocks/$(uid))
                     && request.resource.data.code == access().code
-                    && request.resource.data.name is string && request.resource.data.name.size() <= 12;
-      allow update: if isMember() && (request.auth.uid == uid || isAdmin());
-      allow delete: if isMember() && (request.auth.uid == uid || isAdmin());
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 12
+                    && ((approvalOn() && request.resource.data.status == 'pending')
+                        || (!approvalOn() && request.resource.data.status == 'active'));
+      // 본인은 프로필만 수정(상태·코드 변경 불가), 관리자는 승인 등 모두 가능
+      allow update: if isAdmin()
+                    || (isMember() && request.auth.uid == uid
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'code', 'email']));
+      allow delete: if isAdmin() || (isMember() && request.auth.uid == uid);
     }
 
     // 상황실 번호 등 지사 공통 설정
     match /settings/main { allow read: if isMember(); allow write: if isMember(); }
 
-    // 공지·일정·현장목소리·댓글·위험현장·알림·맛집·사진 등: 멤버는 읽고 쓰기, 삭제는 작성자나 관리자
+    // 공지·일정·현장목소리·댓글·위험현장·알림·맛집·사진: 멤버는 읽고 쓰기, 삭제는 작성자나 관리자
     match /{col}/{doc} {
       allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos'];
       allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos']
