@@ -1,0 +1,16 @@
+{
+  "name": "부산동부지사 안전 허브",
+  "short_name": "안전 허브",
+  "description": "한국승강기안전공단 부산동부지사 직원 전용 소통·안전·기준 자료 앱",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1E1B4B",
+  "theme_color": "#6D28D9",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
