@@ -501,7 +501,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <div class="flex items-center gap-3 mb-1"><span id="pAv"></span><div class="min-w-0"><div id="pName" class="font-black truncate"></div><div id="pSub" class="text-xs opacity-70 truncate"></div></div></div>
     <input id="pfName" class="inp" maxlength="12" placeholder="이름">
     <div class="grid grid-cols-2 gap-2"><select id="pfRank" class="inp"></select><input id="pfTeam" class="inp" maxlength="16" placeholder="부서·팀"></div>
-    <input id="pfTel" class="inp" maxlength="16" inputmode="tel" placeholder="연락처 (선택)">
+    <input id="pfTel" class="inp" maxlength="16" inputmode="tel" placeholder="연락처 (SOS 단체 문자를 받으려면 입력)">
     <button id="pfSave" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">프로필 저장</button>
   </div>
   <div class="card text-sm space-y-2">
@@ -516,7 +516,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <p class="text-sm mb-3">상황 유형을 고르고 SOS 버튼을 누르면<br>지사 전체에 즉시 알립니다.</p>
     <div id="sosType" class="grid grid-cols-4 gap-2 mb-5"></div>
     <button id="sosBtn" class="sos w-40 h-40 rounded-full bg-[#FF3B30] text-white font-black text-3xl border-4 border-red-200">SOS</button>
-    <div id="sosLoc" class="text-xs mt-4 opacity-85 leading-relaxed">📍 SOS를 누르면 <b>현재 위치</b>를 확인해서 상황실에 문자로 보낼 수 있어요.<br>처음 한 번 "위치 허용"을 눌러 주세요.</div>
+    <div id="sosLoc" class="text-xs mt-4 opacity-85 leading-relaxed">📍 SOS를 누르면 <b>현재 위치</b>가 담긴 문자를 <b>상황실과 지사 직원 전체</b>에게 한 번에 보낼 수 있어요.<br>처음 한 번 "위치 허용"을 눌러 주세요.</div>
   </div>
   <div class="card">
     <h2 class="font-black text-sm mb-2">📞 비상연락망</h2>
@@ -567,7 +567,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
       <div class="text-sm font-black mb-1">멤버 가입</div>
       <input id="lgName" class="inp" maxlength="12" placeholder="이름 (예: 김안전)" required>
       <div class="grid grid-cols-2 gap-2"><select id="lgRank" class="inp"></select><input id="lgTeam" class="inp" maxlength="16" placeholder="부서·팀 (예: 검사1팀)"></div>
-      <input id="lgTel" class="inp" maxlength="16" inputmode="tel" placeholder="연락처 (선택)">
+      <input id="lgTel" class="inp" maxlength="16" inputmode="tel" placeholder="휴대폰 번호 (SOS 단체 문자 수신용)">
       <input id="lgCode" class="inp !border-amber-300" maxlength="12" autocomplete="one-time-code" placeholder="🔑 지사 입장 코드" required>
       <label class="flex items-start gap-2 text-xs opacity-90 py-1"><input id="lgAgree" type="checkbox" class="w-4 h-4 mt-0.5 accent-violet-300">입력한 이름·직급·팀·연락처를 지사 멤버에게 공개하는 데 동의합니다.</label>
       <button class="w-full min-h-[52px] rounded-xl bg-white text-[#6D28D9] font-black">가입하고 입장하기</button>
@@ -646,7 +646,7 @@ function geoHelp(){
 }
 async function getLoc(){const p=await getPos();return p?`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`:null}
 async function revGeo(p){try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${p.lat}&lon=${p.lng}&accept-language=ko&zoom=18`,{headers:{'Accept':'application/json'}});const j=await r.json();const a=j.address||{};return [a.city||a.province||'',a.borough||a.city_district||a.county||'',a.suburb||a.quarter||a.neighbourhood||'',a.road||'',a.house_number||'',a.building||a.amenity||''].filter(Boolean).join(' ')||j.display_name||''}catch(e){return ''}}
-const mapLink=p=>`https://map.kakao.com/link/map/현재위치,${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
+const mapLink=p=>`https://map.kakao.com/link/map/SOS,${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
 function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='square';o.frequency.value=880;g.gain.value=.08;o.start();setTimeout(()=>{o.stop();c.close()},900)}catch(e){}}
 
 /* clock & theme */
@@ -1248,22 +1248,46 @@ function renderSOS(){
   $('#sosLog').innerHTML=L.length?L.map(a=>`<div class="p-2 rounded-xl sub text-xs"><b>${esc(aTitle(a))}</b><br><span class="opacity-70">${esc(nmFull(a.by))} · ${tstr(a.at)}${a.loc?' · 📍 '+esc(a.loc):''}</span></div>`).join(''):'<p class="text-xs opacity-70">전송 이력이 없습니다.</p>';
 }
 $('#sosType').onclick=e=>{const b=e.target.closest('[data-t]');if(b){stype=+b.dataset.t;renderSOS()}};
+/* SOS 단체 문자: 상황실 + 연락처를 등록한 지사 멤버 + 내 비상연락처. 앱이 꺼진 사람도 문자로 받아요. */
+const telN=t=>String(t||'').replace(/[^0-9+]/g,'');
+function sosRecipients(){
+  const L=[],seen=new Set(),add=(n,t,k)=>{t=telN(t);if(t.length<8||seen.has(t))return;seen.add(t);L.push({n,t,k})};
+  add('상황실',ctrlTel(),'ctrl');
+  D.members.filter(m=>m.id!==myId&&m.tel).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).forEach(m=>add(m.name||'멤버',m.tel,'mem'));
+  (contacts||[]).forEach(c=>add(c.n,c.t,'my'));
+  return L;
+}
+const smsHref=(list,body)=>{const to=list.map(x=>x.t).join(',');return isIOS?`sms:/open?addresses=${to}&body=${encodeURIComponent(body)}`:`sms:${to}?body=${encodeURIComponent(body)}`};
+function sosSmsHTML(body){
+  const R=sosRecipients(),ctrl=R.filter(x=>x.k==='ctrl'),mem=R.filter(x=>x.k!=='ctrl'),tel=telN(ctrlTel());
+  return `<a href="${smsHref(R,body)}" class="flex min-h-[56px] rounded-xl bg-[#FF3B30] text-white font-black text-base items-center justify-center gap-2" style="box-shadow:0 0 16px rgba(255,59,48,.45)">💬 지사 전체 단체 문자 <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-white/25 tabular-nums">${R.length}명</span></a>
+    <div class="grid grid-cols-2 gap-2"><a href="${smsHref(ctrl,body)}" class="min-h-[44px] rounded-xl border border-red-400/60 text-red-600 dark:text-red-300 font-bold text-xs flex items-center justify-center">💬 상황실만 문자</a><a href="tel:${tel}" class="min-h-[44px] rounded-xl bg-[#6D28D9] text-white font-bold text-xs flex items-center justify-center">📞 상황실 전화</a></div>
+    <details class="text-[11px]"><summary class="cursor-pointer opacity-80 min-h-[32px] flex items-center">받는 사람 ${R.length}명 보기</summary><div class="mt-1 flex flex-wrap gap-1">${R.map(x=>`<span class="px-2 py-0.5 rounded-full sub">${esc(x.n)}</span>`).join('')}</div>
+      <p class="mt-1.5 opacity-75 leading-relaxed">${mem.length?'':'아직 연락처를 등록한 멤버가 없어요. '}<b>내 프로필</b>에 연락처를 넣은 직원만 단체 문자를 받아요.${isIOS?' 아이폰은 받는 사람이 많으면 그룹 문자(MMS)로 보내져요.':''}</p>
+      <button type="button" data-copybody class="mt-1.5 min-h-[36px] px-3 rounded-lg border border-purple-400/50 font-bold">📋 문자 내용 복사</button></details>`;
+}
+let sosBody='';
+document.addEventListener('click',async e=>{if(e.target.closest('[data-copybody]')){try{await navigator.clipboard.writeText(sosBody);toast('문자 내용을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}}});
 $('#sosBtn').onclick=async()=>{
   if(navigator.vibrate)try{navigator.vibrate([300,100,300,100,600])}catch(e){}
-  toast(db?`🚨 [${TYPES[stype]}] 지사 전체에 긴급 알림을 전송했습니다.`:`🚨 [${TYPES[stype]}] 기록했습니다. (공유 연결 시 지사 전체 전송)`,'error');
-  $('#sosLoc').innerHTML='📍 현재 위치를 확인하는 중… (위치 허용을 눌러 주세요)';
   const posP=getPos(); /* 버튼을 누른 순간 바로 요청해야 아이폰에서 허용 창이 떠요 */
-  try{const id=await put('alerts',{kind:'sos',type:TYPES[stype],by:myId,at:Date.now()});
-    const p=await posP;
-    if(!p){const tel=ctrlTel().replace(/[^0-9+]/g,'');$('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2 leading-relaxed"><div>📍 ${geoHelp()}</div><a href="tel:${tel}" class="flex min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-black text-sm items-center justify-center">📞 상황실 전화 (건물명·주소 말하기)</a></div>`;return}
-    const addr=await revGeo(p);const loc=`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
-    patch('alerts',id,{loc,addr,lat:p.lat,lng:p.lng}).catch(()=>{});
-    const who=(me()||{}).name||'직원',body=`[SOS ${TYPES[stype]}] ${who}\n위치: ${addr||loc}\n지도: ${mapLink(p)}`;
-    const tel=ctrlTel().replace(/[^0-9+]/g,'');
-    $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2"><div>📍 <b>${esc(addr||'주소 확인 불가')}</b><br><span class="opacity-70 tabular-nums">${loc} (오차 ±${Math.round(p.acc||0)}m)</span></div>
-      <div class="grid grid-cols-2 gap-2"><a href="sms:${tel}?&body=${encodeURIComponent(body)}" class="min-h-[48px] rounded-xl bg-[#FF3B30] text-white font-black text-sm flex items-center justify-center">💬 상황실에 위치 문자</a><a href="tel:${tel}" class="min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-black text-sm flex items-center justify-center">📞 상황실 전화</a></div>
-      <a href="${mapLink(p)}" target="_blank" rel="noopener" class="block text-center min-h-[40px] leading-[40px] rounded-xl border border-purple-400/50 text-xs font-bold">🗺️ 지도에서 내 위치 보기</a></div>`;
-  }catch(e){toast(errMsg(e),'error')}
+  const who=(me()||{}).name||'직원',kind=TYPES[stype],t0=new Date(),hm=`${pad(t0.getHours())}:${pad(t0.getMinutes())}`;
+  sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치 확인 중… 바로 전화 주세요.`;
+  $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2"><div class="text-xs font-bold">📍 현재 위치를 확인하는 중… (위치 허용을 눌러 주세요)</div>${sosSmsHTML(sosBody)}</div>`;
+  toast(`🚨 [${kind}] 앱을 켠 직원에게 알렸어요. 단체 문자도 보내 주세요.`,'error');
+  let id=null;try{id=await put('alerts',{kind:'sos',type:kind,by:myId,at:Date.now()})}catch(e){toast(errMsg(e),'error')}
+  const p=await posP;
+  if(!p){
+    sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치 자동 확인 실패. 바로 전화 주세요.`;
+    $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2 leading-relaxed">${sosSmsHTML(sosBody)}<div class="text-xs pt-1">📍 ${geoHelp()}</div></div>`;return}
+  const loc=`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+  sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치: ${loc}\n지도: ${mapLink(p)}`;
+  $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2"><div class="text-xs">📍 주소 찾는 중… <span class="opacity-70 tabular-nums">${loc}</span></div>${sosSmsHTML(sosBody)}</div>`;
+  const addr=await revGeo(p);
+  if(id)patch('alerts',id,{loc,addr,lat:p.lat,lng:p.lng}).catch(()=>{});
+  sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치: ${addr||loc}\n지도: ${mapLink(p)}`;
+  $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2"><div>📍 <b>${esc(addr||'주소 확인 불가')}</b><br><span class="opacity-70 tabular-nums text-xs">${loc} (오차 ±${Math.round(p.acc||0)}m)</span></div>${sosSmsHTML(sosBody)}
+    <a href="${mapLink(p)}" target="_blank" rel="noopener" class="block text-center min-h-[40px] leading-[40px] rounded-xl border border-purple-400/50 text-xs font-bold">🗺️ 지도에서 내 위치 보기</a></div>`;
 };
 if($('#locShare'))$('#locShare').onclick=async()=>{toast('위치를 확인하는 중…');const g=await getLoc();$('#sosLoc').textContent=g?'📍 위치: '+g:'📍 위치 권한이 없거나 확인할 수 없습니다.';toast(g?'위치를 확인했습니다.':'위치를 확인하지 못했습니다.',g?'ok':'error')};
 const ctrlTel=()=>{const m=D.settings.find(x=>x.id==='main');return (m&&m.ctrlTel)||'051-784-8502'};
