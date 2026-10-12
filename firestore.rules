@@ -1,14 +1,37 @@
 rules_version = '2';
+// ============================================================
+// 부산동부지사 안전 허브 · Firestore 보안 규칙
+// 이 규칙이 "누가 무엇을 읽고 쓸 수 있는지"를 서버에서 막아 줍니다.
+// 앱 코드를 고쳐도 이 규칙을 통과하지 못하면 데이터에 손댈 수 없어요.
+// ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------- 자주 쓰는 확인 함수 ----------
+
+    // 구글 로그인을 했는가
     function signedIn() { return request.auth != null; }
+
+    // 관리자 설정 문서(settings/access): 입장 코드(code), 관리자 이메일(admins), 가입 방식(approval)
     function access() { return get(/databases/$(database)/documents/settings/access).data; }
+
+    // 로그인한 사람의 멤버 문서 위치
     function myMember() { return /databases/$(database)/documents/members/$(request.auth.uid); }
+
+    // 지사 멤버인가: 멤버 문서가 있고, 상태가 '승인됨(active)'
+    //   (예전에 가입해서 상태 값이 없는 사람도 승인된 것으로 봄)
     function isMember() { return signedIn() && exists(myMember()) && get(myMember()).data.get('status', 'active') == 'active'; }
+
+    // 관리자인가: 로그인한 구글 이메일이 관리자 목록(admins)에 있음
     function isAdmin() { return signedIn() && request.auth.token.email != null && request.auth.token.email.lower() in access().admins; }
+
+    // 가입 방식이 '관리자 승인 후 입장'인가
     function approvalOn() { return access().get('approval', false) == true; }
 
-    // 입장 코드·관리자 목록·가입 방식: 관리자만 읽고 고침 (관리자는 최소 1명)
+    // ---------- 관리자 설정 ----------
+    // 입장 코드·관리자 목록·가입 방식은 관리자만 보고 고칠 수 있음
+    // 관리자는 최소 1명, 입장 코드는 4자 이상이어야 저장됨
+    // 이 문서를 새로 만들거나 지우는 건 앱에서 불가(Firebase 콘솔에서만)
     match /settings/access {
       allow read: if isAdmin();
       allow update: if isAdmin() && request.resource.data.admins is list && request.resource.data.admins.size() > 0
@@ -16,39 +39,66 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
-    // 내보낸 계정: 관리자만 관리, 본인은 차단 여부만 확인
+    // ---------- 내보낸 계정 ----------
+    // 관리자가 내보낸 사람 목록. 관리자만 추가·삭제(되돌리기)
+    // 본인은 "내가 내보내졌는지"만 확인 가능 → 앱이 차단 화면을 보여줌
     match /blocks/{uid} {
       allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
       allow write: if isAdmin();
     }
 
+    // ---------- 멤버 ----------
     match /members/{uid} {
+      // 멤버 목록은 지사 멤버와 관리자가 볼 수 있음. 본인 문서는 승인 대기 중에도 볼 수 있음
       allow read: if isMember() || isAdmin() || (signedIn() && request.auth.uid == uid);
-      // 가입: 입장 코드 일치 + 내보낸 계정 아님 + 가입 방식에 맞는 상태
+
+      // 가입 조건
+      //  1) 본인 계정으로만 가입
+      //  2) 내보낸 계정이 아님
+      //  3) 입장 코드가 맞음
+      //  4) 이름은 12자 이하
+      //  5) 가입 방식이 '승인 후 입장'이면 대기(pending), 아니면 바로 승인(active)으로만 가입 가능
       allow create: if signedIn() && request.auth.uid == uid
                     && !exists(/databases/$(database)/documents/blocks/$(uid))
                     && request.resource.data.code == access().code
                     && request.resource.data.name is string && request.resource.data.name.size() <= 12
                     && ((approvalOn() && request.resource.data.status == 'pending')
                         || (!approvalOn() && request.resource.data.status == 'active'));
-      // 본인은 프로필만 수정(상태·코드 변경 불가), 관리자는 승인 등 모두 가능
+
+      // 수정: 관리자는 승인·정보 수정 모두 가능
+      //       본인은 이름·직급·팀·연락처만 수정 가능(승인 상태·코드·이메일은 못 바꿈)
       allow update: if isAdmin()
                     || (isMember() && request.auth.uid == uid
                         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'code', 'email']));
+
+      // 삭제: 관리자(내보내기·거절) 또는 본인 탈퇴
       allow delete: if isAdmin() || (isMember() && request.auth.uid == uid);
     }
 
-    // 상황실 번호 등 지사 공통 설정
+    // ---------- 지사 공통 설정 ----------
+    // 상황실 전화번호 등. 지사 멤버는 누구나 보고 고칠 수 있음
     match /settings/main { allow read: if isMember(); allow write: if isMember(); }
 
-    // 공지·일정·현장목소리·댓글·위험현장·알림·맛집·사진: 멤버는 읽고 쓰기, 삭제는 작성자나 관리자
+    // ---------- 앱 데이터 ----------
+    // notices 공지 / noticeReads 공지 읽음 / events 공용 일정 / voices 현장목소리
+    // comments 댓글 / reacts 좋아요 / hazards 위험현장 / alerts SOS·긴급 알림
+    // foods 맛집 / foodLikes 맛집 추천 / photos 사진
     match /{col}/{doc} {
+      // 읽기: 지사 멤버만
       allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos'];
+
+      // 쓰기: 지사 멤버만, 작성자(by)는 반드시 본인으로 기록
       allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos']
                     && request.resource.data.by == request.auth.uid;
+
+      // 수정: 작성자 본인 또는 관리자
+      //   현장목소리·위험현장·공지·일정은 다른 멤버도 수정 가능(좋아요 수, 위치 추가 등)
       allow update: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos']
                     && (resource.data.by == request.auth.uid || isAdmin() || col in ['voices','hazards','notices','events']);
+
+      // 삭제: 작성자 본인 또는 관리자
       allow delete: if isMember() && (resource.data.by == request.auth.uid || isAdmin());
     }
+    // 위에 적지 않은 곳은 모두 접근 불가(기본값)
   }
 }
