@@ -93,8 +93,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* 당겨서 새로고침 엘리베이터 */
 .ptr-elv{display:inline-flex;width:26px;height:30px;border:2px solid #fff;border-radius:5px;padding:5px 2px 2px;box-sizing:border-box;position:relative}
 .ptr-elv:before{content:"";position:absolute;top:1px;left:50%;margin-left:-3px;border:3px solid transparent;border-bottom:3px solid #fff;border-top:0}
-.ptr-car{flex:1;display:flex;overflow:hidden;background:#FDE68A;border-radius:1px}
-.ptr-d{flex:1;background:#A78BFA;border:1px solid #fff;will-change:transform}
+.ptr-car{flex:1;position:relative;overflow:hidden;background:#FDE68A;border-radius:1px}
+.ptr-d{position:absolute;top:0;bottom:0;width:50%;background:#A78BFA;border:1px solid #fff;box-sizing:border-box;transition:left .45s ease,right .45s ease}
+.ptr-d.l{left:0}.ptr-d.r{right:0}
+.ptr-elv.open .ptr-d.l{left:-50%!important}.ptr-elv.open .ptr-d.r{right:-50%!important}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
 #homeRefIc .rd-l,#homeRefIc .rd-r{transform-box:fill-box}
 @keyframes rdL{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(-85%)}}@keyframes rdR{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(85%)}}
@@ -539,7 +541,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 </section>
 
 <div id="ptrWrap" class="fixed inset-x-0 z-[60] flex justify-center pointer-events-none" style="top:calc(64px + env(safe-area-inset-top,0px))"><div id="ptr" class="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="transform:translateY(-70px);opacity:0;transition:opacity .15s">
-  <span class="ptr-elv" aria-hidden="true"><span class="ptr-car"><span id="ptrL" class="ptr-d"></span><span id="ptrR" class="ptr-d"></span></span></span>
+  <span class="ptr-elv" aria-hidden="true"><span class="ptr-car"><span id="ptrL" class="ptr-d l"></span><span id="ptrR" class="ptr-d r"></span></span></span>
   <span id="ptrTx">새로고침</span></div></div>
 <button id="updBar" onclick="location.reload()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
 <div id="nPanel" class="hidden fixed inset-0 z-[90]" role="dialog" aria-label="알림">
@@ -827,7 +829,7 @@ function renderHeader(){
   $('#foodCnt').textContent=D.foods.length?`맛집공유 ${D.foods.length}`:'맛집공유';
   $('#memCnt').textContent=D.members.length?`멤버 ${D.members.length}`:'멤버';
 }
-function setSync(err){$('#sync').textContent=db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전'}
+function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전')+(()=>{try{return BUILD!=='__BUILD__'?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})()}
 
 /* ===== 로그인 · 가입 ===== */
 ['#lgRank','#pfRank'].forEach(s=>$(s).innerHTML=RANKS.map(r=>`<option>${r}</option>`).join(''));
@@ -2118,14 +2120,14 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pageshow',()=>checkUpdate());
 setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*1000);
 /* 메인 화면 맨 위에서 아래로 당기면 새로고침 */
-/* 당긴 만큼 엘리베이터 문이 열림 (k: 0=닫힘 ~ 1=활짝). 아이폰 호환을 위해 그림 대신 HTML 상자로 문을 그림 */
-function ptrDoor(k){const L=$('#ptrL'),R=$('#ptrR');if(!L)return;const v=(k*100).toFixed(1);L.style.webkitTransform=L.style.transform=`translateX(-${v}%)`;R.style.webkitTransform=R.style.transform=`translateX(${v}%)`}
+/* 당겨서 새로고침: 조금 당기면 엘리베이터 문이 스르륵 열림 (첫 화면 문과 같은 방식: 위치 이동 + 전환 효과) */
+function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;E.classList.toggle('open',k>=0.35)}
 (()=>{let y0=null,dy=0;const ind=()=>$('#ptr');
   document.addEventListener('touchstart',e=>{if(window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0},{passive:true});
   document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy>0){const el=ind(),k=Math.min(dy/90,1);el.style.transform=`translateY(${Math.min(dy,110)-70}px)`;el.style.opacity=k;
       /* 당긴 만큼 엘리베이터 문이 열림 */
       ptrDoor(k)}},{passive:true});
-  document.addEventListener('touchend',()=>{if(y0==null)return;const el=ind();if(dy>90){ptrDoor(1);setTimeout(()=>location.reload(),350)}else{el.style.transform='translateY(-70px)';el.style.opacity=0;ptrDoor(0)}y0=null;dy=0});
+  document.addEventListener('touchend',()=>{if(y0==null)return;const el=ind();if(dy>90){ptrDoor(1);setTimeout(()=>location.reload(),650)}else{el.style.transform='translateY(-70px)';el.style.opacity=0;ptrDoor(0)}y0=null;dy=0});
 })();
 
 /* ===== 알림함 (안 읽은 알림 모아 보기) ===== */
