@@ -94,7 +94,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ptr-elv{display:inline-flex;width:26px;height:30px;border:2px solid #fff;border-radius:5px;padding:5px 2px 2px;box-sizing:border-box;position:relative}
 .ptr-elv:before{content:"";position:absolute;top:1px;left:50%;margin-left:-3px;border:3px solid transparent;border-bottom:3px solid #fff;border-top:0}
 .ptr-car{flex:1;position:relative;overflow:hidden;background:#FDE68A;border-radius:1px}
-.ptr-d{position:absolute;top:0;bottom:0;width:50%;background:#A78BFA;border:1px solid #fff;box-sizing:border-box;transition:left .45s ease,right .45s ease}
+.ptr-d{position:absolute;top:0;bottom:0;width:50%;background:#A78BFA;border:1px solid #fff;box-sizing:border-box;transition:left 1.3s cubic-bezier(.45,0,.2,1),right 1.3s cubic-bezier(.45,0,.2,1)}
 .ptr-d.l{left:0}.ptr-d.r{right:0}
 .ptr-elv.open .ptr-d.l{left:-50%!important}.ptr-elv.open .ptr-d.r{right:-50%!important}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
@@ -2121,7 +2121,8 @@ window.addEventListener('pageshow',()=>checkUpdate());
 setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*1000);
 /* 메인 화면 맨 위에서 아래로 당기면 새로고침 */
 /* 당겨서 새로고침: 조금 당기면 엘리베이터 문이 스르륵 열림 (첫 화면 문과 같은 방식: 위치 이동 + 전환 효과) */
-function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;E.classList.toggle('open',k>=0.3)}
+let ptrOpenAt=0;/* 문이 열리기 시작한 시각 */
+function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;const o=k>=0.3;if(o&&!E.classList.contains('open'))ptrOpenAt=Date.now();E.classList.toggle('open',o)}
 (()=>{let y0=null,dy=0,act=false;const ind=()=>$('#ptr');
   /* 안드로이드 크롬은 당기는 동작을 브라우저가 가져가면 손가락 움직임 신호를 끊어 버림
      → 맨 위에서 아래로 당길 때는 브라우저 기본 동작을 막고(preventDefault) 앱이 직접 처리 */
@@ -2132,7 +2133,7 @@ function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;E.cl
     act=true;if(e.cancelable)e.preventDefault();
     const el=ind(),k=Math.min(dy/90,1);el.style.transform=`translateY(${Math.min(dy,110)-70}px)`;el.style.opacity=Math.max(k,.4);
     ptrDoor(k)},{passive:false});
-  document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);setTimeout(()=>location.reload(),650);y0=null}else reset()});
+  document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);/* 문이 천천히 다 열린 걸 보여준 뒤 새로고침 */setTimeout(()=>location.reload(),Math.max(400,1500-(Date.now()-ptrOpenAt)));y0=null}else reset()});
   document.addEventListener('touchcancel',()=>{if(y0!=null)reset()});
 })();
 
