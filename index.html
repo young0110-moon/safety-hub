@@ -90,7 +90,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .dark #p-notice .nt-new{background:#FFD8E4!important;color:#633B48!important}
 .dark #p-notice .nt-btn,.dark #ntAdd{background:#6750A4!important;color:#FFFFFF!important}
 .dark #p-notice .nt-done{border-color:#386A20!important;color:#386A20!important}
-.dark #wxChip{background:#F9A8D4!important;color:#4A0D2E!important}
+#wxChip{background:transparent!important;color:inherit!important}
 .dark #p-weather .card{background:#3D2A78;border-color:#4C3A8A;color:#FBF7FF}
 .dark #p-weather .sub{background:#2E1F63;color:#E9DDFB}
 .dark #p-weather .opt{border-color:#4C3A8A!important;background:#33236A}
@@ -218,7 +218,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
-  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-4 py-2.5 rounded-2xl bg-[#5B21B6] text-white shadow-md"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-white/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
+  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl border border-purple-400/40"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/30 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
   <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
@@ -1987,7 +1987,7 @@ const wkR=v=>v==null?'-':Math.round(v);
 function renderWxWeek(){
   const el=$('#wxWeek'),wk=wxToday()&&W.week||[];
   if(el){el.classList.toggle('hidden',wk.length<2);
-    el.innerHTML=wk.map(x=>`<span class="inline-flex items-center gap-px shrink-0 ${x.d===key(new Date())?'font-black px-1 rounded bg-white/20':x.d<key(new Date())?'opacity-50':'opacity-90'}"><span>${wkDay(x.d)}</span><span class="text-[11px]">${wxIcon(x.s)}</span><span class="font-bold tabular-nums">${wkR(x.hi)}°</span></span>`).join('')}
+    el.innerHTML=wk.map(x=>`<span class="inline-flex items-center gap-px shrink-0 ${x.d===key(new Date())?'font-black px-1 rounded bg-purple-500/20':x.d<key(new Date())?'opacity-50':'opacity-90'}"><span>${wkDay(x.d)}</span><span class="text-[11px]">${wxIcon(x.s)}</span><span class="font-bold tabular-nums">${wkR(x.hi)}°</span></span>`).join('')}
   const pg=$('#wxWeekList');if(!pg)return;
   if(wk.length<2){pg.innerHTML='<p class="text-xs opacity-70">주간 날씨를 불러오는 중이에요.</p>';return}
   const mx=Math.max(...wk.map(x=>x.hi??-99)),mn=Math.min(...wk.map(x=>x.lo??99)),sp=Math.max(1,mx-mn);
