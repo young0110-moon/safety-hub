@@ -218,7 +218,8 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
-  <div class="flex items-center justify-between text-[11px] mb-3 gap-2"><button data-go="weather" id="wxChip" class="min-h-[36px] font-bold px-3 py-1 rounded-full bg-[#5B21B6] text-white shrink-0 max-w-[62%] truncate">🌤 오늘의 날씨</button><span id="sync" class="opacity-80 truncate">⚪ 연결 확인 중…</span></div>
+  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-4 py-2.5 rounded-2xl bg-[#5B21B6] text-white shadow-md"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxAdv" class="hidden mt-2 pt-2 border-t border-white/25 text-[11px] font-bold leading-snug"></span></button>
+  <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -799,7 +800,7 @@ function openPost(id){if(id!==curPost&&typeof setReply==='function')setReply(nul
 let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
-  renderHeader();$('#wxChip').textContent=wxLine();
+  renderHeader();renderWxBar();
   ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
@@ -1972,6 +1973,19 @@ function coldLv(){if(!wxToday())return 0;const a=W.alert||'';if(/한파경보/.t
 const wxIcon=sky=>/비|소나기/.test(sky)?'🌧':/눈/.test(sky)?'🌨':/흐림/.test(sky)?'☁️':/구름/.test(sky)?'⛅':'☀️';
 function wxLine(){if(!wxToday())return db?'🌤 날씨 업데이트 대기':'🌤 날씨 (공유 연결 시 표시)';
   return `${wxIcon(W.sky||'')} ${W.tmin!=null?Math.round(W.tmin)+'°/':''}${W.tmax!=null?Math.round(W.tmax)+'°':''} ${W.sky||''} · ${W.alert||'특보 없음'}`}
+/* 메인 날씨 바 (길게): 아이콘 · 최저/최고 · 하늘 · 체감 · 강수 · 특보 · 작업 권고 */
+function renderWxBar(){
+  const ok=wxToday(),ico=$('#wxIco'),m=$('#wxMain'),sub=$('#wxSub'),adv=$('#wxAdv');if(!m)return;
+  if(!ok){ico.textContent='🌤';m.textContent='오늘의 날씨';sub.textContent=db?'날씨를 불러오는 중…':'공유 연결 시 표시';adv.classList.add('hidden');return}
+  const d=new Date(),day=['일','월','화','수','목','금','토'][d.getDay()];
+  ico.textContent=wxIcon(W.sky||'');
+  m.textContent=`${W.sky||''}  ${W.tmin!=null?Math.round(W.tmin):'-'}° / ${W.tmax!=null?Math.round(W.tmax):'-'}°  · ${d.getMonth()+1}/${d.getDate()}(${day})`;
+  const parts=[];if(W.feels!=null)parts.push(`체감 ${Math.round(W.feels)}°`);if(W.rain!=null)parts.push(`강수확률 ${Math.round(W.rain)}%`);parts.push(W.alert?'⚠️ '+W.alert:'특보 없음');
+  sub.textContent=parts.join(' · ');
+  const h=heatLv(),c=coldLv(),L=wxAdviceList();
+  if(L.length){adv.innerHTML=`${h>=2?'🥵 폭염 작업 권고':c>=2?'🥶 한파 작업 권고':h>=1?'☀️ 더위 주의':c>=1?'❄️ 추위 주의':'💧 작업 권고'} · ${esc(L[0].t)}${L.length>1?` 외 ${L.length-1}건 ›`:''}`;adv.classList.remove('hidden')}
+  else{adv.innerHTML='✅ 폭염·한파 권고 없음 · 수분 섭취와 안전모 착용을 잊지 마세요';adv.classList.remove('hidden')}
+}
 function wxAdviceList(){
   const h=heatLv(),c=coldLv(),r=[];
   if(h>=1)r.push({w:h>=3,t:'냉방·통풍과 작업시간 조정',d:'체감온도 31℃ 이상: 기계실 환기·냉방을 확보하고, 옥상 기계실·승강로 상부 작업은 오전으로 당기세요.'});
