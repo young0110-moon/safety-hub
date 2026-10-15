@@ -2239,7 +2239,9 @@ async function init(){
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
   setSync();
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
-  COLS.forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{
+  /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
+  db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
+  COLS.filter(c=>c!=='settings').forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{
     const rows=sn.docs.map(d=>({id:d.id,...d.data()}));
     if(c==='alerts'){if(got.has('alerts'))rows.forEach(a=>{if(!D.alerts.some(x=>x.id===a.id)&&a.by!==myId&&a.at>t0-6e4)fireAlert(a)})}
     if(c==='members'){D.membersAll=rows;D[c]=rows.filter(m=>(m.status||'active')==='active')}else D[c]=rows;got.add(c);if(c==='members'&&!ready){ready=true}
