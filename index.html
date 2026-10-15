@@ -90,7 +90,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .dark #p-notice .nt-new{background:#FFD8E4!important;color:#633B48!important}
 .dark #p-notice .nt-btn,.dark #ntAdd{background:#6750A4!important;color:#FFFFFF!important}
 .dark #p-notice .nt-done{border-color:#386A20!important;color:#386A20!important}
-#wxChip{background:transparent!important;color:inherit!important}
+#wxChip{background:rgba(255,255,255,.55)!important;color:inherit!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 10px rgba(91,33,182,.10)}
+.dark #wxChip{background:rgba(255,255,255,.10)!important;box-shadow:0 2px 10px rgba(0,0,0,.2)}
 .dark #p-weather .card{background:#3D2A78;border-color:#4C3A8A;color:#FBF7FF}
 .dark #p-weather .sub{background:#2E1F63;color:#E9DDFB}
 .dark #p-weather .opt{border-color:#4C3A8A!important;background:#33236A}
@@ -218,7 +219,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
-  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl border border-purple-400/40"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/30 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
+  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
   <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
