@@ -218,7 +218,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
-  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-4 py-2.5 rounded-2xl bg-[#5B21B6] text-white shadow-md"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxAdv" class="hidden mt-2 pt-2 border-t border-white/25 text-[11px] font-bold leading-snug"></span></button>
+  <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-4 py-2.5 rounded-2xl bg-[#5B21B6] text-white shadow-md"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxAdv" class="hidden mt-2 pt-2 border-t border-white/25 text-[11px] font-bold leading-snug"></span><span id="wxWeek" class="hidden mt-2 pt-2 border-t border-white/25 grid grid-cols-7 gap-0.5 text-center"></span></button>
   <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
@@ -491,6 +491,10 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 <!-- WEATHER -->
 <section id="p-weather" class="page pt-4 space-y-4" data-title="오늘의 날씨 · 작업 권고">
   <div id="wxCard" class="card"></div>
+  <div class="card">
+    <h2 class="font-black text-sm mb-1">📅 이번 주 날씨 <span class="text-[10px] font-bold opacity-60">부산 해운대 · 7일</span></h2>
+    <div id="wxWeekList"></div>
+  </div>
   <div class="card">
     <h2 class="font-black text-sm mb-2">🛠️ 오늘 작업 권고</h2>
     <div id="wxAdvice" class="space-y-2"></div>
@@ -1956,12 +1960,13 @@ let W=null;
 const WMO={0:'맑음',1:'대체로 맑음',2:'구름많음',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',56:'어는 비',57:'어는 비',61:'비',63:'비',65:'강한 비',66:'어는 비',67:'어는 비',71:'눈',73:'눈',75:'강한 눈',77:'싸락눈',80:'소나기',81:'소나기',82:'강한 소나기',85:'눈',86:'눈',95:'천둥번개 비',96:'천둥번개 비',99:'천둥번개 비'};
 async function loadWeather(){
   const today=key(new Date());
-  try{const c=store.get('koelsa_wx',null);if(c&&c.date===today&&Date.now()-c.updated<36e5){W=c;changed()}}catch(e){}
-  if(W&&Date.now()-W.updated<36e5)return;
+  try{const c=store.get('koelsa_wx',null);if(c&&c.date===today&&c.week&&Date.now()-c.updated<36e5){W=c;changed()}}catch(e){}
+  if(W&&W.week&&W.date===today&&Date.now()-W.updated<36e5)return;
   try{
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.163&longitude=129.163&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_probability_max&timezone=Asia%2FSeoul&forecast_days=1');
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.163&longitude=129.163&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_probability_max&timezone=Asia%2FSeoul&forecast_days=7');
     const j=await r.json(),d=j.daily;
-    W={date:today,area:'부산 해운대',sky:WMO[d.weather_code[0]]||'',tmax:d.temperature_2m_max[0],tmin:d.temperature_2m_min[0],feels:d.apparent_temperature_max[0],rain:d.precipitation_probability_max[0],alert:'',note:'기상특보(폭염·한파 등)는 기상청 날씨알리미 앱에서 확인하세요.',src:'Open-Meteo',updated:Date.now()};
+    W={date:today,area:'부산 해운대',sky:WMO[d.weather_code[0]]||'',tmax:d.temperature_2m_max[0],tmin:d.temperature_2m_min[0],feels:d.apparent_temperature_max[0],rain:d.precipitation_probability_max[0],alert:'',note:'기상특보(폭염·한파 등)는 기상청 날씨알리미 앱에서 확인하세요.',src:'Open-Meteo',updated:Date.now(),
+      week:(d.time||[]).map((t,i)=>({d:t,s:WMO[d.weather_code[i]]||'',hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],r:d.precipitation_probability_max?.[i]}))};
     store.set('koelsa_wx',W);changed();
   }catch(e){}
 }
@@ -1974,7 +1979,20 @@ const wxIcon=sky=>/비|소나기/.test(sky)?'🌧':/눈/.test(sky)?'🌨':/흐�
 function wxLine(){if(!wxToday())return db?'🌤 날씨 업데이트 대기':'🌤 날씨 (공유 연결 시 표시)';
   return `${wxIcon(W.sky||'')} ${W.tmin!=null?Math.round(W.tmin)+'°/':''}${W.tmax!=null?Math.round(W.tmax)+'°':''} ${W.sky||''} · ${W.alert||'특보 없음'}`}
 /* 메인 날씨 바 (길게): 아이콘 · 최저/최고 · 하늘 · 체감 · 강수 · 특보 · 작업 권고 */
-function renderWxBar(){
+/* 주간 날씨 (7일) */
+const wkDay=t=>{const d=new Date(t+'T00:00:00');return t===key(new Date())?'오늘':['일','월','화','수','목','금','토'][d.getDay()]};
+const wkR=v=>v==null?'-':Math.round(v);
+function renderWxWeek(){
+  const el=$('#wxWeek'),wk=wxToday()&&W.week||[];
+  if(el){el.classList.toggle('hidden',wk.length<2);
+    el.innerHTML=wk.map(x=>`<span class="flex flex-col items-center leading-tight"><span class="text-[10px] font-bold ${x.d===key(new Date())?'':'opacity-80'}">${wkDay(x.d)}</span><span class="text-base my-0.5">${wxIcon(x.s)}</span><span class="text-[10px] font-black tabular-nums">${wkR(x.hi)}°</span><span class="text-[10px] opacity-70 tabular-nums">${wkR(x.lo)}°</span></span>`).join('')}
+  const pg=$('#wxWeekList');if(!pg)return;
+  if(wk.length<2){pg.innerHTML='<p class="text-xs opacity-70">주간 날씨를 불러오는 중이에요.</p>';return}
+  const mx=Math.max(...wk.map(x=>x.hi??-99)),mn=Math.min(...wk.map(x=>x.lo??99)),sp=Math.max(1,mx-mn);
+  pg.innerHTML=wk.map(x=>{const d=new Date(x.d+'T00:00:00'),l=((x.lo-mn)/sp*100),w=((x.hi-x.lo)/sp*100);
+    return `<div class="flex items-center gap-2 py-1.5 ${x.d===key(new Date())?'font-black':''}"><span class="w-14 text-xs">${wkDay(x.d)} <span class="opacity-60 text-[10px]">${d.getMonth()+1}/${d.getDate()}</span></span><span class="text-xl w-7 text-center">${wxIcon(x.s)}</span><span class="w-16 text-[11px] truncate">${esc(x.s)}</span><span class="w-10 text-[11px] text-sky-500 font-bold tabular-nums">${x.r!=null?'☂'+Math.round(x.r)+'%':''}</span><span class="w-7 text-right text-xs opacity-70 tabular-nums">${wkR(x.lo)}°</span><span class="flex-1 h-1.5 rounded-full sub relative overflow-hidden"><span class="absolute inset-y-0 rounded-full bg-gradient-to-r from-sky-400 to-orange-400" style="left:${l}%;width:${Math.max(4,w)}%"></span></span><span class="w-7 text-xs font-black tabular-nums">${wkR(x.hi)}°</span></div>`}).join('');
+}
+function renderWxBar(){renderWxWeek();
   const ok=wxToday(),ico=$('#wxIco'),m=$('#wxMain'),sub=$('#wxSub'),adv=$('#wxAdv');if(!m)return;
   if(!ok){ico.textContent='🌤';m.textContent='오늘의 날씨';sub.textContent=db?'날씨를 불러오는 중…':'공유 연결 시 표시';adv.classList.add('hidden');return}
   const d=new Date(),day=['일','월','화','수','목','금','토'][d.getDay()];
@@ -1999,7 +2017,7 @@ function wxAdviceList(){
   if(!r.length)r.push({w:0,t:wxToday()?'특별한 기상 위험 없음':'오늘 날씨 정보가 아직 없어요',d:wxToday()?'평소처럼 작업하되, 일교차가 크면 겉옷을 챙기세요.':'아침 자동 갱신 후 이곳에 작업 권고가 표시됩니다.'});
   return r;
 }
-function renderWeather(){
+function renderWeather(){renderWxWeek();
   $('#wxCard').innerHTML=wxToday()?`<div class="flex items-center gap-3"><span class="text-5xl">${wxIcon(W.sky||'')}</span><div class="min-w-0"><div class="text-xs opacity-70">${esc(W.area||'부산')} · ${esc(W.date)}</div><div class="text-2xl font-black tabular-nums">${W.tmin!=null?Math.round(W.tmin)+'° / ':''}${W.tmax!=null?Math.round(W.tmax)+'°':''}</div><div class="text-sm font-bold">${esc(W.sky||'')}${W.rain!=null?` · 강수확률 ${W.rain}%`:''}${W.feels!=null?` · 체감 최고 ${Math.round(W.feels)}°`:''}</div></div></div>
     <div class="mt-3 text-sm font-black px-3 py-2 rounded-xl ${W.alert?'bg-[#FF3B30] text-white':'sub'}">${W.alert?'⚠️ '+esc(W.alert):'✅ 발효 중인 기상특보 없음'}</div>${W.note?`<p class="text-xs mt-2 opacity-85">${esc(W.note)}</p>`:''}<p class="text-[10px] opacity-60 mt-2">갱신 ${W.updated?tstr(W.updated):'-'} · 출처 기상청</p>`
     :`<p class="text-sm">${db?'오늘 날씨가 아직 갱신되지 않았습니다. 매일 아침 자동으로 갱신됩니다.':'날씨는 지사 공유 링크로 접속하면 표시됩니다.'}</p>`;
