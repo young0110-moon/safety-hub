@@ -2121,13 +2121,19 @@ window.addEventListener('pageshow',()=>checkUpdate());
 setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*1000);
 /* 메인 화면 맨 위에서 아래로 당기면 새로고침 */
 /* 당겨서 새로고침: 조금 당기면 엘리베이터 문이 스르륵 열림 (첫 화면 문과 같은 방식: 위치 이동 + 전환 효과) */
-function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;E.classList.toggle('open',k>=0.35)}
-(()=>{let y0=null,dy=0;const ind=()=>$('#ptr');
-  document.addEventListener('touchstart',e=>{if(window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0},{passive:true});
-  document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy>0){const el=ind(),k=Math.min(dy/90,1);el.style.transform=`translateY(${Math.min(dy,110)-70}px)`;el.style.opacity=k;
-      /* 당긴 만큼 엘리베이터 문이 열림 */
-      ptrDoor(k)}},{passive:true});
-  document.addEventListener('touchend',()=>{if(y0==null)return;const el=ind();if(dy>90){ptrDoor(1);setTimeout(()=>location.reload(),650)}else{el.style.transform='translateY(-70px)';el.style.opacity=0;ptrDoor(0)}y0=null;dy=0});
+function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;E.classList.toggle('open',k>=0.3)}
+(()=>{let y0=null,dy=0,act=false;const ind=()=>$('#ptr');
+  /* 안드로이드 크롬은 당기는 동작을 브라우저가 가져가면 손가락 움직임 신호를 끊어 버림
+     → 맨 위에서 아래로 당길 때는 브라우저 기본 동작을 막고(preventDefault) 앱이 직접 처리 */
+  const reset=()=>{const el=ind();el.style.transform='translateY(-70px)';el.style.opacity=0;ptrDoor(0);y0=null;dy=0;act=false};
+  document.addEventListener('touchstart',e=>{if(e.touches.length>1||window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0;act=false},{passive:true});
+  document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
+    if(dy<=0||window.scrollY>0){if(act)reset();else y0=null;return}
+    act=true;if(e.cancelable)e.preventDefault();
+    const el=ind(),k=Math.min(dy/90,1);el.style.transform=`translateY(${Math.min(dy,110)-70}px)`;el.style.opacity=Math.max(k,.4);
+    ptrDoor(k)},{passive:false});
+  document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);setTimeout(()=>location.reload(),650);y0=null}else reset()});
+  document.addEventListener('touchcancel',()=>{if(y0!=null)reset()});
 })();
 
 /* ===== 알림함 (안 읽은 알림 모아 보기) ===== */
