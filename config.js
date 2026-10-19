@@ -16,4 +16,4 @@ window.ADMIN_EMAILS = ["glare0110@gmail.com"];
 window.AI_URL = "https://koelsa-ai.glare0110.workers.dev";
 
 /* 푸시 알림: Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서의 '키 쌍'(공개키, 공개돼도 괜찮음) */
-window.FCM_VAPID = "";
+window.FCM_VAPID = "BBi0uP1fjXn5SOiLusnH9iFgj5CWm-v5tSX7uP9LgDq4th-naqe1h-zipDCzMqOHMrzdJdoLb3Tr7vUx08jE2Jk";
