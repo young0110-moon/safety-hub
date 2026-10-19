@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="tailwind.css">
-<script>try{if(JSON.parse(localStorage.getItem("koelsa_theme"))==="night")document.documentElement.classList.add("dark");const sk=JSON.parse(localStorage.getItem("koelsa_skin"));if(sk==="sunset"||sk==="mint")document.documentElement.classList.add(sk)}catch(e){}</script>
+<script>try{if(JSON.parse(localStorage.getItem("koelsa_theme"))==="night")document.documentElement.classList.add("dark");const sk=JSON.parse(localStorage.getItem("koelsa_skin"));if(sk==="sunset"||sk==="mint"){document.documentElement.classList.add(sk);const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=sk==="sunset"?"#ED8A17":"#0F9D8A"}}catch(e){}</script>
 <style>
 /* 기존 디자인: 궤도형 허브 + 글래스 카드 + 보라 그라데이션 */
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -260,6 +260,24 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 @media (prefers-reduced-motion:reduce){.lk-door{transition-duration:.35s}.lk-car img{animation:none;opacity:1;transform:none}}
 #lock .bg-white\/20{background:#6D28D9;color:#fff}
 #gBtn{box-shadow:0 6px 18px rgba(109,40,217,.22);border:1px solid #DDD6FE}
+/* 로딩(엘리베이터) 화면도 선택한 테마 색으로 */
+html.sunset #lock{background:linear-gradient(180deg,#FFF7ED,#FED7AA);color:#431407}
+html.sunset .lk-sub,html.sunset .lk-msg{color:#C2410C}
+html.sunset .lk-car{border-color:#FDBA74;box-shadow:0 14px 40px rgba(237,138,23,.28)}
+html.sunset .lk-door{background:linear-gradient(90deg,#FFC27A,#FFA63D)}html.sunset .lk-door.r{background:linear-gradient(270deg,#FFC27A,#FFA63D)}
+html.sunset .lk-door.l{border-right-color:#ED8A17}html.sunset .lk-door.r{border-left-color:#ED8A17}
+html.sunset .lk-floor{background:#431407;color:#FFE4C4}
+html.sunset #lock .bg-white\/20{background:#ED8A17}
+html.mint #lock{background:linear-gradient(180deg,#F0FDFA,#99F6E4);color:#042F2E}
+html.mint .lk-sub,html.mint .lk-msg{color:#0F766E}
+html.mint .lk-car{border-color:#5EEAD4;box-shadow:0 14px 40px rgba(15,157,138,.28)}
+html.mint .lk-door{background:linear-gradient(90deg,#5EEAD4,#14B8A6)}html.mint .lk-door.r{background:linear-gradient(270deg,#5EEAD4,#14B8A6)}
+html.mint .lk-door.l{border-right-color:#0F9D8A}html.mint .lk-door.r{border-left-color:#0F9D8A}
+html.mint .lk-floor{background:#042F2E;color:#99F6E4}
+html.mint #lock .bg-white\/20{background:#0F9D8A}
+html.dark.sunset #lock{background:linear-gradient(180deg,#431407,#1C0A02);color:#fff}html.dark.sunset .lk-sub,html.dark.sunset .lk-msg{color:#FDBA74}html.dark.sunset .lk-car{background:#431407;border-color:#ED8A17}
+html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#fff}html.dark.mint .lk-sub,html.dark.mint .lk-msg{color:#5EEAD4}html.dark.mint .lk-car{background:#042F2E;border-color:#0F9D8A}
+
 </style>
 </head>
 <body class="font-sans bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 dark:from-indigo-950 dark:via-purple-900 dark:to-blue-900 text-slate-800 dark:text-white bg-fixed">
@@ -2376,7 +2394,7 @@ function foodsForMenus(menus){
 
 /* ===== 🎨 테마(스킨): 기본 보라 / 선셋 오렌지 / 민트 그린 — 내 프로필에서 선택, 이 폰에만 저장 ===== */
 const SKINS=[{id:'violet',name:'기본 보라',d:'앱 기본 테마',c:'#6D28D9',c2:'#A78BFA'},{id:'sunset',name:'선셋 오렌지',d:'따뜻한 주황 톤 (#ffa63d)',c:'#ED8A17',c2:'#FFA63D'},{id:'mint',name:'민트 그린',d:'차분한 청록 톤',c:'#0F9D8A',c2:'#5EEAD4'}];
-function applyTheme(){const id=store.get('koelsa_skin','violet');SKINS.forEach(k=>document.documentElement.classList.toggle(k.id,k.id!=='violet'&&id===k.id))}
+function applyTheme(){const id=store.get('koelsa_skin','violet');SKINS.forEach(k=>document.documentElement.classList.toggle(k.id,k.id!=='violet'&&id===k.id));const m=document.querySelector('meta[name="theme-color"]'),k=SKINS.find(x=>x.id===id);if(m&&k)m.content=k.c}
 function renderSkins(){const box=$('#pfThemeList');if(!box)return;const cur_=store.get('koelsa_skin','violet');
   box.innerHTML=SKINS.map(k=>{const on=cur_===k.id;return `<button data-skin="${k.id}" class="rounded-2xl p-3 text-left border-2" style="border-color:${on?k.c:'transparent'};background:${k.c2}22"><span class="flex items-center gap-2"><span class="w-7 h-7 rounded-full shrink-0" style="background:linear-gradient(135deg,${k.c},${k.c2})"></span><b class="text-sm">${k.name}</b>${on?'<span class="ml-auto text-sm">✅</span>':''}</span><span class="block text-[11px] opacity-75 mt-1.5">${k.d}</span></button>`}).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(!b||cur!=='profile')return;const id=b.dataset.skin;store.set('koelsa_skin',id);applyTheme();renderSkins();toast(`${SKINS.find(x=>x.id===id).name} 테마로 바꿨어요.`,'ok')});
