@@ -524,6 +524,11 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <div id="csScores" class="grid grid-cols-5 gap-1.5"></div>
   </div>
   <div id="csDetail"></div>
+  <div class="card !p-3" id="csGame">
+    <div class="flex items-center justify-between"><h3 class="font-black text-sm">🎮 이 손님 몇 점? — 연습하기</h3><span id="csGStat" class="text-[10px] opacity-70"></span></div>
+    <p class="text-[11px] opacity-75 mt-0.5 mb-2">가이드의 상황별 예시가 문제로 나와요. 5문제 한 판, 30초. 기록은 내 폰에만 남아요.</p>
+    <div id="csGBody"></div>
+  </div>
   <div class="rounded-2xl p-4 text-white" style="background:linear-gradient(135deg,#0F4C5C,#134E4A)">
     <h3 class="font-black text-base">판정 시 핵심 원칙</h3>
     <p class="text-[11px] opacity-80 mt-0.5">아래 4가지만 기억하면 누구나 일관된 기준으로 판정할 수 있습니다.</p>
@@ -2205,7 +2210,37 @@ function csJudge(){
   return {n,parts,multi:true,tie,lines,why:parts.flatMap(x=>x.why),note:tie?'두 점수 중 하나를 골라 주세요':`체크한 ${parts.length}가지 중 가이드 기준으로 가장 낮은 단계가 최종 점수`};
 }
 let csSel=3,csRes=null;
+/* ===== 🎮 이 손님 몇 점? — 가이드 상황별 예시 25개로 하는 5문제 퀴즈 (기록은 이 폰에만) ===== */
+const CS_BANK=CSG.flatMap(g=>g.ex.map((x,i)=>({id:g.n+'-'+i,n:g.n,x})));
+let csG={on:false,q:[],i:0,ok:0,ans:null,done:false};
+const csGS=()=>store.get('koelsa_csgame',{played:0,correct:0,total:0,best:0,streak:0,wrong:[]});
+function csGStart(){const S=csGS();const wrong=CS_BANK.filter(b=>S.wrong.includes(b.id));const rest=CS_BANK.filter(b=>!S.wrong.includes(b.id)).sort(()=>Math.random()-.5);
+  /* 지난번 틀린 문제를 먼저 섞어 넣기 (최대 2개) */
+  const q=[...wrong.sort(()=>Math.random()-.5).slice(0,2),...rest].slice(0,5).sort(()=>Math.random()-.5);
+  csG={on:true,q,i:0,ok:0,ans:null,done:false,t0:Date.now()};renderCSGame()}
+function csGAnswer(n){if(csG.ans!==null)return;csG.ans=n;const cur_=csG.q[csG.i],S=csGS();
+  if(n===cur_.n){csG.ok++;S.wrong=S.wrong.filter(x=>x!==cur_.id)}else if(!S.wrong.includes(cur_.id))S.wrong.push(cur_.id);
+  store.set('koelsa_csgame',S);renderCSGame()}
+function csGNext(){if(csG.i<csG.q.length-1){csG.i++;csG.ans=null}else{csG.done=true;const S=csGS();S.played++;S.correct+=csG.ok;S.total+=csG.q.length;S.streak=csG.ok===csG.q.length?S.streak+1:0;S.best=Math.max(S.best,csG.ok);store.set('koelsa_csgame',S)}renderCSGame()}
+function renderCSGame(){
+  const box=$('#csGBody'),S=csGS();if(!box)return;
+  $('#csGStat').textContent=S.played?`${S.played}판 · 정답률 ${Math.round(S.correct/Math.max(1,S.total)*100)}%${S.streak?` · 🔥 만점 ${S.streak}연속`:''}`:'';
+  if(!csG.on){box.innerHTML=`<button data-csg="start" class="w-full min-h-[48px] rounded-xl text-white text-sm font-black" style="background:#0D9488">▶ 한 판 시작 (5문제)</button>${S.wrong.length?`<p class="text-[11px] opacity-70 mt-2">지난번에 틀린 문제 ${S.wrong.length}개가 다시 나와요.</p>`:''}`;return}
+  if(csG.done){const sec=Math.round((Date.now()-csG.t0)/1000),pct=Math.round(csG.ok/csG.q.length*100);
+    box.innerHTML=`<div class="rounded-2xl p-4 text-center text-white" style="background:${pct===100?'#134E4A':pct>=60?'#0E7490':'#C2410C'}"><div class="text-[11px] opacity-90">결과</div><div class="text-3xl font-black">${csG.ok} / ${csG.q.length}</div><div class="text-xs mt-1">${pct===100?'🎉 만점! 가이드 기준이 몸에 익었어요':pct>=60?'👍 좋아요. 틀린 문제는 다음 판에 다시 나와요':'📖 아래 기준을 한 번 더 읽고 다시 도전해 보세요'} · ${sec}초</div></div>
+      <div class="space-y-1.5 mt-2">${csG.q.map((b,i)=>`<div class="flex items-start gap-2 text-[12px] sub rounded-xl px-3 py-2"><span>${b._ok?'✅':'❌'}</span><span class="flex-1 leading-snug">${esc(b.x)}</span><b class="shrink-0 px-1.5 py-0.5 rounded-md text-white text-[10px]" style="background:${CSG[b.n-1].c}">${b.n}점</b></div>`).join('')}</div>
+      <div class="grid grid-cols-2 gap-2 mt-3"><button data-csg="start" class="min-h-[46px] rounded-xl text-white text-sm font-black" style="background:#0D9488">▶ 한 판 더</button><button data-csg="quit" class="min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-bold">닫기</button></div>`;return}
+  const b=csG.q[csG.i],ans=csG.ans,g=CSG[b.n-1];
+  if(ans!==null)b._ok=ans===b.n;
+  box.innerHTML=`<div class="flex items-center gap-1 mb-2">${csG.q.map((x,i)=>`<span class="h-1.5 flex-1 rounded-full" style="background:${i<csG.i||(i===csG.i&&ans!==null)?(x._ok?'#0D9488':'#C2410C'):i===csG.i?'#A78BFA':'rgba(148,163,184,.35)'}"></span>`).join('')}</div>
+    <div class="text-[11px] font-bold opacity-70">문제 ${csG.i+1} / ${csG.q.length}</div>
+    <div class="rounded-2xl sub p-4 mt-1 text-center"><div class="text-[11px] opacity-70 mb-1">이 상황의 고객우호도는?</div><p class="text-sm font-bold leading-relaxed">“${esc(b.x)}”</p></div>
+    ${ans===null?`<div class="grid grid-cols-5 gap-1.5 mt-3">${CSG.map(x=>`<button data-csg="a${x.n}" class="rounded-xl py-3 text-white font-black text-base" style="background:${x.c}">${x.n}점</button>`).join('')}</div>`
+      :`<div class="mt-3 rounded-2xl p-3 text-white" style="background:${b._ok?'#0D9488':'#C2410C'}"><div class="text-sm font-black">${b._ok?'✅ 정답!':`❌ 아쉬워요 · 정답은 ${b.n}점`} <span class="opacity-90 font-bold">· ${esc(g.tag)}</span></div><p class="text-[12px] leading-snug mt-1.5 opacity-95">${esc(g.d)}</p></div>
+       <button data-csg="next" class="w-full min-h-[46px] rounded-xl text-white text-sm font-black mt-2" style="background:#1E1B4B">${csG.i<csG.q.length-1?'다음 문제 ›':'결과 보기'}</button>`}`;
+}
 function renderCS(){
+  renderCSGame();
   $('#csScores').innerHTML=CSG.map(g=>`<button data-cssel="${g.n}" class="rounded-xl overflow-hidden text-center border-2 transition ${csSel===g.n?'':'opacity-80'}" style="border-color:${csSel===g.n?g.c:'transparent'};${csSel===g.n?'box-shadow:0 4px 12px '+g.c+'55':''}"><div class="text-white text-xs font-black py-1.5" style="background:${g.c}">${g.n}점</div><div class="sub px-0.5 py-2 min-h-[64px] flex flex-col items-center justify-center gap-0.5"><b class="text-[11px] leading-tight">${g.tag}</b><span class="text-[9px] opacity-70 leading-tight">${g.sub}</span></div></button>`).join('');
   const g=CSG[csSel-1];
   $('#csDetail').innerHTML=`<article class="card !p-0 overflow-hidden">
@@ -2245,6 +2280,7 @@ document.addEventListener('click',e=>{if(cur!=='cs')return;let b;
     else if(f===2&&v==='b'){csFaces=[...new Set(csFaces.filter(x=>x!==2).concat(1))].sort();delete csAns[2]}  /* 개인이 아니라 제도 불만 → 😡로 */
     else csAns[f]=csAns[f]===v?null:v;
     csPick=null;refresh();return}
+  if(b=e.target.closest('[data-csg]')){const v=b.dataset.csg;if(v==='start')csGStart();else if(v==='next')csGNext();else if(v==='quit'){csG.on=false;renderCSGame()}else if(/^a\d$/.test(v))csGAnswer(+v[1]);return}
   if(b=e.target.closest('[data-cspick]')){csPick=+b.dataset.cspick;refresh();return}
   if(e.target.closest('[data-csreset]')){csFaces=[];csAns={};csEv=[];csPick=null;csSel=3;renderCS();$('#csHelper').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(e.target.closest('[data-cscopy]')){const r=CSG[csRes.n-1];if(!csRes.n){toast('먼저 판정을 끝내 주세요.','error');return}const t=`[고객우호도 판정] ${r.n}점 · ${r.tag}\n체크: ${csFaces.map(f=>CS_FACE[f-1].e+' '+CSG[f-1].tag).join(', ')}\n근거: ${(csRes.why||[]).join(' / ')}${csRes.lines&&csRes.lines.length?'\n종합: '+csRes.lines.join(' ')+(csRes.tie?' → 검사원 선택 '+r.n+'점':''):''}\n(고객우호도 판정 가이드 기준)`;
