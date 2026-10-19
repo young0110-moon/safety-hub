@@ -79,10 +79,6 @@ service cloud.firestore {
     // 상황실 전화번호 등. 지사 멤버는 누구나 보고 고칠 수 있음
     match /settings/main { allow read: if isMember(); allow write: if isMember(); }
 
-    // ---------- 엘리 타워(미니게임) ----------
-    // 지사 전원이 함께 쌓는 건물 1개(tower/main). 지사 멤버는 누구나 층을 올릴 수 있음
-    match /tower/{doc} { allow read, write: if isMember(); }
-
     // ---------- 앱 데이터 ----------
     // notices 공지 / noticeReads 공지 읽음 / events 공용 일정 / voices 현장목소리
     // comments 댓글 / reacts 좋아요 / hazards 위험현장 / alerts SOS·긴급 알림

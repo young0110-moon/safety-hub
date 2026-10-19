@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="tailwind.css">
-<script>try{if(JSON.parse(localStorage.getItem("koelsa_theme"))==="night")document.documentElement.classList.add("dark");if(JSON.parse(localStorage.getItem("koelsa_skin"))==="sunset")document.documentElement.classList.add("sunset")}catch(e){}</script>
+<script>try{if(JSON.parse(localStorage.getItem("koelsa_theme"))==="night")document.documentElement.classList.add("dark");const sk=JSON.parse(localStorage.getItem("koelsa_skin"));if(sk==="sunset"||sk==="mint")document.documentElement.classList.add(sk)}catch(e){}</script>
 <style>
 /* 기존 디자인: 궤도형 허브 + 글래스 카드 + 보라 그라데이션 */
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -146,15 +146,27 @@ html.sunset .sel,html.sunset .sb-act.sel{background:#ED8A17!important}
 html.sunset #hubLinks .card{border-color:rgba(255,166,61,.4)}
 html.sunset .from-purple-600,html.sunset .from-indigo-600,html.sunset .from-pink-500{--tw-gradient-from:#FFA63D var(--tw-gradient-from-position)!important}
 html.sunset .to-indigo-700,html.sunset .to-purple-700,html.sunset .to-blue-700{--tw-gradient-to:#C2410C var(--tw-gradient-to-position)!important}
-/* 엘리 타워 */
-.tw-floor{height:14px;border-radius:3px;background:linear-gradient(90deg,#C4B5FD,#A78BFA);border:1px solid rgba(76,29,149,.25);position:relative}
-.tw-floor:nth-child(odd){background:linear-gradient(90deg,#DDD6FE,#C4B5FD)}
-.dark .tw-floor{background:linear-gradient(90deg,#4C3A8A,#6D5BB5);border-color:rgba(167,139,250,.35)}
-.tw-floor i{position:absolute;top:3px;bottom:3px;left:6px;right:6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.75) 0 6px,transparent 6px 10px);border-radius:1px}
-.dark .tw-floor i{background:repeating-linear-gradient(90deg,rgba(255,236,150,.8) 0 6px,transparent 6px 10px)}
-.tw-floor.new{animation:twPop .5s ease-out}
-@keyframes twPop{0%{transform:scaleY(0);opacity:0}60%{transform:scaleY(1.2)}100%{transform:scaleY(1);opacity:1}}
-html.sunset .tw-floor{background:linear-gradient(90deg,#FFD9A8,#FFC27A);border-color:rgba(194,65,12,.3)}html.sunset .tw-floor:nth-child(odd){background:linear-gradient(90deg,#FFE8CC,#FFD9A8)}
+/* ===== 테마 추가: 민트 그린 — 기본 보라 테마는 그대로, html.mint 일 때만 덧씌움 ===== */
+html.mint body{background:linear-gradient(135deg,#ECFDF5,#CCFBF1 55%,#F0FDFA)!important}
+html.mint.dark body{background:linear-gradient(135deg,#042F2E,#134E4A 55%,#022C22)!important}
+html.mint header,html.mint nav{border-color:rgba(20,184,166,.45)!important}
+html.mint .bg-\[\#6D28D9\],html.mint .bg-\[\#5B21B6\],html.mint .bg-\[\#4C1D95\],html.mint .bg-purple-600,html.mint .bg-purple-500{background-color:#0F9D8A!important}
+html.mint .text-purple-700,html.mint .text-purple-600{color:#0F766E!important}
+html.mint .text-purple-300{color:#99F6E4!important}
+html.mint .border-purple-400\/50,html.mint .border-purple-400\/40,html.mint .border-purple-400\/30,html.mint .border-purple-400\/20,html.mint .border-purple-400\/25,html.mint .border-purple-300\/60{border-color:rgba(20,184,166,.55)!important}
+html.mint .glow{box-shadow:0 0 18px rgba(45,212,191,.6),inset 0 0 12px rgba(45,212,191,.2)}
+html.mint .chip.sel,html.mint .opt.sel{background:#0F9D8A!important;border-color:#0F9D8A!important;box-shadow:0 0 10px rgba(20,184,166,.4)!important;color:#fff!important}
+html.mint .sub{background:rgba(204,251,241,.75)}html.mint.dark .sub{background:rgba(19,78,74,.55);color:#CCFBF1}
+html.mint .card{border-color:rgba(20,184,166,.35)}
+html.mint .ih-tab.on{color:#0F766E}html.mint .ih-tab.on::after{background:#0F9D8A}
+html.mint .sb-id{background:linear-gradient(135deg,#14B8A6,#0E7490)}
+html.mint #wxChip{background:rgba(255,255,255,.6)!important}
+html.mint .bk-tag.elv{background:#0E7490}
+html.mint mark.sbm{background:#99F6E4}
+html.mint .sel,html.mint .sb-act.sel{background:#0F9D8A!important}
+html.mint #hubLinks .card{border-color:rgba(20,184,166,.4)}
+html.mint .from-purple-600,html.mint .from-indigo-600,html.mint .from-pink-500{--tw-gradient-from:#2DD4BF var(--tw-gradient-from-position)!important}
+html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gradient-to:#0F766E var(--tw-gradient-to-position)!important}
 /* 검사연혁집: 밴드형 탭 · 네이버식 검색 · 법령 연혁식 신·구 비교 */
 .bk-btn{min-height:44px;border-radius:14px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,.75)}
 .bk-btn.on{background:#fff;color:#1E1B4B;box-shadow:0 2px 8px rgba(0,0,0,.18)}
@@ -307,7 +319,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <button data-go="food" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">🍽️</div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap">맛집공유</div></button>
     <button data-go="members" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">👥</div><div id="memCnt" class="text-[11px] font-bold whitespace-nowrap">멤버</div></button>
   </div>
-  <button data-go="tower" id="homeTower" class="w-full mt-4 text-left rounded-2xl overflow-hidden border border-purple-400/30 bg-white/70 dark:bg-white/5"></button>
   <div class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리</h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
   <div id="homeAcct" class="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-purple-400/30 bg-white/60 dark:bg-white/5">
@@ -537,14 +548,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="fdList" class="space-y-2"></div>
 </section>
 
-<!-- 🏢 엘리 타워 (지사 전원이 함께 쌓는 건물 · 하루 3문제) -->
-<section id="p-tower" class="page pt-4 space-y-4" data-title="엘리 타워">
-  <div id="twTop"></div>
-  <div class="card !p-3" id="twPlay"></div>
-  <div class="card !p-3" id="twBoard"></div>
-  <p class="text-[11px] opacity-70 text-center leading-relaxed px-2">문제 내용은 고객우호도 판정 가이드와 현장 응대 요령에서 가져왔어요. 정답 1개 = 1층. 매일 3문제.</p>
-</section>
-
 <!-- CS 판정가이드 (고객우호도 판정 가이드) -->
 <section id="p-cs" class="page pt-4 space-y-4" data-title="CS 판정가이드">
   <div class="rounded-2xl overflow-hidden text-white p-4 relative" style="background:linear-gradient(135deg,#0F4C5C,#134E4A 60%,#0B3B3F)">
@@ -673,8 +676,8 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   </div>
   <div class="card space-y-2" id="pfTheme">
     <h2 class="font-black text-sm">🎨 화면 테마</h2>
-    <p class="text-[11px] opacity-75">기본 보라 테마는 그대로 두고, 해금한 테마를 골라 쓸 수 있어요. 낮/밤 전환은 위쪽 ☀️🌙 버튼으로.</p>
-    <div id="pfThemeList" class="grid grid-cols-2 gap-2"></div>
+    <p class="text-[11px] opacity-75">기본 보라 테마는 그대로 두고, 원하는 테마를 골라 쓸 수 있어요. 이 휴대폰에만 적용되고, 낮/밤 전환은 위쪽 ☀️🌙 버튼으로.</p>
+    <div id="pfThemeList" class="grid grid-cols-1 gap-2"></div>
   </div>
   <div class="card text-sm space-y-2">
     <p id="pfAcct" class="text-xs opacity-75 leading-relaxed">구글 계정으로 자동 로그인됩니다. 다른 기기에서도 같은 계정으로 열면 같은 프로필로 들어옵니다.</p>
@@ -872,7 +875,7 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',tower:'tower',food:'food',insp:'inspection',admin:'admin'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
@@ -912,7 +915,7 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,cs:renderCS,tower:renderTower,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -1081,7 +1084,6 @@ function renderMini(){
   $('#miniGrid').innerHTML=h;
 }
 function renderHome(){
-  renderHomeTower();
   renderBanner();renderMini();
   const pub=D.notices.filter(pubd).sort((a,b)=>b.at-a.at),un=pub.filter(n=>!isRead(n));
   const top=un.find(n=>n.level==='urgent')||un[0]||pub[0];
@@ -2187,86 +2189,12 @@ function foodsForMenus(menus){
   return out.slice(0,3);
 }
 
-/* ===== 🎨 테마(스킨): 기본 보라 / 선셋 오렌지(타워 50층 해금) ===== */
-const SKINS=[{id:'violet',name:'기본 보라',c:'#6D28D9',c2:'#A78BFA',need:0},{id:'sunset',name:'선셋 오렌지',c:'#ED8A17',c2:'#FFA63D',need:50}];
-let TW=null,twErr='';
-const twFloors=()=>TW&&TW.floors||0;
-const skinUnlocked=id=>id==='violet'||twFloors()>=(SKINS.find(x=>x.id===id)||{}).need||!!(TW&&TW.unlocked&&TW.unlocked[id]);
-function applyTheme(){let id=store.get('koelsa_skin','violet');if(!skinUnlocked(id))id='violet';document.documentElement.classList.toggle('sunset',id==='sunset')}
+/* ===== 🎨 테마(스킨): 기본 보라 / 선셋 오렌지 / 민트 그린 — 내 프로필에서 선택, 이 폰에만 저장 ===== */
+const SKINS=[{id:'violet',name:'기본 보라',d:'앱 기본 테마',c:'#6D28D9',c2:'#A78BFA'},{id:'sunset',name:'선셋 오렌지',d:'따뜻한 주황 톤 (#ffa63d)',c:'#ED8A17',c2:'#FFA63D'},{id:'mint',name:'민트 그린',d:'차분한 청록 톤',c:'#0F9D8A',c2:'#5EEAD4'}];
+function applyTheme(){const id=store.get('koelsa_skin','violet');SKINS.forEach(k=>document.documentElement.classList.toggle(k.id,k.id!=='violet'&&id===k.id))}
 function renderSkins(){const box=$('#pfThemeList');if(!box)return;const cur_=store.get('koelsa_skin','violet');
-  box.innerHTML=SKINS.map(k=>{const un=skinUnlocked(k.id),on=cur_===k.id&&un;return `<button data-skin="${k.id}" class="rounded-2xl p-3 text-left border-2 ${un?'':'opacity-70'}" style="border-color:${on?k.c:'transparent'};background:${k.c2}22"><span class="flex items-center gap-2"><span class="w-7 h-7 rounded-full shrink-0" style="background:linear-gradient(135deg,${k.c},${k.c2})"></span><b class="text-sm">${k.name}</b>${on?'<span class="ml-auto text-sm">✅</span>':''}</span><span class="block text-[11px] opacity-75 mt-1.5">${un?(k.need?'🏢 엘리 타워 50층 달성으로 해금됨':'언제나 사용 가능'):`🔒 엘리 타워 ${k.need}층 달성 시 해금 (지금 ${twFloors()}층)`}</span></button>`}).join('')}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(!b||cur!=='profile')return;const id=b.dataset.skin;if(!skinUnlocked(id)){toast(`엘리 타워 ${SKINS.find(x=>x.id===id).need}층을 쌓으면 열려요. 지금 ${twFloors()}층!`,'error');return}store.set('koelsa_skin',id);applyTheme();renderSkins();toast(`${SKINS.find(x=>x.id===id).name} 테마로 바꿨어요.`,'ok')});
-
-/* ===== 🏢 엘리 타워: 지사 전원이 함께 쌓는 건물. 정답 1개 = 1층, 하루 3문제 =====
-   문제 60% 게임(건물·보상), 40% 고객우호도: 판정 가이드 예시 + 현장 응대 요령 */
-const TW_MILES=[[10,'🌳','옥상 정원'],[20,'🪧','네온 간판'],[30,'📡','안테나'],[40,'🚁','헬기장'],[50,'🎨','선셋 오렌지 테마 해금'],[70,'🎆','불꽃놀이'],[100,'👑','황금 지붕']];
-/* 응대 요령 문제 (상황 → 가장 좋은 응대). 정답 근거: 공감 → 사실 설명 → 대안 제시 */
-const TW_Q2=[
- {s:'“수수료가 왜 이렇게 비싸요? 작년에도 냈는데 또 내라고?”',o:['“규정이라 저도 어쩔 수 없습니다.”','“매년 부담되시죠. 검사 수수료는 공단 규정으로 정해져 있고, 내역은 검사 후 영수증과 함께 안내드리겠습니다.”','“그건 본사에 전화해 보세요.”'],a:1,w:'공감 한마디 뒤에 사실(규정)과 다음 행동(내역 안내)을 함께 주면 불만이 반복으로 번지지 않아요.'},
- {s:'불합격 판정을 설명하자 “그럼 또 돈 내고 재검사 받으라고요?” 하며 언성이 높아진다.',o:['“네, 그게 규정입니다.”','“당황스러우시죠. 재검사는 보완 항목만 확인하는 절차이고, 기한과 비용·신청 방법을 지금 바로 적어 드릴게요.”','“화내셔도 결과는 안 바뀝니다.”'],a:1,w:'재검사 절차·비용·기한을 판정과 동시에 안내하면 ‘반복 이의’가 줄어 1점 요건(반복·격앙·차질)을 예방할 수 있어요.'},
- {s:'자료를 요청하니 “그런 걸 왜 나한테 묻냐”며 냉담하게 반응한다.',o:['“담당자가 모르시면 누가 압니까?”','“번거로우시죠. 관리사무소에 보관돼 있으면 제가 직접 가서 확인해도 괜찮을까요?”','말없이 서류를 뒤진다.'],a:1,w:'책임을 묻는 대신 수고를 덜어 주는 제안을 하면 개인을 향한 냉담(2점)이 협조(4점)로 바뀌는 경우가 많아요.'},
- {s:'현장 도착 직후, 관리소장이 바쁜 듯 다른 업무를 보고 있다.',o:['바로 기계실로 올라가 검사를 시작한다.','“안녕하세요, 승강기안전공단 ○○○입니다. 정기검사로 왔고 약 1시간 걸립니다. 중간에 불편한 점 있으면 말씀 주세요.”','“검사 왔습니다. 키 주세요.”'],a:1,w:'첫 10초에 소속·목적·소요시간·연락 창구 4가지를 말하면 무관심(3점) 고객도 협조(4점)로 올라오기 쉬워요.'},
- {s:'검사가 예정보다 30분 길어지고 있다. 고객이 시계를 자주 본다.',o:['아무 말 없이 계속 검사한다.','“예상보다 20분 정도 더 걸릴 것 같습니다. 끝나면 바로 결과 설명드릴게요. 자리 비우셔도 됩니다.”','“원래 이 정도 걸립니다.”'],a:1,w:'지연은 먼저 알리고 선택권(자리 비우기)을 드리면 ‘진행 차질’로 느끼지 않아요.'},
- {s:'고객이 “제도가 좀 아쉽다”고 차분히 한마디 한다.',o:['“저도 그렇게 생각합니다. 공단이 문제예요.”','“의견 감사합니다. 그런 말씀은 공단 고객의소리로 전달되니 원하시면 접수 방법을 알려드릴게요.”','못 들은 척 넘어간다.'],a:1,w:'4점 고객의 아쉬움은 ‘접수 창구 안내’로 받아 주면 충분해요. 같이 공단을 탓하면 신뢰가 오히려 떨어져요.'},
- {s:'검사 중 고객이 “이거 꼭 고쳐야 해요? 돈이 많이 드는데…” 하고 묻는다.',o:['“기준이 그렇습니다.”','“부담되시죠. 이 항목은 ○○ 사고를 막기 위한 기준이고, 보완 방법은 여러 가지가 있으니 유지관리업체와 상의하실 수 있게 항목을 적어 드릴게요.”','“안 고치면 불합격입니다.”'],a:1,w:'기준의 ‘이유(안전)’와 ‘선택지’를 함께 주면 불만이 격앙으로 가지 않아요.'},
- {s:'검사를 마치고 나가는 길, 고객이 “수고하셨어요” 한다.',o:['“네.” 하고 나간다.','“감사합니다. 오늘 확인한 내용은 결과서로 다시 안내드릴게요. 궁금한 점은 언제든 연락 주세요.” 하고 명함을 건넨다.','“다음에 또 뵙죠.”'],a:1,w:'마지막 인상이 다음 검사의 첫인상이에요. 연락 창구를 남기면 5점(파트너십) 관계로 이어집니다.'},
- {s:'고객이 검사원에게 반말로 “야, 이거 언제 끝나?” 한다.',o:['같이 반말로 받는다.','“곧 마무리됩니다, 10분만 더 부탁드립니다.” 하고 존댓말을 유지한다.','대답하지 않는다.'],a:1,w:'개인을 향한 무례(2점)에는 감정 대응 대신 일정 정보로 답하는 게 상황을 더 나쁘게 만들지 않는 길이에요.'},
- {s:'유지관리업체 직원이 입회했는데 관리주체는 보이지 않는다.',o:['업체 직원에게만 설명하고 끝낸다.','검사 후 관리주체에게 전화해 결과 요지와 다음 절차를 1분 안에 안내한다.','결과서만 우편으로 보낸다.'],a:1,w:'관리주체가 검사 내용을 직접 들으면 PCSI 설문에서도 ‘검사원 설명’ 항목 만족도가 올라가요.'},
- {s:'고객이 “옆 건물은 통과했는데 왜 우리만 지적이냐” 한다.',o:['“그 건물은 모르겠고 여기는 기준 미달입니다.”','“그렇게 느끼실 수 있어요. 건물마다 설치 시기와 적용 기준이 달라서요. 이 건물에 적용된 기준과 이유를 보여 드릴게요.” 하며 앱의 안전기준을 함께 본다.','“그 건물 검사원한테 물어보세요.”'],a:1,w:'기준의 근거를 ‘보여 주면’ 판정 불만이 반복으로 가지 않아요. 안전기준 연혁집이 그래서 있어요.'},
- {s:'비 오는 날, 고객이 우산도 없이 밖에서 기다리고 있다.',o:['“안에 들어가 계세요.” 하고 검사만 한다.','먼저 인사하고 “밖은 추우니 안에서 기다리시면 끝나는 대로 찾아뵙겠습니다.” 하고 예상 시간을 알려 준다.','모른 척한다.'],a:1,w:'작은 배려가 고객 태도를 바꿉니다. 😐 → 🙂 로 올리는 데 돈이 들지 않아요.'}];
-function twBank(){const a=CS_BANK.map(b=>({t:'score',q:b.x,a:b.n,g:CSG[b.n-1]}));const b=TW_Q2.map(q=>({t:'resp',...q}));return [...a,...b]}
-const twToday=()=>key(new Date());
-const twState=()=>{const S=store.get('koelsa_tw',{});if(S.d!==twToday())return {d:twToday(),done:0,ok:0,q:null,i:0,ans:null,res:[]};return S};
-function twSave(S){store.set('koelsa_tw',S)}
-function twPick(){const B=twBank();const seed=twToday()+(myId||'');let h=0;for(const ch of seed)h=(h*31+ch.charCodeAt(0))>>>0;const r=[];const used=new Set();for(let k=0;k<3;k++){let i=(h+k*7919)%B.length;while(used.has(i))i=(i+1)%B.length;used.add(i);r.push(i)}return r}
-async function twAddFloor(){
-  if(!db||!myId)return;const m=me()||{};
-  try{const inc=firebase.firestore.FieldValue.increment?firebase.firestore.FieldValue.increment(1):null;
-    const ref=db.doc('tower/main');const sn=await ref.get();
-    if(!sn.exists){await ref.set({floors:1,contrib:{[myId]:1},names:{[myId]:m.name||''},updated:Date.now()})}
-    else if(inc){await ref.update({floors:inc,['contrib.'+myId]:inc,['names.'+myId]:m.name||'',updated:Date.now()})}
-    else{const d=sn.data();await ref.update({floors:(d.floors||0)+1,contrib:{...(d.contrib||{}),[myId]:((d.contrib||{})[myId]||0)+1},names:{...(d.names||{}),[myId]:m.name||''},updated:Date.now()})}
-    const f=(TW&&TW.floors||0)+1;const mile=TW_MILES.find(x=>x[0]===f);if(mile)toast(`🎉 ${f}층 달성! ${mile[1]} ${mile[2]}`,'ok');
-  }catch(e){twErr=e.code||'error';toast('층을 올리지 못했어요. 관리자가 보안 규칙을 갱신해야 할 수 있어요.','error')}
-}
-function twBuilding(f,small){
-  const show=Math.min(f,small?12:30),rows=[];for(let i=0;i<show;i++)rows.push(`<div class="tw-floor ${i===show-1&&twJustAdded?'new':''}"><i></i></div>`);
-  const deco=TW_MILES.filter(x=>f>=x[0]).map(x=>x[1]).join(' ');
-  return `<div class="flex flex-col items-center"><div class="text-2xl leading-none mb-0.5">${deco||'🏗️'}</div><div class="text-[22px] leading-none mb-0.5"><img src="eli.png" alt="엘리" class="inline-block ${small?'h-7':'h-10'} object-contain"></div><div class="flex flex-col-reverse gap-[2px] ${small?'w-14':'w-24'}">${rows.join('')}${f>show?`<div class="text-[9px] text-center opacity-60">+${f-show}층</div>`:''}</div><div class="${small?'w-20':'w-32'} h-2 rounded-b-xl bg-[#4C1D95]/70"></div></div>`}
-let twJustAdded=false;
-function renderHomeTower(){const el=$('#homeTower');if(!el)return;const f=twFloors(),S=twState(),left=3-S.done;const next=TW_MILES.find(x=>x[0]>f);
-  el.innerHTML=`<div class="flex items-center gap-3 px-3 py-2.5"><div class="shrink-0">${twBuilding(f,true)}</div><div class="flex-1 min-w-0"><div class="text-[11px] font-black text-purple-700 dark:text-purple-300">🏢 엘리 타워 · 우리 지사</div><div class="text-2xl font-black leading-tight">${f}<span class="text-sm">층</span></div><div class="text-[11px] opacity-75 leading-snug">${next?`${next[0]}층까지 ${next[0]-f}층 — ${next[1]} ${next[2]}`:'🏆 최고층 달성!'}</div><div class="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${left>0?'bg-[#6D28D9] text-white':'sub'}">${left>0?`▶ 오늘의 3문제 (${left}개 남음)`:'✅ 오늘 완료 · 내일 또 쌓아요'}</div></div><span class="text-xl opacity-50">›</span></div>`}
-function renderTower(){
-  const f=twFloors(),S=twState(),B=twBank();
-  const contrib=Object.entries((TW&&TW.contrib)||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  $('#twTop').innerHTML=`<div class="rounded-2xl overflow-hidden text-white p-4 relative" style="background:linear-gradient(135deg,#312E81,#6D28D9 60%,#1E1B4B)"><span class="absolute -right-10 -top-10 w-40 h-40 rounded-full" style="background:rgba(196,181,253,.18)"></span>
-    <div class="flex items-center gap-4 relative"><div class="shrink-0">${twBuilding(f,false)}</div><div class="flex-1 min-w-0"><div class="text-[11px] font-bold opacity-80">부산동부지사 · 함께 쌓는 건물</div><div class="text-4xl font-black leading-tight">${f}<span class="text-lg">층</span></div>
-      <div class="mt-2 space-y-1">${TW_MILES.map(x=>`<div class="flex items-center gap-1.5 text-[11px] ${f>=x[0]?'':'opacity-55'}"><span>${x[1]}</span><span class="tabular-nums w-9">${x[0]}층</span><span class="truncate">${x[2]}</span>${f>=x[0]?'<span>✅</span>':''}</div>`).join('')}</div></div></div>
-    ${twErr?`<div class="mt-3 text-[11px] bg-white/15 rounded-lg px-2 py-1.5">⚠️ 지사 공유 저장소에 아직 연결되지 않았어요(${esc(twErr)}). 관리자가 Firestore 보안 규칙에 tower를 추가해야 층이 공유돼요.</div>`:''}</div>`;
-  /* 오늘의 3문제 */
-  const box=$('#twPlay');
-  if(S.done>=3&&!S.q){box.innerHTML=`<div class="text-center py-3"><div class="text-2xl">✅</div><b class="text-sm block mt-1">오늘 3문제를 다 풀었어요 (${S.ok}개 정답 → ${S.ok}층)</b><p class="text-[11px] opacity-70 mt-1">내일 새 문제가 나와요. 동료들이 쌓는 층도 지켜봐 주세요.</p></div>`}
-  else{
-    if(!S.q){S.q=twPick();S.i=S.done;S.ans=null;twSave(S)}
-    const q=B[S.q[S.i]];
-    const head=`<div class="flex items-center justify-between"><h3 class="font-black text-sm">🎯 오늘의 3문제</h3><span class="text-[11px] opacity-70">${S.i+1} / 3 · 정답 1개 = 1층</span></div><div class="flex items-center gap-1 my-2">${[0,1,2].map(i=>`<span class="h-1.5 flex-1 rounded-full" style="background:${i<S.i?(S.res[i]?'#0D9488':'#C2410C'):i===S.i?'#A78BFA':'rgba(148,163,184,.35)'}"></span>`).join('')}</div>`;
-    if(q.t==='score'){
-      box.innerHTML=head+`<div class="rounded-2xl sub p-4 text-center"><div class="text-[11px] opacity-70 mb-1">이 고객의 고객우호도는 몇 점?</div><p class="text-sm font-bold leading-relaxed">${/^[“"]/.test(q.q)?esc(q.q):"“"+esc(q.q)+"”"}</p></div>
-        ${S.ans===null?`<div class="grid grid-cols-5 gap-1.5 mt-3">${CSG.map(x=>`<button data-tw="a${x.n}" class="rounded-xl py-3 text-white font-black text-base" style="background:${x.c}">${x.n}점</button>`).join('')}</div>`
-        :`<div class="mt-3 rounded-2xl p-3 text-white" style="background:${S.ans===q.a?'#0D9488':'#C2410C'}"><div class="text-sm font-black">${S.ans===q.a?'✅ 정답! +1층':`❌ 정답은 ${q.a}점`} · ${esc(q.g.tag)}</div><p class="text-[12px] leading-snug mt-1.5 opacity-95">${esc(q.g.d)}</p></div><button data-tw="next" class="w-full min-h-[46px] rounded-xl text-white text-sm font-black mt-2" style="background:#1E1B4B">${S.i<2?'다음 문제 ›':'마치기'}</button>`}`}
-    else{
-      box.innerHTML=head+`<div class="rounded-2xl sub p-4"><div class="text-[11px] opacity-70 mb-1">이럴 때 가장 좋은 응대는?</div><p class="text-sm font-bold leading-relaxed">${esc(q.s)}</p></div>
-        <div class="space-y-1.5 mt-3">${q.o.map((o,i)=>{const picked=S.ans===i,isA=i===q.a,show=S.ans!==null;return `<button data-tw="o${i}" ${show?'disabled':''} class="w-full text-left rounded-xl px-3 py-2.5 border-2 text-[13px] leading-snug ${show?(isA?'text-white':picked?'text-white opacity-80':'sub opacity-60'):'sub'}" style="border-color:transparent;${show&&isA?'background:#0D9488':show&&picked?'background:#C2410C':''}">${show?(isA?'✅ ':picked?'❌ ':'　'):['Ⓐ','Ⓑ','Ⓒ'][i]+' '}${esc(o)}</button>`}).join('')}</div>
-        ${S.ans!==null?`<div class="mt-2 rounded-xl sub p-3 text-[12px] leading-snug"><b>${S.ans===q.a?'✅ 정답! +1층':'❌ 아쉬워요'}</b> · ${esc(q.w)}</div><button data-tw="next" class="w-full min-h-[46px] rounded-xl text-white text-sm font-black mt-2" style="background:#1E1B4B">${S.i<2?'다음 문제 ›':'마치기'}</button>`:''}`}
-  }
-  /* 기여자 */
-  $('#twBoard').innerHTML=`<h3 class="font-black text-sm mb-2">🏗️ 이번 건물을 쌓은 사람들</h3>${contrib.length?`<div class="space-y-1.5">${contrib.map(([uid,n],i)=>`<div class="flex items-center gap-2 text-sm"><span class="w-6 text-center">${['🥇','🥈','🥉','4','5'][i]}</span>${avatar(uid,28)}<span class="flex-1 min-w-0 truncate">${esc((TW.names||{})[uid]||(D.members.find(m=>m.id===uid)||{}).name||'직원')}${uid===myId?' <span class="text-[10px] opacity-60">(나)</span>':''}</span><b class="tabular-nums">${n}층</b></div>`).join('')}</div>`:'<p class="text-xs opacity-70">아직 아무도 쌓지 않았어요. 첫 층을 올려 보세요!</p>'}<p class="text-[10px] opacity-60 mt-2">내 기여: ${((TW&&TW.contrib)||{})[myId]||0}층</p>`;
-}
-document.addEventListener('click',async e=>{if(cur!=='tower')return;const b=e.target.closest('[data-tw]');if(!b)return;const v=b.dataset.tw,S=twState();if(!S.q)return;const q=twBank()[S.q[S.i]];
-  if(/^a\d$/.test(v)&&S.ans===null){S.ans=+v[1];const ok=S.ans===q.a;S.res[S.i]=ok;twSave(S);renderTower();if(ok){twJustAdded=true;await twAddFloor();setTimeout(()=>{twJustAdded=false},600)}return}
-  if(/^o\d$/.test(v)&&S.ans===null){S.ans=+v[1];const ok=S.ans===q.a;S.res[S.i]=ok;twSave(S);renderTower();if(ok){twJustAdded=true;await twAddFloor();setTimeout(()=>{twJustAdded=false},600)}return}
-  if(v==='next'){S.done=S.i+1;if(S.res[S.i])S.ok++;S.i++;S.ans=null;if(S.done>=3)S.q=null;twSave(S);renderTower();window.scrollTo({top:0,behavior:'smooth'});return}
-});
+  box.innerHTML=SKINS.map(k=>{const on=cur_===k.id;return `<button data-skin="${k.id}" class="rounded-2xl p-3 text-left border-2" style="border-color:${on?k.c:'transparent'};background:${k.c2}22"><span class="flex items-center gap-2"><span class="w-7 h-7 rounded-full shrink-0" style="background:linear-gradient(135deg,${k.c},${k.c2})"></span><b class="text-sm">${k.name}</b>${on?'<span class="ml-auto text-sm">✅</span>':''}</span><span class="block text-[11px] opacity-75 mt-1.5">${k.d}</span></button>`}).join('')}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(!b||cur!=='profile')return;const id=b.dataset.skin;store.set('koelsa_skin',id);applyTheme();renderSkins();toast(`${SKINS.find(x=>x.id===id).name} 테마로 바꿨어요.`,'ok')});
 /* ===== CS 판정가이드: 고객우호도(1~5점) 판정 기준 ===== */
 const CSG=[
  {n:1,c:'#C2410C',tag:'제도 불만',sub:'반복 · 격앙',t:'제도 및 검사기관에 대한 불만',chip:'제도 불만(반복 · 격앙)',
@@ -2791,7 +2719,6 @@ async function init(){
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
-  db.doc('tower/main').onSnapshot(sn=>{TW=sn.exists?sn.data():{floors:0,contrib:{},names:{}};twErr='';applyTheme();changed()},e=>{twErr=e.code||'error';changed()});
   COLS.filter(c=>c!=='settings').forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{
     const rows=sn.docs.map(d=>({id:d.id,...d.data()}));
     if(c==='alerts'){if(got.has('alerts'))rows.forEach(a=>{if(!D.alerts.some(x=>x.id===a.id)&&a.by!==myId&&a.at>t0-6e4)fireAlert(a)})}
