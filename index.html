@@ -293,7 +293,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
   <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
-  <div id="homeBrief" class="hidden mb-3"></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -425,6 +424,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- BRIEFING -->
 <section id="p-brief" class="page pt-4 space-y-4" data-title="모닝 브리핑">
+  <div id="briefShared"></div>
   <div class="card space-y-3" id="recCard">
     <div class="flex items-center justify-between"><h2 class="font-black text-base">🎙️ 브리핑 녹음 → AI 정리</h2><span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:#0D9488">Gemini</span></div>
     <p class="text-[12px] opacity-80 leading-relaxed">브리핑을 녹음하면 AI가 <b>대화 정리 · 핵심 요약 · 결정 사항 · 할 일</b>로 나눠 적어 줘요. 휴대폰 녹음 앱으로 녹음한 파일을 올려도 돼요.</p>
@@ -1090,15 +1090,20 @@ function renderMini(){
   $('#miniGrid').innerHTML=h;
 }
 const HOME_VOICE_MS=60*60*1000;
-function briefPopup(bf){store.set('koelsa_brief_seen',bf.at);
+function briefPopup(bf){
   const o=document.createElement('div');o.id='briefPop';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
-  o.style.cssText='position:fixed;inset:0;z-index:130;background:rgba(15,10,40,.55);display:flex;align-items:center;justify-content:center;padding:20px';
-  o.innerHTML=`<div style="width:100%;max-width:400px;max-height:80vh;overflow:auto;background:#fff;color:#1E1B4B;border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
-    <div style="background:linear-gradient(135deg,#6D28D9,#0D9488);color:#fff;padding:16px 18px;border-radius:22px 22px 0 0"><div style="font-size:12px;font-weight:800;opacity:.85">📢 새 브리핑 전달사항</div><div style="font-size:18px;font-weight:900;margin-top:2px">${esc(bf.date||'')}</div><div style="font-size:11px;opacity:.85;margin-top:2px">${esc(nmFull(bf.by))} · 1시간 동안 메인에 표시돼요</div></div>
-    <ol style="padding:14px 18px;margin:0;list-style:none">${bf.items.map((x,i)=>`<li style="display:flex;gap:8px;font-size:15px;line-height:1.6;padding:6px 0;border-bottom:1px solid #EDE9FE"><b style="color:#6D28D9;flex-shrink:0">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol>
-    <div style="padding:0 18px 18px"><button id="briefPopOk" style="width:100%;min-height:50px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">확인했어요</button></div></div>`;
-  document.body.appendChild(o);const close=()=>o.remove();
-  o.addEventListener('click',e=>{if(e.target===o||e.target.id==='briefPopOk')close()});
+  o.style.cssText='position:fixed;inset:0;z-index:130;background:rgba(15,10,40,.55);display:flex;align-items:center;justify-content:center;padding:24px';
+  o.innerHTML=`<div style="width:100%;max-width:360px;background:#fff;color:#1E1B4B;border-radius:22px;padding:24px 20px 18px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+    <div style="font-size:40px;line-height:1">📢</div>
+    <div style="font-size:17px;font-weight:900;margin-top:10px">브리핑 전달사항을 확인하시겠습니까?</div>
+    <div style="font-size:12px;opacity:.7;margin-top:6px">${esc(bf.date||'')} · ${esc(nmFull(bf.by))} · ${bf.items.length}건</div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:18px">
+      <button id="briefPopNo" style="min-height:50px;border-radius:14px;border:1px solid #C4B5FD;font-weight:800;font-size:14px;color:#4C1D95">나중에</button>
+      <button id="briefPopOk" style="min-height:50px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">확인</button></div></div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click',e=>{const id=e.target.id;
+    if(id==='briefPopOk'){store.set('koelsa_brief_seen',bf.at);o.remove();go('brief')}
+    else if(id==='briefPopNo'||e.target===o){store.set('koelsa_brief_seen',bf.at);o.remove();toast('모닝 브리핑에서 언제든 확인할 수 있어요.')}});
   try{navigator.vibrate&&navigator.vibrate(120)}catch(e){}}
 /* 1분마다 확인해 1시간 지난 글은 메인에서 내림 */
 setInterval(()=>{if(cur==="home"&&document.visibilityState==="visible")try{renderHome()}catch(e){}},60*1000);
@@ -1116,16 +1121,9 @@ function renderHome(){
   $('#ddayBar').classList.toggle('hidden',!soon.length);
   if(soon.length){const f=soon[0],d=dday(f.date);$('#ddayBar').textContent=`📅 ${d?'D-1 내일':'D-DAY 오늘'} [${f.cat||'일반'}] ${f.title}${f.time?' '+f.time:''}${soon.length>1?` 외 ${soon.length-1}건`:''}`;
     const tk=key(new Date());if(store.get('koelsa_dday_toast','')!==tk&&me()){store.set('koelsa_dday_toast',tk);setTimeout(()=>toast(`📅 오늘·내일 공용 일정 ${soon.length}건이 있습니다.`),800)}}
-  /* 📢 브리핑 전달사항: 올린 시점부터 1시간만 메인에 표시 */
-  {const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief,box=$('#homeBrief');
-   const on=!!(bf&&bf.items&&bf.items.length&&Date.now()-bf.at<HOME_VOICE_MS);box.classList.toggle('hidden',!on);
-   if(on){const left=Math.max(1,Math.ceil((HOME_VOICE_MS-(Date.now()-bf.at))/6e4));
-     box.innerHTML=`<div class="rounded-2xl p-4 shadow-sm" style="background:linear-gradient(135deg,#EDE9FE,#F0FDFA);border:1px solid #C4B5FD;color:#1E1B4B">
-       <div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 브리핑 전달사항</div><span class="text-[10px] font-bold opacity-60">${left}분 뒤 내려감</span></div>
-       <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))}</div>
-       <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`;
-     /* 새 전달사항이 올라오면 한 번 팝업으로 알림 (올린 사람 제외, 사람마다 1회) */
-     if(bf.by!==myId&&store.get('koelsa_brief_seen',0)!==bf.at&&!$('#briefPop'))briefPopup(bf)}}
+  /* 📢 브리핑 전달사항이 새로 공유되면(1시간 이내) 한 번 '확인하시겠습니까?' 팝업 → 확인 시 모닝 브리핑으로 */
+  {const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief;
+   if(bf&&bf.items&&bf.items.length&&Date.now()-bf.at<HOME_VOICE_MS&&bf.by!==myId&&store.get('koelsa_brief_seen',0)!==bf.at&&!$('#briefPop'))briefPopup(bf)}
   /* 메인에는 올린 지 1시간 이내 글만 (최대 3개). 1시간이 지나면 현장목소리 목록에서 확인 */
   const vs=voicesSorted().filter(v=>Date.now()-v.at<HOME_VOICE_MS).slice(0,3);
   $('#homeFeedHd').classList.toggle('hidden',!vs.length);$('#homeFeedHd').classList.toggle('flex',!!vs.length);
@@ -1238,7 +1236,7 @@ function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=
     ${sec('✅ 결정 사항',it.decisions,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
     ${sec('⛑️ 안전 당부',it.safety,x=>`<li class="text-[13px] rounded-lg px-3 py-2" style="background:#FEF3C7;color:#78350F">${esc(x)}</li>`)}
     ${it.dialogue.length?`<details><summary class="text-xs font-black cursor-pointer min-h-[36px] flex items-center">💬 대화 정리 (${it.dialogue.length}마디) — 눌러서 펼치기</summary><div class="space-y-1.5 mt-1">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
-    ${(it.brief||[]).length?`<button data-recpub="${it.id}" class="w-full min-h-[48px] rounded-xl text-white text-sm font-black" style="background:linear-gradient(135deg,#6D28D9,#0D9488)">📢 전달사항 메인화면에 공유 <span class="text-[11px] font-bold opacity-80">(1시간)</span></button>`:''}
+    ${(it.brief||[]).length?`<button data-recpub="${it.id}" class="w-full min-h-[48px] rounded-xl text-white text-sm font-black" style="background:linear-gradient(135deg,#6D28D9,#0D9488)">📢 전달사항 지사에 공유</button>`:''}
     <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 전달사항 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
   </div>`}
 function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
@@ -1256,7 +1254,7 @@ document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
   const it_=id=>recSaved().find(x=>x.id===id);
   if(b=e.target.closest('[data-recpub]')){const it=it_(b.dataset.recpub);if(!it||!db)return toast('서버에 연결된 뒤 다시 시도해 주세요.','error');
     const d=new Date(it.at);b.disabled=true;
-    try{await db.doc('settings/main').set({brief:{items:it.brief.slice(0,20),date:`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,by:myId,at:Date.now()}},{merge:true});toast('메인화면에 1시간 동안 표시돼요.','ok');pushSend('brief','📢 브리핑 전달사항 · '+`${d.getMonth()+1}/${d.getDate()}`,it.brief[0]+(it.brief.length>1?` 외 ${it.brief.length-1}건`:''),'#home')}
+    try{await db.doc('settings/main').set({brief:{items:it.brief.slice(0,20),date:`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,by:myId,at:Date.now()}},{merge:true});toast('지사에 공유했어요. 모닝 브리핑 맨 위에 표시돼요.','ok');renderBrief();pushSend('brief','📢 브리핑 전달사항 · '+`${d.getMonth()+1}/${d.getDate()}`,it.brief[0]+(it.brief.length>1?` 외 ${it.brief.length-1}건`:''),'#briefing')}
     catch(err){toast(errMsg(err),'error')}b.disabled=false;return}
   if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recBriefText(it));toast('전달사항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
   if(b=e.target.closest('[data-recshare]')){const it=it_(b.dataset.recshare);if(!it)return;const t=recText(it);if(navigator.share){try{await navigator.share({title:it.title,text:t})}catch(err){}}else{try{await navigator.clipboard.writeText(t);toast('공유 기능이 없어 복사했어요. 메신저에 붙여넣어 주세요.','ok')}catch(err){}}return}
@@ -1543,7 +1541,7 @@ $('#hAdd').onclick=async()=>{
     const ids=[];for(const d of hPending)ids.push(await photoPut(d));
     const h={title,place:$('#hPlace').value.trim(),level:$('#hLevel').value,desc:$('#hDesc').value.trim(),photos:ids,by:myId,at:Date.now()};
     await put('hazards',h);
-    if(h.level==='긴급'){await put('alerts',{kind:'hazard',msg:title+(h.place?' ('+h.place+')':''),photo:ids[0]||'',by:myId,at:Date.now()});pushSend('hazard','⚠️ 긴급 위험현장',title+(h.place?' ('+h.place+')':''),'#haz')}
+    if(h.level==='긴급'){await put('alerts',{kind:'hazard',msg:title+(h.place?' ('+h.place+')':''),photo:ids[0]||'',by:myId,at:Date.now()});pushSend('hazard','⚠️ 긴급 위험현장',title+(h.place?' ('+h.place+')':''),'#hazard')}
     $('#hTitle').value=$('#hPlace').value=$('#hDesc').value='';hPending=[];renderHPrev();
     toast(h.level==='긴급'?'사진과 함께 긴급 알림을 전송했습니다.':'지사에 공유되었습니다.','ok');
   }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
@@ -1551,7 +1549,14 @@ $('#hAdd').onclick=async()=>{
 };
 
 /* ===== 모닝 브리핑: 녹음 → AI 정리 카드만 ===== */
-function renderBrief(){try{renderRec()}catch(e){}}
+function renderBrief(){try{renderRec()}catch(e){}
+  const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief,box=$('#briefShared');if(!box)return;
+  if(!(bf&&bf.items&&bf.items.length)){box.innerHTML='';return}
+  const fresh=Date.now()-bf.at<HOME_VOICE_MS;if(bf.by!==myId)store.set('koelsa_brief_seen',bf.at);
+  box.innerHTML=`<div class="rounded-2xl p-4 shadow-sm" style="background:linear-gradient(135deg,#EDE9FE,#F0FDFA);border:1px solid #C4B5FD;color:#1E1B4B">
+    <div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 공유된 브리핑 전달사항</div>${fresh?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:#DC2626">NEW</span>':''}</div>
+    <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))} · ${ago(bf.at)}</div>
+    <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`}
 
 /* ===== 컨디션 진단 · 상비약 · 점심 추천 (개인 기록, 이 기기 저장) ===== */
 const Q=[{id:'sleep',q:'😴 수면시간',o:['7시간 이상','5~7시간','5시간 미만']},{id:'pain',q:'🤕 신체통증',o:['없음','가벼움','심함']},{id:'focus',q:'🎯 업무집중도',o:['높음','보통','낮음']}];
