@@ -1521,7 +1521,9 @@ function sbBody(c,x,q){
     if(cp.i<pos)continue;
     const page=figs[Math.min(k,figs.length-1)],key=c.id+'|fig'+k;
     if(cp.kind==='그림'){
-      let st=pos;if(k===0){let j=cp.i-1;while(j>=pos&&!endS(L[j]))j--;st=j+1}
+      /* 그림 속 글자 줄: 짧거나 ' · '가 있거나 기호 설명. 본문 항목(가) 1) …)이나 긴 문장을 만나면 멈춤 */
+      const legend=l=>!endS(l)&&!/^(\s*[가-하]\)|\s*\d+\)\s)/.test(l)&&(l.includes(' · ')||l.trim().length<=30||/^기호\s*설명/.test(l)||/^[A-Za-z①-⑳]\s/.test(l));
+      let st=pos;if(k===0){let j=cp.i-1;while(j>=pos&&legend(L[j]))j--;st=j+1}else{let j=cp.i-1;while(j>=pos&&legend(L[j]))j--;st=j+1}
       const blk=L.slice(st,cp.i).filter(l=>l.trim()),before=L.slice(pos,st).join('\n');
       if(before.trim())out.push(sbHL(before,q));
       if(blk.length>=3&&page)out.push(box(cp,page,blk,key));else out.push(sbHL(L.slice(st,cp.i+1).join('\n'),q));
@@ -1890,7 +1892,7 @@ function sbFigCaps(){
   SB.list.forEach(c=>{const caps=sbCapsOf(c);if(!caps.length)return;const F=sbFigPages(c);if(!F.length)return;
     caps.forEach((cp,k)=>{const pg=F[Math.min(k,F.length-1)];(M[pg]=M[pg]||[]).push(cp)})});
   SB._caps=M;return M}
-const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];return L.map(x=>`${x.kind} ${x.no}`).join(' · ')};
+const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];return [...new Set(L.map(x=>`${x.kind} ${x.no}`))].join(' · ')};
 function renderSbFig(){
   const box=$('#ihFig');
   if(SB.state!=='ready'){box.innerHTML=`<div class="card text-center text-sm py-8">${SB.state==='none'?'초대받은 직원 계정으로 접속하면 볼 수 있어요.':'🖼️ 자료를 불러오는 중…'}</div>`;return}
@@ -1907,7 +1909,7 @@ function renderSbFig(){
     <div class="flex gap-1.5 flex-wrap"><button data-sbfigkind="all" class="chip !min-h-[36px] ${sbFigKind==='all'?'sel':''}">전체 <span class="tabular-nums opacity-80">${F.length}</span></button><button data-sbfigkind="그림" class="chip !min-h-[36px] ${sbFigKind==='그림'?'sel':''}">🖼️ 그림 <span class="tabular-nums opacity-80">${kc['그림']}</span></button><button data-sbfigkind="표" class="chip !min-h-[36px] ${sbFigKind==='표'?'sel':''}">📊 표 <span class="tabular-nums opacity-80">${kc['표']}</span></button>${kc['기타']?`<button data-sbfigkind="기타" class="chip !min-h-[36px] ${sbFigKind==='기타'?'sel':''}">번호 없음 <span class="tabular-nums opacity-80">${kc['기타']}</span></button>`:''}</div>
     <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 장 ${items.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
     ${!show.length?'<div class="card text-center text-sm py-8 opacity-80">해당하는 그림·표가 없어요.</div>':''}${show.map(g=>`<div class="card !p-3"><div class="flex items-center gap-2 mb-2"><span class="sb-ch">${esc(g.id.replace('부속서 ',''))}</span><b class="text-sm flex-1 min-w-0 truncate">${esc(g.t)}</b><span class="text-[11px] opacity-70 tabular-nums">${g.items.length}장</span></div>
-      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}${sbFigLabel(it.p)?` <span class="text-purple-700 dark:text-purple-300">· ${esc(sbFigLabel(it.p))}</span>`:' <span class="opacity-50">· 번호 없음</span>'}</span>${(()=>{const L=sbFigCaps()[it.p]||[];return L.length?`<span class="block text-[10px] opacity-80 line-clamp-2 leading-snug">${esc(L.map(x=>x.t).filter(Boolean).join(' / '))}</span>`:it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''})()}</span></button>`).join('')}</div></div>`).join('')}`;
+      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}${sbFigLabel(it.p)?` <span class="text-purple-700 dark:text-purple-300">· ${esc(sbFigLabel(it.p))}</span>`:' <span class="opacity-50">· 번호 없음</span>'}</span>${(()=>{const L=sbFigCaps()[it.p]||[];return L.length?`<span class="block text-[10px] opacity-80 line-clamp-2 leading-snug">${esc([...new Set(L.map(x=>x.t).filter(Boolean))].join(' / '))}</span>`:it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''})()}</span></button>`).join('')}</div></div>`).join('')}`;
 }
 function renderSbFav(){
   const box=$('#ihFav');
