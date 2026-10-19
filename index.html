@@ -100,6 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ptr-elv.open .ptr-d.l{transform:translate3d(-110%,0,0)}.ptr-elv.open .ptr-d.r{transform:translate3d(110%,0,0)}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
 /* 헤더 새로고침(엘리베이터 문) */
+.sb-old{display:inline-block;font-size:10px;font-weight:800;padding:0 6px;border-radius:6px;background:rgba(148,163,184,.3)}
 .rec-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:4px;animation:recB 1s infinite}@keyframes recB{50%{opacity:.2}}.rec-spin{width:34px;height:34px;border:4px solid #C4B5FD;border-top-color:#6D28D9;border-radius:50%;animation:recS .9s linear infinite}@keyframes recS{to{transform:rotate(360deg)}}
 @media (max-width:379px){#hRight{gap:2px}#bellBtn,#meBtn{width:40px!important;height:40px!important}}
 .ptr-elv.hdr:before{top:1.5px;margin-left:-4.5px;border-width:0 4.5px 4.5px}.ptr-elv.hdr{filter:none;box-shadow:0 2px 5px rgba(76,29,149,.28);border-color:#6D28D9;background:#fff;width:33px;height:39px;padding:8px 3px 3px;border-width:2.5px;border-radius:7px}.ptr-elv.hdr:before{border-bottom-color:#6D28D9}.ptr-elv.hdr .ptr-d{border-color:#6D28D9}.dark .ptr-elv.hdr{border-color:#C4B5FD;background:#1E1B4B}.dark .ptr-elv.hdr:before{border-bottom-color:#C4B5FD}.dark .ptr-elv.hdr .ptr-d{border-color:#C4B5FD;background:#6D5BB5}
@@ -1924,7 +1925,7 @@ function sbCard(c,q){
     <div class="mt-2 space-y-2">${ver(V[0],0)}
       ${c.hist.length?`<button data-sbhist="${esc(c.id)}" class="sb-act w-full px-3 sub text-left">${histOpen?'▲':'▼'} 종전 기준 ${c.hist.length}건 ${histOpen?'접기':'보기'}</button>${histOpen?V.slice(1).map((v,k)=>ver(v,k+1)).join(''):''}`:''}
     </div>
-    ${(()=>{const F=sbFigPages(c);return F.length?`<div class="flex flex-wrap gap-1.5 mt-2">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}</button>`).join('')}</div>`:''})()}
+    ${(()=>{const F=sbFigPages(c);return F.length?`<div class="flex flex-wrap gap-1.5 mt-2">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ ${sbFigLabel(p)?esc(sbFigLabel(p))+' · ':'원문 그림·표 '}p.${p}</button>`).join('')}</div>`:''})()}
     <div class="grid grid-cols-4 gap-1 mt-2 pt-2 border-t border-purple-400/25">
       <button data-sbfav="${esc(c.id)}" class="sb-act ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button>
       <button data-sbcopy="${esc(c.id)}" class="sb-act">📋 복사</button>
@@ -2142,13 +2143,22 @@ function renderStd(force){
 }
 /* 그림·표 모아보기: 원문에 그림·표가 있는 쪽을 장(章)별로 모아 보여주고, 누르면 보기 창 */
 let sbFigCh='all',sbFigKind='all';
-/* 쪽 → 그림·표 번호: 조항 본문의 캡션([ 그림 N - … ], [ 표 N … ])을 그 조항의 그림 쪽에 차례로 배정 */
-function sbFigCaps(){
-  if(SB._caps)return SB._caps;const M={};
-  SB.list.forEach(c=>{const caps=sbCapsOf(c);if(!caps.length)return;const F=sbFigPages(c);if(!F.length)return;
-    caps.forEach((cp,k)=>{const pg=F[Math.min(k,F.length-1)];(M[pg]=M[pg]||[]).push(cp)})});
-  SB._caps=M;return M}
-const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];return [...new Set(L.map(x=>`${x.kind} ${x.no}`))].join(' · ')};
+/* 쪽 → 그림·표 번호: 원문 쪽 이미지 121장을 하나씩 눈으로 확인해 만든 표(data/figmap.json)
+   {책:{쪽:[{k:'그림'|'표', n:번호(원문 그대로), t:제목, cur:현행 여부, sec:조항}]}} */
+let FIGMAP=null,figmapBusy=false;
+function figmapLoad(){if(FIGMAP||figmapBusy)return;figmapBusy=true;
+  fetch('data/figmap.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7))).then(r=>r.ok?r.json():{}).then(j=>{FIGMAP=j||{};figmapBusy=false;try{if(cur==='insp')renderStd(true)}catch(e){}}).catch(()=>{figmapBusy=false})}
+function sbFigCaps(){figmapLoad();const B=(FIGMAP&&FIGMAP[sbBook])||{},M={};
+  for(const p in B)M[+p]=B[p].map(x=>({kind:x.k,no:x.n,t:x.t,cur:x.cur,sec:x.sec}));return M}
+/* 같은 쪽에 현행이 있으면 현행 번호만, 없으면 종전 번호 */
+const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];const C=L.filter(x=>x.cur),U=C.length?C:L;return [...new Set(U.map(x=>`${x.kind} ${x.no}`))].join(' · ')};
+/* 번호 정렬: 본문(1, 2, 10…) → 부속서(Ⅰ.1, Ⅱ.3, A.1…) 순, 같은 번호면 현행 먼저 */
+const ROM={'Ⅰ':1,'Ⅱ':2,'Ⅲ':3,'Ⅳ':4,'Ⅴ':5,'Ⅵ':6,'Ⅶ':7,'Ⅷ':8,'Ⅸ':9,'Ⅹ':10,'Ⅺ':11,'Ⅻ':12};
+function figKey(n){n=String(n).trim();const latinRom={I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7,VIII:8,IX:9,X:10,XI:11,XII:12};
+  const m=n.match(/^([ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]|[IVX]+|[A-Z])[.\-\s]*(.*)$/);
+  if(m){const h=ROM[m[1]]||latinRom[m[1]]||(m[1].charCodeAt(0)-64+20);return [1,h,...(m[2].match(/\d+/g)||[]).map(Number)]}
+  return [0,...(n.match(/\d+/g)||[999]).map(Number)]}
+function figCmp(a,b){const A=figKey(a.no),B=figKey(b.no);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]??-1)-(B[i]??-1);if(d)return d}return (b.cur?1:0)-(a.cur?1:0)||a.p-b.p}
 function renderSbFig(){
   const box=$('#ihFig');
   if(SB.state!=='ready'){box.innerHTML=`<div class="card text-center text-sm py-8">${SB.state==='none'?'초대받은 직원 계정으로 접속하면 볼 수 있어요.':'🖼️ 자료를 불러오는 중…'}</div>`;return}
@@ -2157,10 +2167,20 @@ function renderSbFig(){
   /* 각 쪽에 해당하는 조항: 그 쪽 이전에 시작한 마지막 조항 */
   const CM=sbFigCaps();const kindOf=p=>{const L=CM[p]||[];return L.length?(L.some(x=>x.kind==='그림')&&L.some(x=>x.kind==='표')?'둘다':L[0].kind):'기타'};
   const all=F.map(p=>{let c=null;for(const x of SB.list){if(x.p<=p)c=x;else break}const ch=c?SB.chap.find(k=>k.id===chapOf(c)):null;return {p,c,ch,kind:kindOf(p)}});
-  const kc={'그림':all.filter(x=>x.kind==='그림'||x.kind==='둘다').length,'표':all.filter(x=>x.kind==='표'||x.kind==='둘다').length,'기타':all.filter(x=>x.kind==='기타').length};
+  /* 칩 숫자 = 그림·표 개수(번호 기준), 번호 없음 = 캡션이 없는 쪽 수 */
+  const capN=k=>all.reduce((n,it)=>n+(CM[it.p]||[]).filter(x=>x.kind===k).length,0);
+  const kc={'그림':capN('그림'),'표':capN('표'),'기타':all.filter(x=>x.kind==='기타').length};
   const items=all.filter(x=>sbFigKind==='all'||(sbFigKind==='기타'?x.kind==='기타':(x.kind===sbFigKind||x.kind==='둘다')));
   const groups=[];items.forEach(it=>{const id=it.ch?it.ch.id:'기타';let g=groups.find(x=>x.id===id);if(!g){g={id,t:it.ch?it.ch.t:'기타',items:[]};groups.push(g)}g.items.push(it)});
   const show=sbFigCh==='all'?groups:groups.filter(g=>g.id===sbFigCh);
+  if(sbFigKind==='그림'||sbFigKind==='표'){
+    const caps=[];all.forEach(it=>(CM[it.p]||[]).forEach(cp=>{if(cp.kind===sbFigKind)caps.push({...cp,p:it.p,c:it.c})}));caps.sort(figCmp);
+    const nc=caps.filter(x=>x.cur).length;
+    box.innerHTML=`<div class="flex items-center justify-between px-1"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${sbFigKind==='그림'?'🖼️ 그림':'📋 표'} 번호순 <span class="tabular-nums opacity-70">${caps.length}개</span></h2><span class="text-[11px] opacity-70">누르면 원문 쪽</span></div>
+      <div class="flex gap-1.5 flex-wrap"><button data-sbfigkind="all" class="chip !min-h-[36px]">전체 <span class="tabular-nums opacity-80">${F.length}</span></button><button data-sbfigkind="그림" class="chip !min-h-[36px] ${sbFigKind==='그림'?'sel':''}">🖼️ 그림 <span class="tabular-nums opacity-80">${kc['그림']}</span></button><button data-sbfigkind="표" class="chip !min-h-[36px] ${sbFigKind==='표'?'sel':''}">📋 표 <span class="tabular-nums opacity-80">${kc['표']}</span></button>${kc['기타']?`<button data-sbfigkind="기타" class="chip !min-h-[36px]">번호 없음 <span class="tabular-nums opacity-80">${kc['기타']}</span></button>`:''}</div>
+      <p class="text-[11px] opacity-75 px-1 leading-relaxed">원문 쪽 이미지를 하나씩 눈으로 확인해 번호를 붙였어요. 현행 ${nc}개 · <span class="sb-old">종전</span> 표시는 예전 기준(개정 전) 그림·표예요.</p>
+      ${caps.length?`<div class="card !p-0 overflow-hidden">${caps.map(x=>`<button data-sbfig="${x.p}" data-sbfigc="${esc(x.c?sbIdLabel(x.c):'')}" class="w-full text-left flex items-center gap-3 px-3 py-2.5 border-b border-purple-400/15 min-h-[56px]"><span class="shrink-0 w-[64px] text-center rounded-lg px-1 py-1 text-[12px] font-black ${x.cur?'text-white':''}" style="${x.cur?'background:#6D28D9':'background:rgba(148,163,184,.25)'}">${esc(x.kind)} ${esc(x.no)}</span><span class="flex-1 min-w-0"><span class="block text-[13px] font-bold leading-snug break-words">${esc(x.t||'(제목 없음)')}</span><span class="block text-[11px] opacity-70 tabular-nums">p.${x.p}${x.sec?' · '+esc(x.sec):x.c?' · '+esc(sbIdLabel(x.c)):''}${x.cur?'':' · <span class="sb-old">종전</span>'}</span></span><span class="opacity-40 shrink-0">›</span></button>`).join('')}</div>`:'<div class="card text-center text-sm py-8 opacity-80">해당하는 항목이 없어요.</div>'}`;
+    return}
   box.innerHTML=`<div class="flex items-center justify-between px-1"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>원문 그림·표 <span class="tabular-nums opacity-70">${F.length}장</span></h2><span class="text-[11px] opacity-70">누르면 크게 보여요</span></div>
     <div class="flex gap-1.5 flex-wrap"><button data-sbfigkind="all" class="chip !min-h-[36px] ${sbFigKind==='all'?'sel':''}">전체 <span class="tabular-nums opacity-80">${F.length}</span></button><button data-sbfigkind="그림" class="chip !min-h-[36px] ${sbFigKind==='그림'?'sel':''}">🖼️ 그림 <span class="tabular-nums opacity-80">${kc['그림']}</span></button><button data-sbfigkind="표" class="chip !min-h-[36px] ${sbFigKind==='표'?'sel':''}">📊 표 <span class="tabular-nums opacity-80">${kc['표']}</span></button>${kc['기타']?`<button data-sbfigkind="기타" class="chip !min-h-[36px] ${sbFigKind==='기타'?'sel':''}">번호 없음 <span class="tabular-nums opacity-80">${kc['기타']}</span></button>`:''}</div>
     <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 장 ${items.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
@@ -2199,7 +2219,7 @@ function sbSheetHTML(c,q){
   const head=`<div class="flex items-start gap-3"><span class="sb-id">${esc(sbIdLabel(c))}</span><div class="flex-1 min-w-0"><div class="text-[11px] opacity-70"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${ch?esc((isJudg()?'':ch.id+' ')+ch.t)+' · ':''}p.${c.p}</div><b class="text-base break-words block leading-snug">${sbHL(sbTitle(c),q)}</b></div><button data-sbclose aria-label="닫기" class="w-9 h-9 rounded-full sb-sec shrink-0">✕</button></div>${verdict}`;
   const body=`<div class="space-y-2">${tools}${ver(V[0],0)}
     ${c.hist.length?`<button data-sbhist="${esc(c.id)}" class="sb-act w-full px-3 sb-sec text-left">${hist?'▲':'▼'} 종전 기준 ${c.hist.length}건 ${hist?'접기':'보기'}</button>${hist?V.slice(1).map((v,k)=>ver(v,k+1)).join(''):''}`:''}
-    ${F.length?`<div class="flex flex-wrap gap-1.5 pt-1">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}</button>`).join('')}</div>`:''}</div>`;
+    ${F.length?`<div class="flex flex-wrap gap-1.5 pt-1">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ ${sbFigLabel(p)?esc(sbFigLabel(p))+' · ':'원문 그림·표 '}p.${p}</button>`).join('')}</div>`:''}</div>`;
   const foot=`<div class="grid grid-cols-3 gap-2"><button data-sbfav="${esc(c.id)}" class="sb-sec ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button><button data-sbcopy="${esc(c.id)}" class="sb-sec">📋 복사</button><button data-sbsec="${esc(isJudg()?chapOf(c):isStd()?(c.ids||[c.id])[0]:c.id)}" class="sb-sec">${isJudg()?'📑 같은 목록':isStd()?'📑 같은 조항':'📑 하위 조항'}</button></div>${c.hist.length&&!hist?`<button data-sbhist="${esc(c.id)}" class="sb-pri w-full mt-2">종전 기준 ${c.hist.length}건 보기</button>`:''}`;
   return {head,body,foot};
 }
@@ -2239,7 +2259,7 @@ async function sbFig(p){
 }
 function sbApplyZoom(){const im=$('#sbvImg');im.style.width=(sbZoom*100)+'%'}
 async function sbOpenFig(p,cid){
-  sbvPage=p;sbZoom=1;$('#sbvTitle').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].code} · ${cid?cid+' · ':''}원문 p.${p}`;$('#sbvCap').textContent='불러오는 중…';
+  sbvPage=p;sbZoom=1;const fl=sbFigLabel(p);$('#sbvTitle').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].code} · ${fl?fl+' · ':''}${cid?cid+' · ':''}원문 p.${p}`;$('#sbvCap').textContent='불러오는 중…';
   const im=$('#sbvImg');im.removeAttribute('src');sbApplyZoom();
   $('#sbViewer').classList.remove('hidden');$('#sbViewer').classList.add('flex');
   const src=await sbFig(p);
