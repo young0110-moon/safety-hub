@@ -632,7 +632,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
 
-<button id="updBar" onclick="location.reload()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
+<button id="updBar" onclick="hardUpdate()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
 <div id="nPanel" class="hidden fixed inset-0 z-[90]" role="dialog" aria-label="알림">
   <div id="nDim" class="absolute inset-0 bg-black/25"></div>
   <div class="absolute left-2 right-2 max-w-xl mx-auto rounded-2xl bg-white dark:bg-[#1E1B4B] text-slate-800 dark:text-white shadow-2xl overflow-hidden" style="top:calc(64px + env(safe-area-inset-top,0px))">
@@ -2728,13 +2728,22 @@ if($('#geoBtn'))$('#geoBtn').onclick=async()=>{
 /* ===== 새 버전 자동 반영 (아이폰 홈 화면 앱은 새로고침 버튼이 없어서) ===== */
 const BUILD='__BUILD__';
 let updBusy=false;
+/* 최신 버전으로 바로 바꾸기: 서비스워커 갱신 → 앱 파일 캐시 비우기 → 버전 붙은 주소로 다시 열기(CDN 옛 파일 회피) */
+async function hardUpdate(v){
+  try{const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update().catch(()=>{});if(reg.waiting)reg.waiting.postMessage('skipWaiting')}}catch(e){}
+  try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.open(k).then(c=>c.keys().then(rs=>Promise.all(rs.filter(r=>!/\/data\//.test(r.url)).map(r=>c.delete(r)))))))}catch(e){}
+  const u=new URL(location.href);u.searchParams.set('v',v||Date.now());location.replace(u.pathname+u.search+u.hash)}
 async function checkUpdate(manual){
   if(updBusy||!location.protocol.startsWith('http'))return;updBusy=true;
   try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});const j=await r.json();
     if(j.v&&BUILD!=='__BUILD__'&&j.v!==BUILD){
       const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.value;
       if(typing||cur==='write'){$('#updBar').classList.remove('hidden');$('#updBar').classList.add('flex')}
-      else{toast('새 버전으로 바꾸는 중…','ok');setTimeout(()=>location.reload(),400)}
+      else{
+        /* 같은 새 버전으로 이미 한 번 바꿨는데도 옛 화면이면 = 서버(CDN)에 아직 퍼지는 중 → 무한 새로고침 막기 */
+        const tried=sessionStorage.getItem('koelsa_upd_try');
+        if(tried===j.v){if(manual)toast('새 버전이 서버에 퍼지는 중이에요. 1~2분 뒤 다시 눌러 주세요.','error');sessionStorage.removeItem('koelsa_upd_try')}
+        else{sessionStorage.setItem('koelsa_upd_try',j.v);toast('새 버전으로 바꾸는 중…','ok');setTimeout(()=>hardUpdate(j.v),300)}}
     }else if(manual)toast('이미 최신 버전이에요.','ok');
   }catch(e){if(manual)toast('확인하지 못했어요. 인터넷 연결을 확인해 주세요.','error')}
   updBusy=false;
