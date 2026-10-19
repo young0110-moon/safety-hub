@@ -1307,6 +1307,27 @@ function renderPush(){const B=$('#pushBox');if(!B)return;const on=!!store.get('k
 document.addEventListener('click',e=>{const b=e.target.closest('[data-push],[data-pushk]');if(!b||!b.closest('#pushBox'))return;
   if(b.dataset.pushk){if(b.dataset.pushk==='sos'&&!(pushPrefs||[]).includes('sos')&&!confirm('긴급 SOS 알림을 끄면 동료의 긴급 상황을 놓칠 수 있어요. 그래도 끌까요?'))return;pushPrefToggle(b.dataset.pushk);return}
   const a=b.dataset.push;if(a==='on')pushOn();else if(a==='off')pushOff();else if(a==='test'){pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 와요!','#profile');toast('시험 알림을 보냈어요. 몇 초 안에 와요.','ok')}});
+/* 앱을 켤 때 알림이 꺼져 있으면 한 번 물어보기 ('나중에'를 누르면 3일 뒤 다시) */
+function pushAsk(){try{
+  if(!ready||!me()||!db||!window.FCM_VAPID||!pushOK())return;
+  if(store.get('koelsa_push_tok','')&&Notification.permission==='granted')return;   /* 이미 켜짐 */
+  if(Notification.permission==='denied')return;                                      /* 휴대폰에서 차단함 → 묻지 않음 */
+  if(Date.now()-store.get('koelsa_push_ask',0)<3*864e5)return;
+  if($('#briefPop')||$('#pushAskPop')||!$('#lock').classList.contains('hidden')){setTimeout(pushAsk,3000);return}
+  const o=document.createElement('div');o.id='pushAskPop';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
+  o.style.cssText='position:fixed;inset:0;z-index:131;background:rgba(15,10,40,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px';
+  o.innerHTML=`<div style="width:100%;max-width:420px;background:#fff;color:#1E1B4B;border-radius:24px;padding:22px 20px 18px;box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center">
+    <div style="font-size:44px;line-height:1">🔔</div>
+    <div style="font-size:18px;font-weight:900;margin-top:8px">알림을 켤까요?</div>
+    <p style="font-size:13px;line-height:1.6;opacity:.8;margin-top:6px">앱이 꺼져 있어도 아래 소식을<br>휴대폰 잠금 화면으로 바로 알려 드려요.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;font-size:12px;font-weight:800;text-align:left">${PUSH_KINDS.map(([,l])=>`<div style="background:#F5F3FF;border-radius:10px;padding:8px 10px">${l}</div>`).join('')}</div>
+    <button id="pushAskOk" style="width:100%;min-height:52px;margin-top:14px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">알림 켜기</button>
+    <button id="pushAskNo" style="width:100%;min-height:44px;margin-top:6px;border-radius:14px;color:#6B7280;font-weight:700;font-size:13px">나중에</button>
+    <div style="font-size:10px;opacity:.6;margin-top:4px">받을 알림 종류는 내 프로필에서 언제든 바꿀 수 있어요</div></div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click',e=>{const id=e.target.id;if(id==='pushAskOk'){o.remove();store.set('koelsa_push_ask',Date.now());pushOn()}
+    else if(id==='pushAskNo'||e.target===o){o.remove();store.set('koelsa_push_ask',Date.now());toast('나중에 내 프로필 → 🔔 휴대폰 알림에서 켤 수 있어요.')}});
+}catch(e){}}
 /* 알림을 켠 휴대폰은 앱을 열 때마다 알림 주소를 새로 확인 (주소가 바뀌는 경우 대비) */
 async function pushRefresh(){try{const old=store.get('koelsa_push_tok','');if(!old||!pushOK()||Notification.permission!=='granted'||!window.FCM_VAPID||!db)return;
   const t=await pushToken();if(t&&t!==old){await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayUnion(t),at:Date.now()},{merge:true});
@@ -2835,7 +2856,7 @@ async function init(){
   }
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
-  setSync();setTimeout(pushRefresh,4000);
+  setSync();setTimeout(pushRefresh,4000);setTimeout(pushAsk,3500);
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
