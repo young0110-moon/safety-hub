@@ -99,6 +99,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* iOS 잔상 방지: 위치(left/right) 대신 GPU 이동(transform) */
 .ptr-elv.open .ptr-d.l{transform:translate3d(-110%,0,0)}.ptr-elv.open .ptr-d.r{transform:translate3d(110%,0,0)}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
+/* 메인(홈) 버튼 */
+.home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
+.home-pill:active{transform:scale(.94)}
+.home-ic{width:30px;height:30px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+.dark .home-pill{color:#EDE9FE;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(167,139,250,.18));border-color:rgba(196,181,253,.35)}
+html.sunset .home-pill{color:#9A3412;background:linear-gradient(135deg,#fff,#FFEDD5);border-color:#FED7AA}html.sunset .home-ic{background:linear-gradient(135deg,#FFC27A,#ED8A17)}
+html.mint .home-pill{color:#0F766E;background:linear-gradient(135deg,#fff,#CCFBF1);border-color:#99F6E4}html.mint .home-ic{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}
+html.dark.sunset .home-pill,html.dark.mint .home-pill{color:#fff;background:rgba(255,255,255,.1)}
 /* 헤더 새로고침(엘리베이터 문) */
 .sb-old{display:inline-block;font-size:10px;font-weight:800;padding:0 6px;border-radius:6px;background:rgba(148,163,184,.3)}
 .rec-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:4px;animation:recB 1s infinite}@keyframes recB{50%{opacity:.2}}.rec-spin{width:34px;height:34px;border:4px solid #C4B5FD;border-top-color:#6D28D9;border-radius:50%;animation:recS .9s linear infinite}@keyframes recS{to{transform:rotate(360deg)}}
@@ -293,7 +301,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       </div>
     </div>
     <div id="hBack" class="hidden items-center gap-1 min-w-0" style="max-width:calc(50% - 28px)">
-      <button id="backBtn" class="min-h-[44px] px-3 rounded-full bg-purple-600/30 border border-purple-400/50 text-xs font-bold whitespace-nowrap">← 메인</button>
+      <button id="backBtn" aria-label="메인 화면으로" class="home-pill"><span class="home-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.8 9v10.2h12.4V9"/><path d="M10 19.2v-5.4h4v5.4"/></svg></span><span>메인</span></button>
       <h1 id="pageTitle" class="text-sm font-black truncate"></h1>
     </div>
     <div id="hRef" class="flex justify-center items-center pointer-events-none" style="position:absolute;left:50%;top:50%;transform:translate3d(-50%,-50%,0)" aria-hidden="true"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
@@ -925,7 +933,9 @@ window.addEventListener('hashchange',()=>{
   if(n!==cur)show(n,back||n==='home');
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){e.preventDefault();go(b.dataset.go)}});
-$('#backBtn').onclick=goBack;
+/* 메인 버튼: 이전 화면이 아니라 언제나 첫 메인 화면으로 */
+function goHome(){navStack.length=0;navStack.push('home');if(cur==='home'){window.scrollTo({top:0,behavior:'smooth'});return}location.hash='home';window.scrollTo({top:0})}
+$('#backBtn').onclick=goHome;
 function openPost(id){if(id!==curPost&&typeof setReply==='function')setReply(null);curPost=id;if(cur==='post')render();else go('post')}
 
 /* 화면 갱신 */
