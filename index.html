@@ -517,7 +517,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="csDetail"></div>
   <div class="card !p-3">
     <h3 class="font-black text-sm">🧭 빠른 판정 도우미</h3>
-    <p class="text-[11px] opacity-75 mt-0.5 mb-2">가이드 기준을 질문으로 정리했어요. 차례로 답하면 해당 점수를 알려 드려요.</p>
+    <p class="text-[11px] opacity-75 mt-0.5 mb-2">고객우호도 판정 가이드(PDF)의 기준을 단계별 질문으로 옮겼어요. 현장에서 있었던 일을 고르면 점수와 판정 근거를 정리해 드려요.</p>
     <div id="csQuiz"></div>
   </div>
   <div class="rounded-2xl p-4 text-white" style="background:linear-gradient(135deg,#0F4C5C,#134E4A)">
@@ -1974,13 +1974,60 @@ const CSG=[
   d:'검사원에게 매우 친절하며 전문가로서 존중하고, 검사 진행 전반에 적극적으로 협조하는 경우입니다. ‘제도 만족’은 검사원이 조절할 수 없는 영역이므로 평가 기준에서 제외합니다.',
   ex:['검사원을 전문가로 예우하며 필요한 자료를 미리 준비해 둠','“수고하십니다”라며 먼저 다가와 적극적으로 안내함','검사 과정에 대해 궁금한 점을 진지하게 묻고 경청함','검사원의 지적사항을 즉시 수용하고 개선 의지를 보임','공단과 검사원에 대한 신뢰를 직접적으로 표현함']}];
 const CS_RULES=[['1점 vs 4점','반복성 · 어조 · 진행 차질 여부로 구분. 불만의 ‘강도’만으로 판단하지 않습니다.'],['2점 기준','인신공격·조롱이 아니어도 개인을 향한 무시·냉담한 태도면 해당 (검사원 보호)'],['3점 기본값','적대감 없는 무관심은 3점(중립)을 기본값으로 판정'],['5점 기준 제외','‘제도 만족’은 검사원 개인이 조절할 수 없는 영역이므로 5점 기준에서 제외']];
-/* 빠른 판정 도우미: 가이드의 구분 기준을 순서대로 묻기 */
-const CS_Q=[
- {q:'검사원 개인에게 인사·질문 무시, 반말·하대, 말 끊기, 냉랭한 회피 같은 태도가 있었나요?',y:2},
- {q:'제도·수수료·판정 결과에 대한 불만이 반복되거나, 언성이 높아지거나, 그 때문에 검사 진행이 지연됐나요?',y:1},
- {q:'검사원을 전문가로 예우하고, 자료를 미리 준비하거나 먼저 안내하는 등 적극적으로 협조했나요?',y:5},
- {q:'협조적이면서 제도에 대한 아쉬움을 차분한 어조로 한두 번 언급했나요?',y:4}];
-let csSel=3,csStep=0,csRes=null;
+/* 빠른 판정 도우미 (고객우호도 판정 가이드 PDF 기준)
+   순서: ① 검사원 개인을 향한 태도(2점) → ② 제도·기관 불만 여부 → ③ 1점 3대 요건(반복·격앙·진행 차질)
+        → ④ 불만 표현 방식(4점/3점) → ⑤ 협조 수준 → ⑥ 5점 근거(‘제도 만족’ 제외) */
+const CS_STEPS={
+ p:{t:'① 검사원 개인을 향한 태도',q:'검사원 개인에게 아래와 같은 태도가 있었나요? 해당하는 것을 모두 고르세요.',multi:1,
+    h:'노골적인 인신공격·조롱이 아니어도, 개인을 향한 소극적·무례한 태도면 2점 기준이에요. (검사원 보호)',
+    o:[['p1','인사나 질문에 대답하지 않거나 본체만체함'],['p2','반말을 하거나 하대하는 말투를 사용함'],['p3','설명을 끝까지 듣지 않고 말을 자주 끊음'],['p4','자료 요청에 “그런 걸 왜 나한테 묻냐”는 식으로 냉담하게 반응함'],['p5','눈도 마주치지 않고 대화 자체를 냉랭하게 피함'],['p6','그 밖에 인사·질문 무시, 건성 대응, 하대, 냉랭한 회피']]},
+ k:{t:'② 제도·기관에 대한 불만',q:'제도·수수료·판정 결과·재검사 비용/일정 등에 대한 불만이나 아쉬움을 표현했나요?',
+    h:'검사원 개인이 아니라 제도·검사기관을 향한 불만만 여기에 해당해요.',
+    o:[['k1','예, 불만이나 아쉬움을 표현했다'],['k0','아니오, 제도·기관에 대한 불만은 없었다']]},
+ t:{t:'③ 1점 3대 요건',q:'그 불만이 아래 중 하나라도 해당하나요? 해당하는 것을 모두 고르세요.',multi:1,
+    h:'1점과 4점은 불만의 ‘강도’가 아니라 반복성 · 어조 · 진행 차질 여부로 구분해요.',
+    o:[['t1','반복: 같은 불만·이의를 검사 내내 또는 여러 차례 반복해서 제기함'],['t2','격앙: 언성을 높이거나 격앙된 목소리·강한 항의로 불만을 표함'],['t3','진행 차질: 불만 토로로 서류 확인 등 절차가 지연되거나 검사에 차질이 생김']]},
+ u:{t:'④ 불만 표현 방식',q:'1점 요건에 해당하지 않는다면, 불만은 어떤 방식이었나요?',
+    h:'4점: 차분한 어조로 한두 차례 / 3점: 불만은 있어도 진행에 지장이 없는 수준',
+    o:[['u4','차분한 어조로 한두 차례 가볍게 언급 (예: “제도가 좀 아쉽다”, “절차가 다소 번거롭다”, “다음엔 개선됐으면”)'],['u3','불만을 표했지만 검사 진행 자체에는 지장이 없는 수준 (투덜거림 등)']]},
+ c:{t:'⑤ 검사 협조 수준',q:'검사 전반에 걸친 협조 태도는 어땠나요?',
+    h:'적대감 없는 무관심은 3점(중립)이 기본값이에요.',
+    o:[['c5','적극적 협조 · 전문가로 예우 (자료 미리 준비, 먼저 다가와 안내, 진지하게 묻고 경청 등)'],['c4','기본적 예의를 지키며 성실하게 협조 (자료를 성실히 준비, 검사 진행에 지장 없음)'],['c3','필요한 것만 · 형식적 · 무관심 (짧은 답변만, 다른 업무 병행, 귀찮은 기색이지만 협조, 형식적인 인사·안내)']]},
+ f:{t:'⑥ 5점 근거 확인',q:'아래 중 실제로 있었던 행동을 모두 고르세요.',multi:1,
+    h:'‘제도 만족’은 검사원이 조절할 수 없는 영역이라 5점 근거에서 제외해요.',
+    o:[['f1','검사원을 전문가로 예우하며 필요한 자료를 미리 준비해 둠'],['f2','“수고하십니다”라며 먼저 다가와 적극적으로 안내함'],['f3','검사 과정에 대해 궁금한 점을 진지하게 묻고 경청함'],['f4','검사원의 지적사항을 즉시 수용하고 개선 의지를 보임'],['f5','공단과 검사원에 대한 신뢰를 직접적으로 표현함'],['fx','제도·수수료 등 제도에 대한 만족을 표현함 (5점 근거 제외)']]}};
+let csA={},csPath=['p'],csRes=null;
+const csHas=(k,v)=>(csA[k]||[]).includes(v),csAny=(k,pre)=>(csA[k]||[]).some(x=>x.startsWith(pre)&&!x.endsWith('x'));
+function csNext(){
+  const st=csPath[csPath.length-1];let nx=null;
+  if(st==='p')nx='k';
+  else if(st==='k')nx=csHas('k','k1')?'t':(csAny('p','p')?null:'c');
+  else if(st==='t')nx=(csAny('p','p')||csAny('t','t'))?null:'u';
+  else if(st==='u')nx=csHas('u','u3')?null:'c';
+  else if(st==='c')nx=csHas('c','c5')&&!csHas('k','k1')?'f':null;
+  if(nx)csPath.push(nx);else csRes=csJudge();
+}
+function csJudge(){
+  const L=k=>(csA[k]||[]).map(v=>(CS_STEPS[k].o.find(o=>o[0]===v)||[])[1]).filter(Boolean);
+  const P=csAny('p','p'),T=csAny('t','t');let n=3,why=[],note=[];
+  if(P&&T){n=1;why=[...L('t').map(x=>'제도 불만 · '+x),...L('p').map(x=>'개인 태도 · '+x)];note.push('1점(제도 불만)과 2점(개인 냉담·무례) 요건이 함께 해당돼요. 가이드에 둘 사이 우선순위가 정해져 있지 않아 더 낮은 1점을 보여 드려요. 품질관리 담당자와 확인해 주세요.')}
+  else if(P){n=2;why=L('p');note.push('인신공격·조롱이 아니어도 개인을 향한 무시·냉담한 태도면 2점이에요.')}
+  else if(T){n=1;why=L('t');note.push('대상이 제도·기관이고 검사원 개인 공격은 없는 경우의 1점이에요. 반복성·격앙된 어조·진행 차질 중 하나라도 있으면 1점으로 봐요.')}
+  else if(csHas('u','u3')){n=3;why=L('u');note.push('불만이 있어도 검사 진행에 지장이 없으면 3점(중립)이에요.')}
+  else if(csHas('k','k1')){ /* 차분한 아쉬움 */
+    if(csHas('c','c3')){n=3;why=[...L('u'),...L('c')];note.push('차분한 언급이었지만 협조가 형식적·무관심 수준이라 3점(중립)으로 봐요.')}
+    else{n=4;why=[...L('u'),...L('c')];note.push('전반적으로 협조적이고 제도 아쉬움을 차분히 한두 차례 언급한 수준이면 4점이에요. 적극 협조 중 사소한 개선 의견 하나를 낸 경우도 4점이에요.')}}
+  else{
+    if(csHas('c','c3')){n=3;why=L('c');note.push('적대감 없는 무관심·형식적 협조는 3점(중립)이 기본값이에요.')}
+    else if(csHas('c','c4')){n=4;why=L('c');note.push('기본적 예의와 협조를 유지한 경우예요. 4점 제목 ‘일부 아쉬움은 있어도 기본적 예의와 협조 유지’를 기준으로 봤어요.')}
+    else{const F=(csA.f||[]).filter(x=>x!=='fx');
+      if(F.length){n=5;why=L('f').filter(x=>!x.includes('제외'));note.push('검사원을 전문가로 존중하고 검사 전반에 적극 협조한 경우예요.')}
+      else{n=4;why=L('c');note.push('적극 협조로 골랐지만 5점 근거(예우·안내·경청·수용·신뢰 표현)가 선택되지 않아 4점으로 봐요.')}
+      if(csHas('f','fx'))note.push('‘제도 만족’ 표현은 5점 근거에서 제외했어요.')}
+  }
+  return {n,why,note};
+}
+let csSel=3;
 function renderCS(){
   $('#csScores').innerHTML=CSG.map(g=>`<button data-cssel="${g.n}" class="rounded-xl overflow-hidden text-center border-2 transition ${csSel===g.n?'':'opacity-80'}" style="border-color:${csSel===g.n?g.c:'transparent'};${csSel===g.n?'box-shadow:0 4px 12px '+g.c+'55':''}"><div class="text-white text-xs font-black py-1.5" style="background:${g.c}">${g.n}점</div><div class="sub px-0.5 py-2 min-h-[64px] flex flex-col items-center justify-center gap-1"><b class="text-[11px] leading-tight">${g.tag}</b><span class="text-[9px] opacity-70 leading-tight">${g.sub}</span></div></button>`).join('');
   const g=CSG[csSel-1];
@@ -1994,14 +2041,28 @@ function renderCS(){
     </div></article>`;
   $('#csRules').innerHTML=CS_RULES.map(([t,d],i)=>`<div class="rounded-xl p-3" style="background:rgba(255,255,255,.08);border:1px solid rgba(94,234,212,.35)"><div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center" style="background:#14B8A6;color:#fff">${i+1}</span><b class="text-[13px]">${t}</b></div><p class="text-[11px] mt-1.5 leading-snug opacity-90">${d}</p></div>`).join('');
   const qz=$('#csQuiz');
-  if(csRes){const r=CSG[csRes-1];qz.innerHTML=`<div class="rounded-xl p-3 text-white" style="background:${r.c}"><div class="text-[11px] opacity-90">판정 결과</div><div class="text-2xl font-black">${r.n}점 · ${r.tag}</div><div class="text-[11px] opacity-90 mt-0.5">${esc(r.t)}</div></div><div class="grid grid-cols-2 gap-2 mt-2"><button data-cssel="${r.n}" data-csgo class="min-h-[42px] rounded-xl text-white text-xs font-bold" style="background:${r.c}">${r.n}점 기준 자세히</button><button data-csreset class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">↺ 다시 하기</button></div>`;return}
-  const Q=CS_Q[csStep];
-  qz.innerHTML=`<div class="flex items-center gap-1 mb-2">${CS_Q.map((x,i)=>`<span class="h-1.5 flex-1 rounded-full ${i<=csStep?'bg-teal-500':'bg-gray-300/60'}"></span>`).join('')}</div><div class="text-[11px] font-bold opacity-70">질문 ${csStep+1} / ${CS_Q.length}</div><p class="text-sm font-bold leading-snug mt-1">${esc(Q.q)}</p><div class="grid grid-cols-2 gap-2 mt-3"><button data-csans="1" class="min-h-[46px] rounded-xl text-white text-sm font-black" style="background:#0D9488">예</button><button data-csans="0" class="min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-black">아니오</button></div>${csStep?'<button data-csback class="mt-2 text-[11px] opacity-70 min-h-[30px]">‹ 이전 질문</button>':''}<p class="text-[10px] opacity-60 mt-2">모두 ‘아니오’면 3점(중립, 기본값)이에요.</p>`;
+  if(csRes){const r=CSG[csRes.n-1];
+    qz.innerHTML=`<div class="rounded-xl p-3 text-white" style="background:${r.c}"><div class="text-[11px] opacity-90">판정 결과</div><div class="text-2xl font-black">${r.n}점 · ${r.tag}</div><div class="text-[11px] opacity-90 mt-0.5">${esc(r.t)}</div></div>
+      ${csRes.why.length?`<div class="mt-2 sub rounded-xl p-3"><div class="text-[11px] font-black mb-1" style="color:${r.c}">판정 근거</div><ul class="space-y-1 text-[12px] leading-snug list-disc pl-4">${csRes.why.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
+      ${csRes.note.map(x=>`<p class="mt-2 text-[12px] leading-snug rounded-xl px-3 py-2" style="border-left:3px solid ${r.c};background:${r.c}14">💡 ${esc(x)}</p>`).join('')}
+      <div class="mt-2 sub rounded-xl p-3"><div class="text-[11px] font-black mb-1 opacity-80">가이드의 비슷한 예시</div><ul class="space-y-1 text-[12px] leading-snug list-disc pl-4 opacity-90">${r.ex.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="grid grid-cols-3 gap-2 mt-2"><button data-cssel="${r.n}" data-csgo class="min-h-[42px] rounded-xl text-white text-[11px] font-bold" style="background:${r.c}">${r.n}점 기준 보기</button><button data-cscopy class="min-h-[42px] rounded-xl border border-purple-400/40 text-[11px] font-bold">📋 판정 메모</button><button data-csreset class="min-h-[42px] rounded-xl border border-purple-400/40 text-[11px] font-bold">↺ 다시 하기</button></div>`;return}
+  const k=csPath[csPath.length-1],S=CS_STEPS[k],sel=csA[k]||[];
+  const est=Math.max(csPath.length,k==='p'?4:k==='k'?4:csPath.length+1);
+  qz.innerHTML=`<div class="flex items-center gap-1 mb-2">${Array.from({length:est},(x,i)=>`<span class="h-1.5 flex-1 rounded-full" style="background:${i<csPath.length?'#14B8A6':'rgba(148,163,184,.35)'}"></span>`).join('')}</div>
+    <div class="text-[11px] font-black" style="color:#0D9488">${S.t}</div><p class="text-sm font-bold leading-snug mt-1">${esc(S.q)}</p>
+    <div class="space-y-1.5 mt-2.5">${S.o.map(([v,l])=>{const on=sel.includes(v);return `<button data-csopt="${v}" class="w-full flex items-start gap-2 text-left rounded-xl px-3 py-2.5 border-2 transition ${on?'':'sub'}" style="border-color:${on?'#0D9488':'transparent'};${on?'background:rgba(13,148,136,.10)':''}"><span class="w-5 h-5 ${S.multi?'rounded-md':'rounded-full'} border-2 flex items-center justify-center shrink-0 mt-px text-[11px] font-black text-white" style="border-color:#0D9488;${on?'background:#0D9488':''}">${on?'✓':''}</span><span class="text-[13px] leading-snug ${v==='fx'?'opacity-70':''}">${esc(l)}</span></button>`}).join('')}</div>
+    <p class="text-[11px] opacity-75 mt-2 leading-snug">ⓘ ${esc(S.h)}</p>
+    <div class="grid grid-cols-2 gap-2 mt-3">${csPath.length>1?'<button data-csback class="min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-bold">‹ 이전</button>':'<span></span>'}<button data-csnext class="min-h-[46px] rounded-xl text-white text-sm font-black" style="background:#0D9488;${!S.multi&&!sel.length?'opacity:.45':''}">${S.multi&&!sel.length?'해당 없음 ›':'다음 ›'}</button></div>`;
 }
 document.addEventListener('click',e=>{if(cur!=='cs')return;let b;
-  if(b=e.target.closest('[data-csans]')){if(b.dataset.csans==='1')csRes=CS_Q[csStep].y;else if(csStep<CS_Q.length-1)csStep++;else csRes=3;renderCS();return}
-  if(e.target.closest('[data-csback]')){csStep=Math.max(0,csStep-1);renderCS();return}
-  if(e.target.closest('[data-csreset]')){csStep=0;csRes=null;renderCS();return}
+  if(b=e.target.closest('[data-csopt]')){const k=csPath[csPath.length-1],S=CS_STEPS[k],v=b.dataset.csopt;let cur_=csA[k]||[];
+    csA[k]=S.multi?(cur_.includes(v)?cur_.filter(x=>x!==v):[...cur_,v]):[v];renderCS();return}
+  if(e.target.closest('[data-csnext]')){const k=csPath[csPath.length-1];if(!CS_STEPS[k].multi&&!(csA[k]||[]).length){toast('하나를 골라 주세요.','error');return}csNext();renderCS();$('#csQuiz').scrollIntoView({behavior:'smooth',block:'center'});return}
+  if(e.target.closest('[data-csback]')){const k=csPath.pop();delete csA[k];renderCS();return}
+  if(e.target.closest('[data-csreset]')){csA={};csPath=['p'];csRes=null;renderCS();$('#csQuiz').scrollIntoView({behavior:'smooth',block:'center'});return}
+  if(e.target.closest('[data-cscopy]')){const r=CSG[csRes.n-1];const t=`[고객우호도 판정] ${r.n}점 · ${r.tag}\n근거: ${csRes.why.join(' / ')||'-'}\n(고객우호도 판정 가이드 기준)`;
+    navigator.clipboard.writeText(t).then(()=>toast('판정 메모를 복사했어요.','ok'),()=>toast('복사하지 못했어요.','error'));return}
   if(b=e.target.closest('[data-cssel]')){csSel=+b.dataset.cssel;renderCS();if(b.hasAttribute('data-csgo')||b.closest('#csDetail'))$('#csDetail').scrollIntoView({behavior:'smooth',block:'start'});return}
 });
 
