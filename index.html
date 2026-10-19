@@ -263,7 +263,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
       <div id="miniGrid" class="grid grid-cols-7 gap-[2px] text-[9px]"></div>
     </button>
     <button data-go="brief" class="node absolute top-0 left-0 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-purple-600 to-indigo-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">☀️</span><span class="text-[10px] font-bold mt-1 leading-tight text-center">모닝<br>브리핑</span></button>
-    <button data-go="fortune" class="node absolute bottom-0 left-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-pink-500 to-purple-700 border border-pink-200/70 flex items-center justify-center text-2xl transition">🔮</span><span class="text-[10px] font-bold mb-1 leading-tight text-center whitespace-nowrap">오늘의 운세</span></button>
+    <button data-go="cs" class="node absolute bottom-0 left-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow border border-teal-200/70 flex items-center justify-center transition" style="background:linear-gradient(135deg,#0D9488,#0E7490 55%,#134E4A)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 15 14.5H9l-3.5 3v-3H4A1.5 1.5 0 0 1 2.5 13V7A1.5 1.5 0 0 1 4 5.5z"/><path d="m6.3 10 1.5 1.5 3-3"/><path d="M18.5 9h1A1.5 1.5 0 0 1 21 10.5v5A1.5 1.5 0 0 1 19.5 17H19v2.5L16 17h-3"/></svg></span><span class="text-[10px] font-bold mb-1 leading-tight text-center whitespace-nowrap">CS 판정가이드</span></button>
     <button data-go="vital" class="node absolute bottom-0 left-1/2 -translate-x-1/2 w-[72px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-12 h-12 rounded-full glow bg-gradient-to-br from-blue-600 to-purple-700 border border-purple-300/60 flex items-center justify-center text-xl transition">🩺</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">AI 컨디션<br>진단기</span></button>
     <button data-go="insp" class="node absolute top-0 left-1/2 -translate-x-1/2 w-[72px] flex flex-col items-center min-h-[44px]"><span class="w-12 h-12 rounded-full glow flex items-center justify-center transition" style="padding:3px;background:conic-gradient(#6D28D9 0 120deg,#0D9488 120deg 240deg,#D97706 240deg 360deg)"><span class="w-full h-full rounded-full bg-[#F5F3FF] flex items-center justify-center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4C1D95" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 12h5M9.5 15.5h5M9.5 19h3"/></svg></span></span><span class="text-[10px] font-bold mt-1 leading-tight text-center">승강기<br>안전기준</span></button>
     <button data-go="voice" class="node absolute top-0 right-0 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-indigo-600 to-blue-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">📣</span><span class="text-[10px] font-bold mt-1 leading-tight text-center">현장<br>목소리</span></button>
@@ -500,6 +500,32 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div class="hscroll -mx-3 px-3"><div id="fdGuF" class="flex gap-2 w-max"></div></div>
   <div class="flex items-center justify-between text-xs"><span id="fdInfo" class="opacity-75"></span><button id="fdSort" class="chip">👍 추천순</button></div>
   <div id="fdList" class="space-y-2"></div>
+</section>
+
+<!-- CS 판정가이드 (고객우호도 판정 가이드) -->
+<section id="p-cs" class="page pt-4 space-y-4" data-title="CS 판정가이드">
+  <div class="rounded-2xl overflow-hidden text-white p-4 relative" style="background:linear-gradient(135deg,#0F4C5C,#134E4A 60%,#0B3B3F)">
+    <span class="absolute -right-10 -top-10 w-40 h-40 rounded-full" style="background:rgba(94,234,212,.18)"></span>
+    <div class="text-[11px] font-bold" style="color:#5EEAD4">검사업무 품질관리 · 사내 공지</div>
+    <h2 class="text-xl font-black mt-1 relative">고객우호도 판정 가이드</h2>
+    <p class="text-xs mt-1.5 leading-relaxed opacity-90 relative">검사 완료 후 부여하는 고객우호도(1~5점) 판정 기준을 표준화하여, 검사원 간 일관성·객관성을 확보하고 PSCI 표본 선정의 신뢰성을 높입니다.</p>
+  </div>
+  <div class="card !p-3">
+    <div class="flex items-center justify-between mb-2"><h3 class="font-black text-sm">📊 판정 기준 한눈에 보기</h3><span class="text-[10px] opacity-70">점수를 누르면 상세 기준</span></div>
+    <div id="csScores" class="grid grid-cols-5 gap-1.5"></div>
+  </div>
+  <div id="csDetail"></div>
+  <div class="card !p-3">
+    <h3 class="font-black text-sm">🧭 빠른 판정 도우미</h3>
+    <p class="text-[11px] opacity-75 mt-0.5 mb-2">가이드 기준을 질문으로 정리했어요. 차례로 답하면 해당 점수를 알려 드려요.</p>
+    <div id="csQuiz"></div>
+  </div>
+  <div class="rounded-2xl p-4 text-white" style="background:linear-gradient(135deg,#0F4C5C,#134E4A)">
+    <h3 class="font-black text-base">판정 시 핵심 원칙</h3>
+    <p class="text-[11px] opacity-80 mt-0.5">아래 4가지만 기억하면 누구나 일관된 기준으로 판정할 수 있습니다.</p>
+    <div id="csRules" class="grid grid-cols-2 gap-2 mt-3"></div>
+  </div>
+  <p class="text-[11px] opacity-70 text-center leading-relaxed px-2">표준화된 고객우호도 판정 가이드로, 신뢰할 수 있는 PSCI 표본 선정 체계를 만들어갑니다.</p>
 </section>
 
 <!-- FORTUNE -->
@@ -793,7 +819,7 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',food:'food',insp:'inspection',admin:'admin'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
@@ -833,7 +859,7 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -1929,6 +1955,55 @@ function foodsForMenus(menus){
     fdSorted(D.foods.filter(f=>r.k.some(k=>f.name.includes(k))||(r.c.includes(f.cat)))).forEach(f=>{if(!seen.has(f.id)){seen.add(f.id);out.push({f,m:m.n})}})});
   return out.slice(0,3);
 }
+
+/* ===== CS 판정가이드: 고객우호도(1~5점) 판정 기준 ===== */
+const CSG=[
+ {n:1,c:'#C2410C',tag:'제도 불만',sub:'반복 · 격앙',t:'제도 및 검사기관에 대한 불만',chip:'제도 불만(반복 · 격앙)',
+  d:'제도·수수료·판정 결과에 대한 불만이 ① 반복적으로 제기되거나, ② 언성이 높아지는 등 격앙된 어조이거나, ③ 불만으로 인해 검사 진행이 지연·차질을 빚는 경우 1점으로 판정합니다. (대상은 제도·기관이며, 검사원 개인을 향한 것이 아님)',
+  ex:['“수수료 체계가 불합리하다”며 검사 내내 같은 불만을 반복해서 제기함','불합격 판정에 대해 언성을 높이며 강하게 항의함','제도에 대한 불만을 토로하느라 서류 확인 등 절차가 지연됨','재검사 비용·일정에 대해 여러 차례 반복해서 이의를 제기함','판정 결과에 격앙된 목소리로 불만을 쏟아내지만 검사원 개인에 대한 공격은 없음']},
+ {n:2,c:'#E07B2E',tag:'개인 냉담·무례',sub:'무시 · 냉랭',t:'검사원 개인에 대한 냉담 · 무례한 태도',chip:'개인 냉담·무례',
+  d:'실제 현장에서 노골적인 인신공격·조롱은 드물게 발생합니다. 그보다는 인사·질문을 무시하거나 건성으로 대응, 하대하는 말투, 냉랭하게 대화를 회피하는 등 검사원 개인을 향한 소극적·무례한 태도가 나타나면 2점으로 판정합니다.',
+  ex:['검사원의 인사나 질문에 대답하지 않거나 본체만체함','검사원에게 반말을 하거나 하대하는 말투를 사용함','검사원의 설명을 끝까지 듣지 않고 말을 자주 끊음','자료 요청에 “그런 걸 왜 나한테 묻냐”는 식으로 냉담하게 반응함','검사원과 눈도 마주치지 않고 대화 자체를 냉랭하게 피함']},
+ {n:3,c:'#0D9488',tag:'무관심 · 중립',sub:'판정의 기준',t:'업무 중심적 협조 또는 단순 무관심',chip:'무관심 · 중립',
+  d:'검사에 특별한 관심이 없거나 무관심하지만 적대감이 없는 경우, 혹은 불만이 있어도 검사 업무 진행에 지장이 없는 경우 3점(중립)을 기본값으로 판정합니다.',
+  ex:['필요한 답변만 짧게 하고 별다른 대화 없이 검사가 진행됨','검사에 특별히 관심을 보이지 않고 다른 업무를 병행함','다소 귀찮은 기색을 보이지만 검사에는 협조함','인사나 안내는 하지만 형식적인 수준에 그침','불만을 표하지만 검사 진행 자체에는 지장이 없는 수준']},
+ {n:4,c:'#0E7490',tag:'제도 아쉬움',sub:'협조 유지',t:'일부 아쉬움은 있어도 기본적 예의와 협조 유지',chip:'제도 아쉬움(협조)',
+  d:'전반적으로 협조적이고 검사 진행에 지장이 없으며, 제도적 아쉬움을 차분한 어조로 한두 차례 언급하는 수준이면 4점으로 판정합니다. (1점과의 차이: 반복성·격앙된 어조·진행 차질 여부로 구분)',
+  ex:['협조적으로 응대하다가 “제도가 좀 아쉽다”고 차분히 한마디 언급함','자료를 성실히 준비해주면서도 “절차가 다소 번거롭다”는 정도만 가볍게 언급','검사 내내 협조적이며, 대화 중 잠깐 제도에 대한 개인적 소감을 덧붙임','친절하게 응대하지만 “다음엔 개선됐으면 좋겠다”고 넌지시 말함','전반적으로 만족스럽고 협조적인 태도에서 사소한 개선 의견 하나를 제안함']},
+ {n:5,c:'#134E4A',tag:'존중 · 파트너십',sub:'적극 협조',t:'검사원 존중 및 적극적 파트너십',chip:'존중 · 파트너십',
+  d:'검사원에게 매우 친절하며 전문가로서 존중하고, 검사 진행 전반에 적극적으로 협조하는 경우입니다. ‘제도 만족’은 검사원이 조절할 수 없는 영역이므로 평가 기준에서 제외합니다.',
+  ex:['검사원을 전문가로 예우하며 필요한 자료를 미리 준비해 둠','“수고하십니다”라며 먼저 다가와 적극적으로 안내함','검사 과정에 대해 궁금한 점을 진지하게 묻고 경청함','검사원의 지적사항을 즉시 수용하고 개선 의지를 보임','공단과 검사원에 대한 신뢰를 직접적으로 표현함']}];
+const CS_RULES=[['1점 vs 4점','반복성 · 어조 · 진행 차질 여부로 구분. 불만의 ‘강도’만으로 판단하지 않습니다.'],['2점 기준','인신공격·조롱이 아니어도 개인을 향한 무시·냉담한 태도면 해당 (검사원 보호)'],['3점 기본값','적대감 없는 무관심은 3점(중립)을 기본값으로 판정'],['5점 기준 제외','‘제도 만족’은 검사원 개인이 조절할 수 없는 영역이므로 5점 기준에서 제외']];
+/* 빠른 판정 도우미: 가이드의 구분 기준을 순서대로 묻기 */
+const CS_Q=[
+ {q:'검사원 개인에게 인사·질문 무시, 반말·하대, 말 끊기, 냉랭한 회피 같은 태도가 있었나요?',y:2},
+ {q:'제도·수수료·판정 결과에 대한 불만이 반복되거나, 언성이 높아지거나, 그 때문에 검사 진행이 지연됐나요?',y:1},
+ {q:'검사원을 전문가로 예우하고, 자료를 미리 준비하거나 먼저 안내하는 등 적극적으로 협조했나요?',y:5},
+ {q:'협조적이면서 제도에 대한 아쉬움을 차분한 어조로 한두 번 언급했나요?',y:4}];
+let csSel=3,csStep=0,csRes=null;
+function renderCS(){
+  $('#csScores').innerHTML=CSG.map(g=>`<button data-cssel="${g.n}" class="rounded-xl overflow-hidden text-center border-2 transition ${csSel===g.n?'':'opacity-80'}" style="border-color:${csSel===g.n?g.c:'transparent'};${csSel===g.n?'box-shadow:0 4px 12px '+g.c+'55':''}"><div class="text-white text-xs font-black py-1.5" style="background:${g.c}">${g.n}점</div><div class="sub px-0.5 py-2 min-h-[64px] flex flex-col items-center justify-center gap-1"><b class="text-[11px] leading-tight">${g.tag}</b><span class="text-[9px] opacity-70 leading-tight">${g.sub}</span></div></button>`).join('');
+  const g=CSG[csSel-1];
+  $('#csDetail').innerHTML=`<article class="card !p-0 overflow-hidden">
+    <div class="flex items-center gap-3 px-4 py-3 text-white" style="background:${g.c}"><span class="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center font-black text-lg shrink-0" style="color:${g.c}">${g.n}</span><div class="flex-1 min-w-0"><b class="block text-sm leading-snug">${esc(g.t)}</b><span class="inline-block mt-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-white/90" style="color:${g.c}">${esc(g.chip)}</span></div></div>
+    <div class="p-4 space-y-3">
+      <p class="text-[13px] leading-relaxed sub rounded-xl p-3" style="border-left:4px solid ${g.c}">${esc(g.d)}</p>
+      <div><div class="text-xs font-black mb-2" style="color:${g.c}">상황별 예시</div>
+      <ol class="space-y-1.5">${g.ex.map((x,i)=>`<li class="flex items-start gap-2 sub rounded-xl px-3 py-2.5"><span class="w-5 h-5 rounded-full text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-px" style="background:${g.c}">${i+1}</span><span class="text-[13px] leading-snug">${esc(x)}</span></li>`).join('')}</ol></div>
+      <div class="grid grid-cols-2 gap-2 pt-1">${csSel>1?`<button data-cssel="${csSel-1}" class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">‹ ${csSel-1}점 보기</button>`:'<span></span>'}${csSel<5?`<button data-cssel="${csSel+1}" class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">${csSel+1}점 보기 ›</button>`:'<span></span>'}</div>
+    </div></article>`;
+  $('#csRules').innerHTML=CS_RULES.map(([t,d],i)=>`<div class="rounded-xl p-3" style="background:rgba(255,255,255,.08);border:1px solid rgba(94,234,212,.35)"><div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center" style="background:#14B8A6;color:#fff">${i+1}</span><b class="text-[13px]">${t}</b></div><p class="text-[11px] mt-1.5 leading-snug opacity-90">${d}</p></div>`).join('');
+  const qz=$('#csQuiz');
+  if(csRes){const r=CSG[csRes-1];qz.innerHTML=`<div class="rounded-xl p-3 text-white" style="background:${r.c}"><div class="text-[11px] opacity-90">판정 결과</div><div class="text-2xl font-black">${r.n}점 · ${r.tag}</div><div class="text-[11px] opacity-90 mt-0.5">${esc(r.t)}</div></div><div class="grid grid-cols-2 gap-2 mt-2"><button data-cssel="${r.n}" data-csgo class="min-h-[42px] rounded-xl text-white text-xs font-bold" style="background:${r.c}">${r.n}점 기준 자세히</button><button data-csreset class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">↺ 다시 하기</button></div>`;return}
+  const Q=CS_Q[csStep];
+  qz.innerHTML=`<div class="flex items-center gap-1 mb-2">${CS_Q.map((x,i)=>`<span class="h-1.5 flex-1 rounded-full ${i<=csStep?'bg-teal-500':'bg-gray-300/60'}"></span>`).join('')}</div><div class="text-[11px] font-bold opacity-70">질문 ${csStep+1} / ${CS_Q.length}</div><p class="text-sm font-bold leading-snug mt-1">${esc(Q.q)}</p><div class="grid grid-cols-2 gap-2 mt-3"><button data-csans="1" class="min-h-[46px] rounded-xl text-white text-sm font-black" style="background:#0D9488">예</button><button data-csans="0" class="min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-black">아니오</button></div>${csStep?'<button data-csback class="mt-2 text-[11px] opacity-70 min-h-[30px]">‹ 이전 질문</button>':''}<p class="text-[10px] opacity-60 mt-2">모두 ‘아니오’면 3점(중립, 기본값)이에요.</p>`;
+}
+document.addEventListener('click',e=>{if(cur!=='cs')return;let b;
+  if(b=e.target.closest('[data-csans]')){if(b.dataset.csans==='1')csRes=CS_Q[csStep].y;else if(csStep<CS_Q.length-1)csStep++;else csRes=3;renderCS();return}
+  if(e.target.closest('[data-csback]')){csStep=Math.max(0,csStep-1);renderCS();return}
+  if(e.target.closest('[data-csreset]')){csStep=0;csRes=null;renderCS();return}
+  if(b=e.target.closest('[data-cssel]')){csSel=+b.dataset.cssel;renderCS();if(b.hasAttribute('data-csgo')||b.closest('#csDetail'))$('#csDetail').scrollIntoView({behavior:'smooth',block:'start'});return}
+});
 
 /* ===== 오늘의 운세 (생년월일은 저장하지 않음, 기기 안에서만 계산) ===== */
 let ftShown=null;
