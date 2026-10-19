@@ -15,6 +15,7 @@ const MAX_BYTES = 18 * 1024 * 1024;                     // 녹음 최대 18MB (�
 
 const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 기록 담당자야.
 첨부된 녹음은 아침 브리핑(또는 현장 대화)이야. 한국어로 아래 JSON 형식에 맞춰 정리해.
+- brief: 직원들에게 전달·공지·요청한 내용을 번호 목록용 문장으로 (아래 [정리 양식]을 따를 것)
 - title: 브리핑 제목 (20자 이내)
 - summary: 핵심 요약 3문장 이내
 - dialogue: 대화를 말한 순서대로 정리. 화자 이름을 모르면 "화자1","화자2"로. 군더더기(음, 어, 반복)는 빼고 뜻은 그대로. 각 항목 {s:화자, t:내용}
@@ -28,6 +29,7 @@ const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 
 const SCHEMA = {
   type: 'OBJECT',
   properties: {
+    brief: { type: 'ARRAY', items: { type: 'STRING' } },
     title: { type: 'STRING' }, summary: { type: 'STRING' },
     dialogue: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } },
     points: { type: 'ARRAY', items: { type: 'STRING' } },
@@ -35,7 +37,7 @@ const SCHEMA = {
     todos: { type: 'ARRAY', items: { type: 'OBJECT', properties: { who: { type: 'STRING' }, what: { type: 'STRING' }, when: { type: 'STRING' } }, required: ['what'] } },
     safety: { type: 'ARRAY', items: { type: 'STRING' } }
   },
-  required: ['title', 'summary', 'dialogue', 'points', 'decisions', 'todos', 'safety']
+  required: ['brief', 'title', 'summary', 'dialogue', 'points', 'decisions', 'todos', 'safety']
 };
 
 export default {
@@ -45,7 +47,7 @@ export default {
     const cors = {
       'Access-Control-Allow-Origin': okOrigin ? origin : ORIGINS[0],
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Lang',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Prompt',
       'Access-Control-Max-Age': '86400', 'Vary': 'Origin'
     };
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
@@ -69,9 +71,16 @@ export default {
     if (buf.byteLength > MAX_BYTES) return out({ error: '녹음이 너무 길어요. 60분 이내로 나눠서 녹음해 주세요.' }, 413);
     const mime = type === 'video/mp4' ? 'audio/mp4' : type === 'video/webm' ? 'audio/webm' : type;
 
-    // 3) Gemini 로 정리
+    // 3) 오늘 날짜(한국 시간) + 앱이 보낸 [정리 양식] → 프롬프트 완성
+    const k = new Date(Date.now() + 9 * 3600e3), WD = '일월화수목금토';
+    const today = `${k.getUTCFullYear()}년 ${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일 ${WD[k.getUTCDay()]}요일`;
+    let style = '';
+    try { style = decodeURIComponent(req.headers.get('X-Prompt') || '').slice(0, 4000); } catch (e) {}
+    const prompt = `${PROMPT}\n\n[오늘] ${today} (한국 시간)\n\n[정리 양식]\n${style || '전달사항을 말한 순서대로 한 문장씩, "~입니다/~바랍니다" 공지체로. 상대적인 날짜(오늘·내일·이번 주·다음 주)는 오늘 기준 실제 날짜를 괄호로 덧붙임. 예: 다음 주 화요일(10/27)'}`;
+
+    // 4) Gemini 로 정리
     const body = {
-      contents: [{ role: 'user', parts: [{ text: PROMPT }, { inline_data: { mime_type: mime, data: b64(buf) } }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64(buf) } }] }],
       generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
     };
     let last = '';

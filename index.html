@@ -1154,6 +1154,27 @@ function postCard(v,compact,hq){
 const REC_MAX_MS=60*60*1000,REC_MAX_B=18*1024*1024;
 let aiRec={st:'idle',mr:null,chunks:[],t0:0,tick:0,stream:null,lock:null,err:'',open:null,mime:'',delArm:''};
 const recSaved=()=>store.get('koelsa_rec',[]);
+/* [정리 양식] 프롬프트 — 녹음을 '번호 전달사항'으로 정리. 오늘 기준 달력을 같이 보내 날짜 계산 실수를 막음 */
+function recPrompt(){const W='일월화수목금토',t=new Date();t.setHours(0,0,0,0);
+  const mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));
+  const f=d=>`${d.getMonth()+1}/${d.getDate()}(${W[d.getDay()]})`;
+  const wk=o=>Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+o+i);return f(d)}).join(' ');
+  const add=n=>{const d=new Date(t);d.setDate(t.getDate()+n);return f(d)};
+  return `[정리 양식 · 전달사항]
+1) 녹음에서 직원들에게 전달·공지·요청·당부한 내용을 빠짐없이 뽑아 brief 배열에 말한 순서대로 넣는다.
+2) 한 항목은 한 문장. 끝은 "~입니다." / "~예정입니다." / "~바랍니다." 같은 공손한 공지체.
+3) 상대적인 날짜는 아래 달력으로 실제 날짜를 찾아 괄호로 덧붙인다. 원래 표현은 그대로 둔다.
+   예) 다음 주 화요일 → "다음 주 화요일(10/27)", 이번 주 목요일 → "이번 주 목요일(10/22)", 금일·오늘 → "금일(10/19)"
+4) 시각은 24시간제로 적는다. 업무 시간의 "5시"는 17:00, "9시"는 09:00.
+5) 사람은 직함과 존칭으로: 지사장님, 팀장님, 과장님.
+6) 녹음에 없는 날짜·시간·사람·내용은 절대 추가하지 않는다. 불분명하면 "(확인 필요)"를 붙인다.
+[달력] 오늘 ${f(t)} · 내일 ${add(1)} · 모레 ${add(2)}
+이번 주(월~일): ${wk(0)}
+다음 주(월~일): ${wk(7)}
+[예시]
+녹음: "다음 주 화요일에 안전캠페인 있고요, 이번 주 목요일 5시에 안전보건 교육 있습니다. 오늘 지사장님 안 계시니까 결재는 팀장님께 올려 주세요."
+brief: ["다음 주 화요일(10/27)에 안전캠페인이 있습니다.", "이번 주 목요일(10/22) 17:00에 안전보건 교육이 예정되어 있습니다.", "금일(10/19) 지사장님 부재로 결재는 팀장님께 상신 바랍니다."]
+(예시의 날짜는 10/19(월) 기준이므로, 실제로는 위 [달력]으로 계산할 것)`}
 const recUrl=()=>String(window.AI_URL||'').trim();
 const recFmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 function recPickMime(){if(!window.MediaRecorder)return '';for(const m of ['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
@@ -1179,15 +1200,17 @@ async function recSend(blob){
   aiRec.st='busy';aiRec.err='';renderRec();
   try{const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인이 필요해요.');const tk=await fu.getIdToken();
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),180000);
-    const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm'},body:blob,signal:ctl.signal});clearTimeout(to);
+    const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm','X-Prompt':encodeURIComponent(recPrompt())},body:blob,signal:ctl.signal});clearTimeout(to);
     const j=await r.json().catch(()=>({error:'서버 응답을 읽지 못했어요.'}));
     if(!r.ok||!j.ok)throw new Error(j.error||('오류 '+r.status));
     const A=x=>Array.isArray(x)?x:[];
-    const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};
+    const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',brief:A(j.brief),summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};
     store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';toast('AI 정리가 끝났어요.','ok')}
   catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(e.message||'정리하지 못했어요.'))}
   renderRec()}
-function recText(it){const L=[`[${it.title}] ${new Date(it.at).toLocaleString('ko-KR')}`,'',`■ 요약\n${it.summary}`];
+function recText(it){const d=new Date(it.at),W='일월화수목금토';const L=[`[${d.getMonth()+1}월 ${d.getDate()}일(${W[d.getDay()]}) 브리핑 전달사항]`];
+  if((it.brief||[]).length)L.push('',...it.brief.map((x,i)=>`${i+1}. ${x}`));
+  L.push('',`■ 요약\n${it.summary}`);
   if(it.points.length)L.push('','■ 주요 안건',...it.points.map(x=>'· '+x));
   if(it.decisions.length)L.push('','■ 결정 사항',...it.decisions.map(x=>'· '+x));
   if(it.todos.length)L.push('','■ 할 일',...it.todos.map(t=>`· ${t.what}${t.who?' — '+t.who:''}${t.when?' ('+t.when+')':''}`));
@@ -1199,6 +1222,7 @@ function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=
   const sec=(t,arr,f)=>arr&&arr.length?`<div><div class="text-xs font-black mb-1.5">${t}</div><ul class="space-y-1">${arr.map(f).join('')}</ul></div>`:'';
   return `<div class="rounded-2xl border border-purple-400/40 p-3 space-y-3">
     <button data-recopen="${it.id}" class="w-full text-left"><div class="text-[11px] opacity-60">${new Date(it.at).toLocaleString('ko-KR')}${it.sec?' · '+recFmt(it.sec*1000):''} · 접기 ▲</div><div class="font-black">${esc(it.title)}</div></button>
+    ${(it.brief||[]).length?`<div class="rounded-xl p-3" style="background:linear-gradient(135deg,#EDE9FE,#F5F3FF);border:1px solid #C4B5FD;color:#1E1B4B"><div class="text-xs font-black mb-1.5" style="color:#6D28D9">📢 전달사항</div><ol class="space-y-1.5">${it.brief.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`:''}
     <p class="text-sm leading-relaxed sub rounded-xl p-3" style="border-left:4px solid #0D9488">${esc(it.summary)}</p>
     ${sec('📌 주요 안건',it.points,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
     ${sec('✅ 결정 사항',it.decisions,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
