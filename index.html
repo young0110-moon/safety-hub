@@ -293,6 +293,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
   <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
+  <div id="homeBrief" class="hidden mb-3"></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -424,11 +425,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 
 <!-- BRIEFING -->
 <section id="p-brief" class="page pt-4 space-y-4" data-title="모닝 브리핑">
-  <div class="card">
-    <h2 class="font-black text-base mb-2">☀️ 오늘의 안내</h2>
-    <p id="briefText" class="text-sm leading-relaxed p-3 rounded-xl sub"></p>
-    <button id="ttsBtn" class="mt-3 w-full min-h-[52px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">▶ 음성 브리핑 재생</button>
-  </div>
   <div class="card space-y-3" id="recCard">
     <div class="flex items-center justify-between"><h2 class="font-black text-base">🎙️ 브리핑 녹음 → AI 정리</h2><span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:#0D9488">Gemini</span></div>
     <p class="text-[12px] opacity-80 leading-relaxed">브리핑을 녹음하면 AI가 <b>대화 정리 · 핵심 요약 · 결정 사항 · 할 일</b>로 나눠 적어 줘요. 휴대폰 녹음 앱으로 녹음한 파일을 올려도 돼요.</p>
@@ -436,19 +432,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <details class="text-[11px] opacity-80 leading-relaxed"><summary class="font-bold cursor-pointer min-h-[32px] flex items-center">⚠️ 녹음 전에 꼭 읽어 주세요</summary>
       <ul class="list-disc pl-4 space-y-0.5 mt-1"><li>녹음 전에 참석자에게 <b>녹음한다고 알리고</b> 동의를 받아 주세요.</li><li>고객 이름·전화번호 같은 <b>개인정보</b>가 나오는 대화는 녹음하지 마세요.</li><li>무료 AI(Gemini 무료 등급)라 보낸 내용이 Google 서비스 개선에 쓰일 수 있어요. <b>대외비 내용은 녹음하지 마세요.</b></li><li>녹음 파일은 정리에만 쓰고 서버에 저장하지 않아요. 정리본은 <b>이 휴대폰에만</b> 저장돼요.</li><li>최대 60분. 녹음 중에는 화면이 꺼지지 않게 유지돼요. (아이폰은 화면을 끄면 녹음이 멈출 수 있어요)</li></ul></details>
     <div id="recList" class="space-y-2"></div>
-  </div>
-  <div class="card">
-    <h2 class="font-black text-base mb-2">🎤 음성 보고 메모</h2>
-    <button id="sttBtn" class="w-full min-h-[52px] rounded-xl bg-[#5B21B6] text-white font-bold text-sm">🎤 음성 보고 시작</button>
-    <div id="sttGuide" class="hidden mt-2 p-3 rounded-xl sub text-xs leading-relaxed"><b>🎙 키보드 마이크로 말해 주세요</b><br>아래 칸이 열리면 휴대폰 키보드의 🎤 버튼(아이폰: 스페이스바 옆 · 갤럭시: 키보드 위쪽)을 누르고 말하면 글로 입력됩니다. 다 말한 뒤 ‘요점 요약’을 누르세요.</div>
-    <textarea id="sttOut" rows="4" placeholder="말한 내용이 여기에 글로 들어옵니다. 직접 입력도 가능합니다." class="inp mt-3"></textarea>
-    <button id="sumBtn" class="mt-2 w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">✨ 요점 요약</button>
-    <div id="sumBox" class="hidden mt-2 p-3 rounded-xl sub text-sm leading-relaxed"></div>
-    <div class="grid grid-cols-2 gap-2 mt-2">
-      <button id="saveMemo" class="min-h-[48px] rounded-xl bg-[#9333EA] text-white font-bold text-sm">💾 메모 저장</button>
-      <button id="memoToCal" class="min-h-[48px] rounded-xl bg-[#5B21B6] text-white font-bold text-sm">📅 오늘 일정 등록</button>
-    </div>
-    <div id="memoList" class="mt-3 space-y-2"></div>
   </div>
 </section>
 
@@ -1116,6 +1099,14 @@ function renderHome(){
   $('#ddayBar').classList.toggle('hidden',!soon.length);
   if(soon.length){const f=soon[0],d=dday(f.date);$('#ddayBar').textContent=`📅 ${d?'D-1 내일':'D-DAY 오늘'} [${f.cat||'일반'}] ${f.title}${f.time?' '+f.time:''}${soon.length>1?` 외 ${soon.length-1}건`:''}`;
     const tk=key(new Date());if(store.get('koelsa_dday_toast','')!==tk&&me()){store.set('koelsa_dday_toast',tk);setTimeout(()=>toast(`📅 오늘·내일 공용 일정 ${soon.length}건이 있습니다.`),800)}}
+  /* 📢 브리핑 전달사항: 올린 시점부터 1시간만 메인에 표시 */
+  {const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief,box=$('#homeBrief');
+   const on=!!(bf&&bf.items&&bf.items.length&&Date.now()-bf.at<HOME_VOICE_MS);box.classList.toggle('hidden',!on);
+   if(on){const left=Math.max(1,Math.ceil((HOME_VOICE_MS-(Date.now()-bf.at))/6e4));
+     box.innerHTML=`<div class="rounded-2xl p-4 shadow-sm" style="background:linear-gradient(135deg,#EDE9FE,#F0FDFA);border:1px solid #C4B5FD;color:#1E1B4B">
+       <div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 브리핑 전달사항</div><span class="text-[10px] font-bold opacity-60">${left}분 뒤 내려감</span></div>
+       <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))}</div>
+       <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`}}
   /* 메인에는 올린 지 1시간 이내 글만 (최대 3개). 1시간이 지나면 현장목소리 목록에서 확인 */
   const vs=voicesSorted().filter(v=>Date.now()-v.at<HOME_VOICE_MS).slice(0,3);
   $('#homeFeedHd').classList.toggle('hidden',!vs.length);$('#homeFeedHd').classList.toggle('flex',!!vs.length);
@@ -1232,6 +1223,7 @@ function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=
     ${sec('📝 할 일 (눌러서 체크)',it.todos,(t,i)=>`<li><button data-rectodo="${it.id}:${i}" class="w-full text-left flex items-start gap-2 text-[13px] sub rounded-lg px-3 py-2 min-h-[40px]"><span>${t.done?'☑️':'⬜'}</span><span class="flex-1 ${t.done?'line-through opacity-60':''}">${esc(t.what)}${t.who?` <b class="text-[11px] text-[#7C3AED] dark:text-purple-300">${esc(t.who)}</b>`:''}${t.when?` <span class="text-[11px] opacity-70">· ${esc(t.when)}</span>`:''}</span></button></li>`)}
     ${sec('⛑️ 안전 당부',it.safety,x=>`<li class="text-[13px] rounded-lg px-3 py-2" style="background:#FEF3C7;color:#78350F">${esc(x)}</li>`)}
     ${it.dialogue.length?`<details><summary class="text-xs font-black cursor-pointer min-h-[36px] flex items-center">💬 대화 정리 (${it.dialogue.length}마디) — 눌러서 펼치기</summary><div class="space-y-1.5 mt-1">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
+    ${(it.brief||[]).length?`<button data-recpub="${it.id}" class="w-full min-h-[48px] rounded-xl text-white text-sm font-black" style="background:linear-gradient(135deg,#6D28D9,#0D9488)">📢 전달사항 메인화면에 공유 <span class="text-[11px] font-bold opacity-80">(1시간)</span></button>`:''}
     <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 전달사항 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
   </div>`}
 function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
@@ -1247,6 +1239,10 @@ document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
   if(b=e.target.closest('[data-recopen]')){aiRec.open=aiRec.open===b.dataset.recopen?null:b.dataset.recopen;aiRec.delArm='';renderRec();return}
   if(b=e.target.closest('[data-rectodo]')){const [id,i]=b.dataset.rectodo.split(':');const L=recSaved();const it=L.find(x=>x.id===id);if(it&&it.todos[+i]){it.todos[+i].done=!it.todos[+i].done;store.set('koelsa_rec',L);renderRec()}return}
   const it_=id=>recSaved().find(x=>x.id===id);
+  if(b=e.target.closest('[data-recpub]')){const it=it_(b.dataset.recpub);if(!it||!db)return toast('서버에 연결된 뒤 다시 시도해 주세요.','error');
+    const d=new Date(it.at);b.disabled=true;
+    try{await db.doc('settings/main').set({brief:{items:it.brief.slice(0,20),date:`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,by:myId,at:Date.now()}},{merge:true});toast('메인화면에 1시간 동안 표시돼요.','ok')}
+    catch(err){toast(errMsg(err),'error')}b.disabled=false;return}
   if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recBriefText(it));toast('전달사항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
   if(b=e.target.closest('[data-recshare]')){const it=it_(b.dataset.recshare);if(!it)return;const t=recText(it);if(navigator.share){try{await navigator.share({title:it.title,text:t})}catch(err){}}else{try{await navigator.clipboard.writeText(t);toast('공유 기능이 없어 복사했어요. 메신저에 붙여넣어 주세요.','ok')}catch(err){}}return}
   if(b=e.target.closest('[data-recdel]')){const id=b.dataset.recdel;if(aiRec.delArm!==id){aiRec.delArm=id;renderRec();setTimeout(()=>{if(aiRec.delArm===id){aiRec.delArm='';renderRec()}},4000);return}
@@ -1463,86 +1459,8 @@ $('#hAdd').onclick=async()=>{
   finally{hSending=false;$('#hAdd').textContent='+ 지사에 공유'}
 };
 
-/* ===== 브리핑 · 음성 메모 ===== */
-function briefText(){
-  const n=new Date(),M=evMap(),c=(M[key(n)]||[]).length,ne=upcoming(1)[0],tv=D.voices.filter(v=>key(new Date(v.at))===key(n)).length,un=unreadNotices().length;
-  return `${n.getMonth()+1}월 ${n.getDate()}일 부산동부지사 아침 브리핑입니다. 오늘 공용 일정은 ${c}건입니다. ${ne&&dday(ne.date)>0?`다음 일정은 ${dday(ne.date)}일 후 ${ne.cat||'일반'}, ${ne.title}입니다. `:''}${un?`읽지 않은 공지가 ${un}건 있습니다. `:''}현장목소리는 오늘 ${tv}건이 올라왔습니다. ${D.hazards.filter(h=>key(new Date(h.at))===key(n)).length?`오늘 등록된 위험현장은 ${D.hazards.filter(h=>key(new Date(h.at))===key(n)).length}건입니다. `:''}${wxBrief()}작업 전 안전모와 안전화를 착용하고, 2인 1조 작업을 지켜 주세요. 오늘도 안전한 하루 되시길 바랍니다.`;
-}
-let memos=store.get('koelsa_memos',[]);
-function renderBrief(){try{renderRec()}catch(e){}
-  $('#briefText').textContent=briefText();
-  $('#memoList').innerHTML=memos.map(m=>`<div class="flex items-start gap-2 p-2 rounded-xl sub"><div class="flex-1 min-w-0 text-sm"><div class="text-[10px] opacity-60">${esc(m.at)}</div>${m.sum?`<div class="font-bold mb-1">📌 요점</div><ul class="list-disc pl-5 space-y-0.5">${m.sum.map(x=>`<li class="break-words">${esc(x)}</li>`).join('')}</ul><details class="mt-1"><summary class="text-[11px] opacity-70 cursor-pointer min-h-[28px]">원문 보기</summary><div class="break-words text-xs mt-1">${esc(m.text)}</div></details>`:`<div class="break-words">${esc(m.text)}</div>`}</div><button data-dm="${m.id}" aria-label="메모 삭제" class="w-11 h-11 shrink-0">🗑️</button></div>`).join('');
-}
-function saveMemo(){
-  const t=$('#sttOut').value.trim();if(!t){toast('저장할 내용이 없습니다.','error');return}
-  const sum=lastSum&&lastSum.src===t?lastSum.items:null;
-  memos.unshift({id:Date.now(),text:t,sum,at:nowStr()});store.set('koelsa_memos',memos);$('#sttOut').value='';lastSum=null;$('#sumBox').classList.add('hidden');renderBrief();toast(sum?'요약과 함께 메모를 저장했습니다.':'음성 메모가 저장되었습니다.','ok');
-}
-$('#saveMemo').onclick=saveMemo;
-/* 요점 요약: Claude(sample) 우선, 안 되면 기기 안에서 간단 요약 */
-let lastSum=null,sumBusy=false,sampleFn;
-async function getSample(){return null}
-function localSummary(t){
-  const parts=t.replace(/\s+/g,' ').split(/(?<=[.!?。]|다\.|요\.|니다|어요|에요|는데요|했고|하고|함|됨)\s+|\n+|,\s*(?=그리고|또|그래서|근데|그런데)/).map(x=>x.trim()).filter(x=>x.length>3);
-  const kw=/(위험|누유|고장|정지|갇힘|부상|화재|불량|교체|점검|요청|필요|조치|보고|확인|완료|일정|호기|시까지|내일|오늘)/;
-  const clean=x=>x.replace(/^((어+|음+|아+|저기|그리고|그래서|근데|그런데|또)\s+)+/,'').replace(/\s(좀|약간|막|이제|뭐)(?=\s)/g,'').replace(/(했는데요|했는데|인데요|는데요)$/,'').trim();
-  const pick=[...parts.filter(x=>kw.test(x)),...parts.filter(x=>!kw.test(x))].map(clean).filter(x=>x.length>3).slice(0,4);
-  return pick.length?pick.map(x=>x.length>60?x.slice(0,58)+'…':x):[t.slice(0,60)];
-}
-function showSum(items,note){
-  $('#sumBox').classList.remove('hidden');
-  $('#sumBox').innerHTML=`<div class="flex items-center justify-between gap-2 mb-1"><b>📌 요점 요약</b><span class="text-[10px] opacity-70">${note}</span></div><ul class="list-disc pl-5 space-y-1">${items.map(x=>`<li class="break-words">${esc(x)}</li>`).join('')}</ul><p class="text-[11px] opacity-70 mt-2">‘메모 저장’을 누르면 요약과 원문이 함께 저장됩니다.</p>`;
-}
-async function summarize(){
-  const t=$('#sttOut').value.trim();if(!t)return toast('요약할 내용이 없습니다. 먼저 말하거나 입력해 주세요.','error');
-  if(sumBusy)return;sumBusy=true;$('#sumBtn').textContent='요약하는 중…';
-  $('#sumBox').classList.remove('hidden');$('#sumBox').innerHTML='<span class="opacity-80">✨ 요점을 정리하고 있어요…</span>';
-  let items=null,note='';
-  const smp=await getSample();
-  if(smp){
-    try{
-      const r=await smp.json(`너는 한국승강기안전공단 부산동부지사 현장 직원의 음성 보고를 정리하는 비서다. 아래 받아쓰기 원문은 말투가 섞이고 오타가 있을 수 있다. 핵심만 한국어 개조식으로 2~5개 항목에 정리하라. 각 항목은 40자 이내, 장소·호기·조치사항·요청·기한이 있으면 반드시 포함하고, 원문에 없는 내용은 만들지 마라. JSON으로만 답하라: {"points":["...","..."]}\n\n원문:\n${t.slice(0,3000)}`,{modelTier:'quick',cache:false});
-      if(r&&Array.isArray(r.points)&&r.points.length){items=r.points.map(String).slice(0,5);note='AI 요약'}
-    }catch(e){if(e&&e.code==='rate_limited')toast('요청이 많아 잠시 후 다시 시도해 주세요. 간단 요약으로 보여 드립니다.','error')}
-  }
-  if(!items){items=localSummary(t);note='간단 요약'}
-  lastSum={src:t,items};showSum(items,note);
-  sumBusy=false;$('#sumBtn').textContent='✨ 요점 요약';
-}
-$('#sumBtn').onclick=summarize;
-$('#sttOut').addEventListener('input',()=>{if(lastSum&&lastSum.src!==$('#sttOut').value.trim())$('#sumBox').classList.add('hidden')});
-$('#memoList').onclick=e=>{const b=e.target.closest('[data-dm]');if(!b)return;memos=memos.filter(m=>String(m.id)!==b.dataset.dm);store.set('koelsa_memos',memos);renderBrief();toast('메모가 삭제되었습니다.')};
-$('#memoToCal').onclick=async()=>{
-  const t=$('#sttOut').value.trim();if(!t)return toast('등록할 내용이 없습니다. 먼저 음성 보고를 해 주세요.','error');
-  const n=new Date();try{await put('events',{date:key(n),title:t.slice(0,40),time:`${pad(n.getHours())}:${pad(n.getMinutes())}`,cat:'일반',by:myId,at:Date.now()});$('#sttOut').value='';toast('오늘 공용 일정으로 등록했습니다.','ok')}catch(e){toast(errMsg(e),'error')}
-};
-$('#ttsBtn').onclick=()=>{
-  if(!('speechSynthesis' in window)){toast('이 브라우저는 음성 읽기를 지원하지 않습니다.','error');return}
-  if(speaking){speechSynthesis.cancel();return}
-  const u=new SpeechSynthesisUtterance(briefText());u.lang='ko-KR';
-  u.onstart=()=>{speaking=true;$('#ttsBtn').textContent='■ 재생 정지'};
-  u.onend=u.onerror=()=>{speaking=false;$('#ttsBtn').textContent='▶ 음성 브리핑 재생'};
-  speechSynthesis.speak(u);
-};
-function dictateFallback(){
-  $('#sttGuide').classList.remove('hidden');
-  const t=$('#sttOut');t.focus();try{t.setSelectionRange(t.value.length,t.value.length)}catch(e){}
-  toast('키보드의 🎤 버튼을 눌러 말해 주세요.');
-}
-let srWorks=store.get('koelsa_sr_ok',null);
-$('#sttBtn').onclick=()=>{
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR||srWorks===false)return dictateFallback();
-  if(listening&&rec){rec.stop();return}
-  rec=new SR();rec.lang='ko-KR';rec.interimResults=true;rec.continuous=true;
-  const base=$('#sttOut').value;
-  rec.onstart=()=>{listening=true;$('#sttBtn').textContent='■ 듣는 중… (정지)';toast('음성 인식을 시작합니다.')};
-  let got=false;
-  rec.onresult=e=>{got=true;srWorks=true;store.set('koelsa_sr_ok',true);let s='';for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;$('#sttOut').value=(base?base+'\n':'')+s};
-  rec.onerror=e=>{if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){srWorks=false;store.set('koelsa_sr_ok',false);dictateFallback()}else if(e.error!=='no-speech'&&e.error!=='aborted')toast('음성 인식 오류: '+e.error,'error')};
-  rec.onend=()=>{listening=false;$('#sttBtn').textContent='🎤 음성 보고 시작';if(got&&$('#sttOut').value.trim())summarize()};
-  try{rec.start()}catch(e){dictateFallback()}
-};
+/* ===== 모닝 브리핑: 녹음 → AI 정리 카드만 ===== */
+function renderBrief(){try{renderRec()}catch(e){}}
 
 /* ===== 컨디션 진단 · 상비약 · 점심 추천 (개인 기록, 이 기기 저장) ===== */
 const Q=[{id:'sleep',q:'😴 수면시간',o:['7시간 이상','5~7시간','5시간 미만']},{id:'pain',q:'🤕 신체통증',o:['없음','가벼움','심함']},{id:'focus',q:'🎯 업무집중도',o:['높음','보통','낮음']}];
