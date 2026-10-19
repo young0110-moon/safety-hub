@@ -183,8 +183,8 @@ body{letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;-moz-osx-font-smo
 .sb-box{background:#fff;border-color:#7C3AED}.dark .sb-box{background:rgba(15,23,42,.65);border-color:#A78BFA}
 .sb-box input::-webkit-search-cancel-button{display:none}
 .sb-pop{background:#fff;border:1px solid rgba(168,85,247,.35);box-shadow:0 12px 32px rgba(49,46,129,.18)}.dark .sb-pop{background:#1E1B3A}
-/* 조항 본문: 양쪽 정렬 · 한글은 글자 단위, 영문·숫자는 단어 단위로 줄바꿈 (오른쪽 들쭉날쭉 방지) */
-.sbt{font-size:var(--sbfs,14px);line-height:1.7;white-space:pre-line;word-break:normal;overflow-wrap:anywhere;text-align:justify;text-justify:inter-character}
+/* 조항 본문: 양쪽 정렬 · 어절(띄어쓰기) 단위 줄바꿈 유지 (B안) */
+.sbt{font-size:var(--sbfs,14px);line-height:1.7;white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere;text-align:justify;text-justify:inter-word}
 .sbt mark{text-align:inherit}
 mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 .dk-ins{background:rgba(124,58,237,.16);text-decoration:underline;text-decoration-color:#7C3AED;text-decoration-thickness:2px;text-underline-offset:3px;border-radius:3px}
