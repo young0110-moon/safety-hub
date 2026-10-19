@@ -1208,6 +1208,9 @@ async function recSend(blob){
     store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';toast('AI 정리가 끝났어요.','ok')}
   catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(e.message||'정리하지 못했어요.'))}
   renderRec()}
+/* 복사용: 날짜(예: 10월 19일 월요일) + 전달사항 1. 2. 3. 만 */
+function recBriefText(it){const d=new Date(it.at);const B=(it.brief&&it.brief.length)?it.brief:(it.points||[]);
+  return [`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,'',...B.map((x,i)=>`${i+1}. ${x}`)].join('\n')}
 function recText(it){const d=new Date(it.at),W='일월화수목금토';const L=[`[${d.getMonth()+1}월 ${d.getDate()}일(${W[d.getDay()]}) 브리핑 전달사항]`];
   if((it.brief||[]).length)L.push('',...it.brief.map((x,i)=>`${i+1}. ${x}`));
   L.push('',`■ 요약\n${it.summary}`);
@@ -1229,7 +1232,7 @@ function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=
     ${sec('📝 할 일 (눌러서 체크)',it.todos,(t,i)=>`<li><button data-rectodo="${it.id}:${i}" class="w-full text-left flex items-start gap-2 text-[13px] sub rounded-lg px-3 py-2 min-h-[40px]"><span>${t.done?'☑️':'⬜'}</span><span class="flex-1 ${t.done?'line-through opacity-60':''}">${esc(t.what)}${t.who?` <b class="text-[11px] text-[#7C3AED] dark:text-purple-300">${esc(t.who)}</b>`:''}${t.when?` <span class="text-[11px] opacity-70">· ${esc(t.when)}</span>`:''}</span></button></li>`)}
     ${sec('⛑️ 안전 당부',it.safety,x=>`<li class="text-[13px] rounded-lg px-3 py-2" style="background:#FEF3C7;color:#78350F">${esc(x)}</li>`)}
     ${it.dialogue.length?`<details><summary class="text-xs font-black cursor-pointer min-h-[36px] flex items-center">💬 대화 정리 (${it.dialogue.length}마디) — 눌러서 펼치기</summary><div class="space-y-1.5 mt-1">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
-    <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
+    <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 전달사항 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
   </div>`}
 function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
   if(!url)B.innerHTML='<div class="rounded-xl p-3 text-[12px] sub">⏳ AI 정리 서버 연결 준비 중이에요. 서버 주소가 등록되면 바로 쓸 수 있어요.</div>';
@@ -1244,7 +1247,7 @@ document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
   if(b=e.target.closest('[data-recopen]')){aiRec.open=aiRec.open===b.dataset.recopen?null:b.dataset.recopen;aiRec.delArm='';renderRec();return}
   if(b=e.target.closest('[data-rectodo]')){const [id,i]=b.dataset.rectodo.split(':');const L=recSaved();const it=L.find(x=>x.id===id);if(it&&it.todos[+i]){it.todos[+i].done=!it.todos[+i].done;store.set('koelsa_rec',L);renderRec()}return}
   const it_=id=>recSaved().find(x=>x.id===id);
-  if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recText(it));toast('정리본을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
+  if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recBriefText(it));toast('전달사항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
   if(b=e.target.closest('[data-recshare]')){const it=it_(b.dataset.recshare);if(!it)return;const t=recText(it);if(navigator.share){try{await navigator.share({title:it.title,text:t})}catch(err){}}else{try{await navigator.clipboard.writeText(t);toast('공유 기능이 없어 복사했어요. 메신저에 붙여넣어 주세요.','ok')}catch(err){}}return}
   if(b=e.target.closest('[data-recdel]')){const id=b.dataset.recdel;if(aiRec.delArm!==id){aiRec.delArm=id;renderRec();setTimeout(()=>{if(aiRec.delArm===id){aiRec.delArm='';renderRec()}},4000);return}
     aiRec.delArm='';store.set('koelsa_rec',recSaved().filter(x=>x.id!==id));aiRec.open=null;renderRec();toast('삭제했어요.');return}
