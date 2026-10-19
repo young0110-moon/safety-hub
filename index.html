@@ -93,14 +93,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* 당겨서 새로고침 엘리베이터 */
 .ptr-elv{display:inline-flex;width:24px;height:28px;border:2px solid #6D28D9;border-radius:5px;padding:5px 2px 2px;box-sizing:border-box;position:relative;background:#fff;filter:drop-shadow(0 2px 4px rgba(76,29,149,.35))}.dark .ptr-elv{border-color:#C4B5FD;background:#1E1B4B}
 .ptr-elv:before{content:"";position:absolute;top:1px;left:50%;margin-left:-3px;border:3px solid transparent;border-bottom:3px solid #6D28D9;border-top:0}.dark .ptr-elv:before{border-bottom-color:#C4B5FD}
-.ptr-car{flex:1;position:relative;overflow:hidden;background:#FDE68A;border-radius:1px}
-.ptr-d{position:absolute;top:0;bottom:0;width:50%;background:#A78BFA;border:1px solid #6D28D9;box-sizing:border-box;transition:left 2.3s cubic-bezier(.45,0,.2,1),right 2.3s cubic-bezier(.45,0,.2,1)}
+.ptr-car{flex:1;position:relative;overflow:hidden;background:#FDE68A;border-radius:1px;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)}
+.ptr-d{position:absolute;top:0;bottom:0;width:50%;background:#A78BFA;border:1px solid #6D28D9;box-sizing:border-box;transition:transform 2.3s cubic-bezier(.45,0,.2,1);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;transform:translate3d(0,0,0)}
 .ptr-d.l{left:0}.ptr-d.r{right:0}
-.ptr-elv.open .ptr-d.l{left:-50%!important}.ptr-elv.open .ptr-d.r{right:-50%!important}
+/* iOS 잔상 방지: 위치(left/right) 대신 GPU 이동(transform) */
+.ptr-elv.open .ptr-d.l{transform:translate3d(-110%,0,0)}.ptr-elv.open .ptr-d.r{transform:translate3d(110%,0,0)}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
 /* 헤더 새로고침(엘리베이터 문) */
 @media (max-width:379px){#hRight{gap:2px}#bellBtn,#meBtn{width:40px!important;height:40px!important}}
-.ptr-elv.hdr:before{top:1.5px;margin-left:-4.5px;border-width:0 4.5px 4.5px}.ptr-elv.hdr{border-color:#6D28D9;background:#fff;width:33px;height:39px;padding:8px 3px 3px;border-width:2.5px;border-radius:7px}.ptr-elv.hdr:before{border-bottom-color:#6D28D9}.ptr-elv.hdr .ptr-d{border-color:#6D28D9}.dark .ptr-elv.hdr{border-color:#C4B5FD;background:#1E1B4B}.dark .ptr-elv.hdr:before{border-bottom-color:#C4B5FD}.dark .ptr-elv.hdr .ptr-d{border-color:#C4B5FD;background:#6D5BB5}
+.ptr-elv.hdr:before{top:1.5px;margin-left:-4.5px;border-width:0 4.5px 4.5px}.ptr-elv.hdr{filter:none;box-shadow:0 2px 5px rgba(76,29,149,.28);border-color:#6D28D9;background:#fff;width:33px;height:39px;padding:8px 3px 3px;border-width:2.5px;border-radius:7px}.ptr-elv.hdr:before{border-bottom-color:#6D28D9}.ptr-elv.hdr .ptr-d{border-color:#6D28D9}.dark .ptr-elv.hdr{border-color:#C4B5FD;background:#1E1B4B}.dark .ptr-elv.hdr:before{border-bottom-color:#C4B5FD}.dark .ptr-elv.hdr .ptr-d{border-color:#C4B5FD;background:#6D5BB5}
 html.sunset .ptr-elv.hdr{border-color:#ED8A17}html.sunset .ptr-elv.hdr:before{border-bottom-color:#ED8A17}html.sunset .ptr-elv.hdr .ptr-d{border-color:#ED8A17;background:#FFC27A}html.mint .ptr-elv.hdr{border-color:#0F9D8A}html.mint .ptr-elv.hdr:before{border-bottom-color:#0F9D8A}html.mint .ptr-elv.hdr .ptr-d{border-color:#0F9D8A;background:#99F6E4}
 #wxChip{background:rgba(255,255,255,.55)!important;color:inherit!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 10px rgba(91,33,182,.10)}
 .dark #wxChip{background:rgba(255,255,255,.10)!important;box-shadow:0 2px 10px rgba(0,0,0,.2)}
@@ -248,13 +249,13 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 .lk-elv{position:relative;width:150px;padding-top:36px}
 .lk-floor{position:absolute;top:0;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:8px;background:#1E1B4B;color:#FDBA74;font-weight:900;font-size:13px;letter-spacing:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .dark .lk-floor{background:#000;border:1px solid #4C1D95}
-.lk-car{position:relative;height:190px;border-radius:18px;background:#fff;border:6px solid #C4B5FD;overflow:hidden;box-shadow:0 14px 40px rgba(109,40,217,.25);display:flex;align-items:center;justify-content:center}
+.lk-car{position:relative;height:190px;border-radius:18px;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0);background:#fff;border:6px solid #C4B5FD;overflow:hidden;box-shadow:0 14px 40px rgba(109,40,217,.25);display:flex;align-items:center;justify-content:center}
 .dark .lk-car{background:#2E1065;border-color:#6D28D9;box-shadow:0 0 40px rgba(124,58,237,.45)}
 .lk-car img{width:100px;opacity:0;transform:scale(.88);animation:lkEli .5s 1.1s forwards}
 .lk-door{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#A78BFA,#8B5CF6)}
 .lk-door.l{left:0;border-right:2px solid #7C3AED;animation:lkL 1s .7s cubic-bezier(.6,0,.2,1) forwards}
 .lk-door.r{right:0;background:linear-gradient(270deg,#A78BFA,#8B5CF6);border-left:2px solid #7C3AED;animation:lkR 1s .7s cubic-bezier(.6,0,.2,1) forwards}
-@keyframes lkL{to{transform:translateX(-94%)}}@keyframes lkR{to{transform:translateX(94%)}}@keyframes lkEli{to{opacity:1;transform:scale(1)}}
+.lk-door{will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}@keyframes lkL{to{transform:translate3d(-94%,0,0)}}@keyframes lkR{to{transform:translate3d(94%,0,0)}}@keyframes lkEli{to{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.lk-door{display:none}.lk-car img{animation:none;opacity:1;transform:none}}
 #lock .bg-white\/20{background:#6D28D9;color:#fff}
 #gBtn{box-shadow:0 6px 18px rgba(109,40,217,.22);border:1px solid #DDD6FE}
@@ -275,7 +276,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
       <button id="backBtn" class="min-h-[44px] px-3 rounded-full bg-purple-600/30 border border-purple-400/50 text-xs font-bold whitespace-nowrap">← 메인</button>
       <h1 id="pageTitle" class="text-sm font-black truncate"></h1>
     </div>
-    <div id="hRef" class="flex justify-center items-center pointer-events-none" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)" aria-hidden="true"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
+    <div id="hRef" class="flex justify-center items-center pointer-events-none" style="position:absolute;left:50%;top:50%;transform:translate3d(-50%,-50%,0)" aria-hidden="true"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
     <div id="hRight" class="flex items-center gap-1.5 shrink-0">
       <div id="clock" class="hidden text-[10px] font-mono text-right leading-tight tabular-nums"></div>
       <button id="bellBtn" aria-label="알림" aria-haspopup="dialog" class="relative w-11 h-11 rounded-full bg-white/80 dark:bg-white/10 border border-purple-400/40 flex items-center justify-center text-lg">🔔<span id="bellBadge" class="hidden absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] font-black leading-[16px] text-center border-2 border-white dark:border-indigo-950 tabular-nums">0</span></button>
