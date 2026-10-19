@@ -262,19 +262,19 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 <body class="font-sans bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 dark:from-indigo-950 dark:via-purple-900 dark:to-blue-900 text-slate-800 dark:text-white bg-fixed">
 
 <header class="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-indigo-950/70 border-b border-purple-400/30">
-  <div class="max-w-xl mx-auto px-3 py-2 flex items-center justify-between gap-2 min-h-[60px]">
+  <div class="max-w-xl mx-auto px-3 py-2 flex items-center gap-2 min-h-[60px]">
     <div id="hLogo" class="min-w-0 flex items-center gap-2">
       <span class="klogo w-9 h-9 shrink-0" role="img" aria-label="한국승강기안전공단 로고"></span>
       <div class="min-w-0 leading-tight">
         <div class="text-[13px] font-bold truncate">한국승강기안전공단</div>
         <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#9333EA] text-white">부산동부지사</span>
       </div>
-      <button id="homeRef" aria-label="새로고침" title="새로고침 (새 버전 확인)" class="shrink-0 w-8 h-11 -ml-1 inline-flex items-center justify-center"><span class="ptr-elv hdr" aria-hidden="true"><span class="ptr-car"><span id="hrL" class="ptr-d l"></span><span id="hrR" class="ptr-d r"></span></span></span></button>
     </div>
     <div id="hBack" class="hidden items-center gap-1 min-w-0">
       <button id="backBtn" class="min-h-[44px] px-3 rounded-full bg-purple-600/30 border border-purple-400/50 text-xs font-bold whitespace-nowrap">← 메인</button>
       <h1 id="pageTitle" class="text-sm font-black truncate"></h1>
     </div>
+    <div id="hRef" class="flex-1 flex justify-center items-center min-w-[28px] pointer-events-none" aria-hidden="true"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
     <div class="flex items-center gap-1.5 shrink-0">
       <div id="clock" class="hidden min-[400px]:block text-[10px] font-mono text-right leading-tight tabular-nums"></div>
       <button id="bellBtn" aria-label="알림" aria-haspopup="dialog" class="relative w-11 h-11 rounded-full bg-white/80 dark:bg-white/10 border border-purple-400/40 flex items-center justify-center text-lg">🔔<span id="bellBadge" class="hidden absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] font-black leading-[16px] text-center border-2 border-white dark:border-indigo-950 tabular-nums">0</span></button>
@@ -348,6 +348,12 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <span class="flex-1 min-w-0 text-sm opacity-70">현장 소식과 사진을 지사에 전파해 보세요</span>
     <span class="text-xl">📷</span>
   </button>
+  <div style="position:relative">
+    <span class="text-sm opacity-60" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)" aria-hidden="true">🔍</span>
+    <input id="vQ" type="search" enterkeyhint="search" autocomplete="off" class="inp" style="padding-left:2.4rem;padding-right:2.6rem" placeholder="내용·장소·작성자·댓글 검색 (초성 OK)" aria-label="현장목소리 검색">
+    <button id="vQx" class="hidden text-sm opacity-60" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px" aria-label="검색어 지우기">✕</button>
+  </div>
+  <div id="vQInfo" class="space-y-2"></div>
   <div class="hscroll -mx-3 px-3"><div id="vFilter" class="flex gap-2 w-max"></div></div>
   <div id="vFeed" class="space-y-3"></div>
 </section>
@@ -618,9 +624,6 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
 
-<div id="ptrWrap" class="fixed inset-x-0 z-[60] flex justify-center pointer-events-none" style="top:calc(64px + env(safe-area-inset-top,0px))"><div id="ptr" class="flex items-center justify-center" style="transform:translateY(-70px);opacity:0;transition:opacity .15s">
-  <span class="ptr-elv" aria-hidden="true"><span class="ptr-car"><span id="ptrL" class="ptr-d l"></span><span id="ptrR" class="ptr-d r"></span></span></span>
-  <span id="ptrTx" class="sr-only">새로고침</span></div></div>
 <button id="updBar" onclick="location.reload()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
 <div id="nPanel" class="hidden fixed inset-0 z-[90]" role="dialog" aria-label="알림">
   <div id="nDim" class="absolute inset-0 bg-black/25"></div>
@@ -729,7 +732,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     </div>
     <div class="text-xs font-bold lk-sub mt-6">한국승강기안전공단 부산동부지사</div>
     <div class="text-2xl font-black mt-0.5">안전 허브</div>
-    <script>(function(){let f=1;const el=document.getElementById("lkFloor");const t=setInterval(()=>{f++;if(el)el.textContent=f;if(f>=12)clearInterval(t)},55)})()</script>
+    <script>(function(){let f=1;const el=document.getElementById("lkFloor");const t=setInterval(()=>{f++;if(el)el.textContent=f;if(f>=19)clearInterval(t)},35)})()</script>
     <p id="lockMsg" class="text-sm lk-msg mt-3 leading-relaxed">문이 열리고 있어요…</p>
     <button id="gBtn" class="hidden mt-6 w-full min-h-[52px] rounded-xl bg-white text-[#1E1B4B] font-black flex items-center justify-center gap-2"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.9l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>구글 계정으로 로그인</button>
     <p id="lockHelp" class="hidden text-[11px] opacity-75 mt-3 leading-relaxed">지사 직원은 구글 계정으로 로그인한 뒤, 처음 한 번 <b>지사 입장 코드</b>를 입력하면 들어올 수 있어요.</p>
@@ -929,8 +932,10 @@ function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err
 /* ===== 로그인 · 가입 ===== */
 ['#lgRank','#pfRank'].forEach(s=>$(s).innerHTML=RANKS.map(r=>`<option>${r}</option>`).join(''));
 $('#lgRank').value='사원';
+let lockGo=false;
 function checkLogin(){
-  const show_=!ready||!me();
+  if(lockGo&&ready){lockGo=false;/* 19F 도착 + 문 열림을 다 보여준 뒤 바로 메인으로 */setTimeout(()=>$('#lock').classList.add('hidden'),Math.max(0,1800-performance.now()))}
+  const show_=ready&&!me();
   $('#login').classList.toggle('hidden',!show_);
   $('#lgWait').classList.toggle('hidden',ready);$('#lgForm').classList.toggle('hidden',!ready);
   const fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
@@ -959,7 +964,6 @@ async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['ko
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
   if(!$('#pfAcName'))return;$('#pfAdm').classList.toggle('hidden',!isAdmin);$('#pfAcName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#pfAcMail').textContent=fu&&fu.email?fu.email+' · 구글 자동 로그인':'자동 로그인 중';
   const v=$('#pfVer');if(v){let b='';try{b=BUILD!=='__BUILD__'?'v'+BUILD.slice(0,7):'개발 버전'}catch(e){b='-'}v.textContent='현재 버전 '+b}}
-$('#homeRef').onclick=()=>{const E=$('#homeRef .ptr-elv');if(E){E.classList.add('open');setTimeout(()=>E.classList.remove('open'),2300)}toast('새 버전 확인 중…');checkUpdate(true).then(()=>{})};
 $('#pfUpdBtn').onclick=()=>{const b=$('#pfUpdBtn');b.disabled=true;b.textContent='확인 중…';toast('새 버전 확인 중…');checkUpdate(true).finally(()=>{b.disabled=false;b.textContent='지금 확인'})};
 $('#pfOut').onclick=async()=>{
   if(Date.now()-outArm>4000){outArm=Date.now();$('#pfOut').textContent='한 번 더 누르면 로그아웃됩니다';setTimeout(()=>$('#pfOut').textContent='로그아웃',4000);return}
@@ -1116,41 +1120,84 @@ function photoGrid(ids,postId){
   const n=ids.length,cls=n===1?'grid-cols-1':'grid-cols-2';
   return `<div class="grid ${cls} gap-1 mt-2 rounded-xl overflow-hidden">${ids.map((p,i)=>`<button data-view="${p}" data-post="${postId}" class="block ${n===3&&i===0?'row-span-2':''}"><img data-ph="${p}" alt="현장 사진 ${i+1}" class="ph w-full ${n===1?'max-h-80 aspect-[4/3]':'aspect-square'} h-full"></button>`).join('')}</div>`;
 }
-function postCard(v,compact){
+function postCard(v,compact,hq){
   const c=cOf(v.cat),lk=likes(v.id),liked=lk.some(r=>r.by===myId),cm=cmts(v.id).length;
   return `<article class="card !p-3">
     <div class="flex items-center gap-2">${avatar(v.by,40)}<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">${esc(nmFull(v.by))}</div><div class="text-[11px] opacity-60 truncate">${ago(v.at)}${v.editedAt?' · 수정됨':''}${v.place?' · 📍 '+esc(v.place):''}</div></div>${canDel(v.by)?`<button data-pmenu="${v.id}" aria-label="글 메뉴" class="w-9 h-9 shrink-0 rounded-full text-lg leading-none opacity-70 hover:bg-purple-500/10">⋯</button>`:''}${v.urgent?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white shrink-0">긴급전파</span>':''}</div>
     <div class="flex items-center gap-1.5 mt-2"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${c.c}">${c.i} ${esc(c.k)}</span></div>
-    <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${compact?'line-clamp-3':''}">${esc(v.text)}</p></button>
+    <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${compact?'line-clamp-3':''}">${hq?sbHL(v.text,hq):esc(v.text)}</p></button>${hq&&v._why?`<div class="text-[10px] font-bold mt-1 opacity-70">🔎 ${esc(v._why)}</div>`:''}
     ${photoGrid(v.photos,v.id)}
     <div class="flex items-center gap-1 mt-2 pt-2 border-t border-purple-400/30 text-xs font-bold">
       <button data-like="${v.id}" class="flex-1 min-h-[40px] rounded-lg ${liked?'text-[#7C3AED]':'opacity-80'}">${liked?'💜':'🤍'} 공감 ${lk.length||''}</button>
       <button data-open="${v.id}" class="flex-1 min-h-[40px] rounded-lg opacity-80">💬 댓글 ${cm||''}</button>
-      <button data-share="${v.id}" class="flex-1 min-h-[40px] rounded-lg opacity-80">📋 복사</button>
     </div>
   </article>`;
 }
+/* ===== 현장목소리 검색 (승강기 안전기준 검색과 같은 방식)
+   · 여러 낱말 = 모두 포함(AND) · "따옴표" = 그대로 · -낱말 = 제외 · 초성(ㅇㅈㅂ) · 동의어 · 오타 교정 · 관련도/최신 정렬 ===== */
+let vq='',vSort='rel',vLimit=20;
+const vRecent=()=>store.get('koelsa_vq_recent',[]);
+function vRemember(q){q=q.trim();if(q.length<2)return;store.set('koelsa_vq_recent',[q,...vRecent().filter(x=>x!==q)].slice(0,6))}
+function vFields(v){const cm=cmts(v.id);return [
+  {k:'내용',w:3,t:v.text||''},{k:'장소',w:4,t:v.place||''},{k:'작성자',w:4,t:nmFull(v.by)},{k:'분류',w:5,t:v.cat||''},
+  {k:'댓글',w:1,t:cm.map(c=>c.text||'').join(' '),who:cm.map(c=>nmFull(c.by)).join(' ')}]}
+function vVocab(){const m=new Map();D.voices.forEach(v=>vFields(v).forEach(f=>String(f.t).split(/[^0-9A-Za-z가-힣]+/).forEach(w=>{const n=sbN(w);if(n.length>=2)m.set(n,(m.get(n)||0)+1)})));return m}
+function vDym(t){const V=vVocab();if(t.length<2||V.has(t))return null;const J=sbJamo(t),max=J.length<=5?1:J.length<=10?2:3;let best=null;
+  V.forEach((n,k)=>{if(Math.abs(k.length-t.length)>2)return;const d=sbLev(J,sbJamo(k),max);if(d<=max&&(!best||d<best.d||(d===best.d&&n>best.n)))best={k,d,n}});return best?best.k:null}
+function vSearch(list,q){const info=sbParseQ(q);const out=[];
+  if(!info.groups.length&&!info.must.length&&!info.excl.length)return {rows:list,info};
+  list.forEach(v=>{const F=vFields(v).map(f=>({...f,n:sbN(f.t+' '+(f.who||'')),c:sbCho(f.t+' '+(f.who||''))}));
+    const all=F.map(f=>f.n).join('|');
+    if(info.excl.some(x=>all.includes(x)))return;
+    let sc=0;const why=new Set();
+    for(const m of info.must){const f=F.find(f=>f.n.includes(m.n));if(!f)return;sc+=f.w*3;why.add(f.k)}
+    for(const g of info.groups){let hit=0;
+      for(const f of F){if(g.alts.some(a=>f.n.includes(a))){hit=Math.max(hit,f.w*(f.n.includes(g.t)?2:1.5));why.add(f.k)}
+        else if(isCho(g.raw)&&f.c.includes(g.raw)){hit=Math.max(hit,f.w);why.add(f.k)}}
+      if(!hit)return;sc+=hit}
+    sc+=Math.max(0,3-(Date.now()-v.at)/(7*864e5));/* 최근 글 가산점 */
+    out.push({...v,_sc:sc,_why:[...why].join('·')+'에서 찾음'})});
+  if(vSort==='rel')out.sort((a,b)=>b._sc-a._sc||b.at-a.at);
+  return {rows:out,info}}
+function vHLq(info){return [...info.must.map(m=>m.raw),...info.groups.flatMap(g=>isCho(g.raw)?[]:[g.raw,...g.alts.map(sbRawOf)])].join(' ')}
 function renderVoice(){
-  $('#vFilter').innerHTML=['전체',...VCATS.map(c=>c.k)].map(k=>`<button data-vf="${k}" class="chip ${k===vf?'sel':''}">${k==='전체'?'전체':cOf(k).i+' '+k}</button>`).join('');
-  const list=voicesSorted().filter(v=>vf==='전체'||v.cat===vf);
-  $('#vFeed').innerHTML=list.length?list.map(v=>postCard(v)).join(''):(D.voices.length?'<p class="text-sm opacity-70 text-center py-6">이 분류의 글이 없습니다.</p>':emptyVoice());
+  const base=voicesSorted().filter(v=>vf==='전체'||v.cat===vf);
+  $('#vFilter').innerHTML=['전체',...VCATS.map(c=>c.k)].map(k=>{const n=k==='전체'?D.voices.length:D.voices.filter(v=>v.cat===k).length;return `<button data-vf="${k}" class="chip ${k===vf?'sel':''}">${k==='전체'?'전체':cOf(k).i+' '+k} <span class="opacity-60">${n}</span></button>`}).join('');
+  $('#vQx').classList.toggle('hidden',!vq);
+  const q=vq.trim(),I=$('#vQInfo');
+  if(!q){const R=vRecent();
+    I.innerHTML=R.length?`<div class="flex items-center gap-1.5 flex-wrap text-[11px]"><span class="opacity-60 font-bold">최근</span>${R.map(r=>`<button data-vqset="${esc(r)}" class="chip !text-[11px]">${esc(r)}</button>`).join('')}<button data-vqclr class="text-[11px] opacity-60 underline min-h-[32px] px-1">지우기</button></div>`:'';
+    const list=base.slice(0,vLimit);
+    $('#vFeed').innerHTML=base.length?list.map(v=>postCard(v)).join('')+(base.length>vLimit?`<button data-vmore class="w-full min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-bold">더 보기 (${base.length-vLimit}개 남음)</button>`:''):(D.voices.length?'<p class="text-sm opacity-70 text-center py-6">이 분류의 글이 없습니다.</p>':emptyVoice());
+    hydrate($('#vFeed'));return}
+  const {rows,info}=vSearch(base,q);
+  let dym='';if(!rows.length){const fix=info.groups.map(g=>vDym(g.t)||g.t);if(fix.some((t,i)=>t!==info.groups[i].t)){const nq=fix.join(' ');if(vSearch(base,nq).rows.length)dym=nq}}
+  I.innerHTML=`<div class="flex items-center justify-between gap-2 text-[12px]"><span><b>‘${esc(q)}’</b> 검색 결과 <b class="text-[#7C3AED] dark:text-purple-300">${rows.length}</b>건${vf!=='전체'?` <span class="opacity-60">(${esc(vf)} 안에서)</span>`:''}</span>
+    <span class="flex gap-1">${[['rel','관련도순'],['new','최신순']].map(([k,l])=>`<button data-vsort="${k}" class="chip !text-[11px] ${vSort===k?'sel':''}">${l}</button>`).join('')}</span></div>
+    ${dym?`<button data-vqset="${esc(dym)}" class="w-full text-left card !p-3 text-sm">혹시 <b class="text-[#7C3AED] dark:text-purple-300">${esc(dym)}</b> 을(를) 찾으셨나요? ›</button>`:''}`;
+  const hq=vHLq(info),list=rows.slice(0,vLimit);
+  $('#vFeed').innerHTML=rows.length?list.map(v=>postCard(v,false,hq)).join('')+(rows.length>vLimit?`<button data-vmore class="w-full min-h-[46px] rounded-xl border border-purple-400/40 text-sm font-bold">더 보기 (${rows.length-vLimit}개 남음)</button>`:'')
+    :`<div class="card text-sm leading-relaxed"><b>검색 결과가 없어요.</b><ul class="mt-2 text-[12px] opacity-80 list-disc pl-4 space-y-0.5"><li>낱말을 줄이거나 다른 말로 찾아보세요. (예: 핸드레일 → 손잡이)</li><li>초성만 입력해도 돼요. (예: ㅇㅈㅂ → 위험보고)</li><li>"따옴표"는 그대로 일치, <b>-낱말</b>은 제외예요.</li>${vf!=='전체'?'<li>위 분류를 <b>전체</b>로 바꿔 보세요.</li>':''}</ul></div>`;
   hydrate($('#vFeed'));
 }
-$('#vFilter').onclick=e=>{const b=e.target.closest('[data-vf]');if(b){vf=b.dataset.vf;renderVoice()}};
+{let vt=0;$('#vQ').addEventListener('input',e=>{clearTimeout(vt);vt=setTimeout(()=>{vq=e.target.value;vLimit=20;renderVoice()},150)});
+ $('#vQ').addEventListener('keydown',e=>{if(e.key==='Enter'){vq=e.target.value;vRemember(vq);renderVoice();e.target.blur()}});
+ $('#vQ').addEventListener('change',e=>vRemember(e.target.value));
+ $('#vQx').onclick=()=>{$('#vQ').value='';vq='';vLimit=20;renderVoice();$('#vQ').focus()};
+ $('#vQInfo').addEventListener('click',e=>{let b;
+   if(b=e.target.closest('[data-vqset]')){$('#vQ').value=vq=b.dataset.vqset;vRemember(vq);vLimit=20;renderVoice();return}
+   if(e.target.closest('[data-vqclr]')){store.set('koelsa_vq_recent',[]);renderVoice();return}
+   if(b=e.target.closest('[data-vsort]')){vSort=b.dataset.vsort;renderVoice()}});
+ $('#vFeed').addEventListener('click',e=>{if(e.target.closest('[data-vmore]')){vLimit+=20;renderVoice()}});}
+$('#vFilter').onclick=e=>{const b=e.target.closest('[data-vf]');if(b){vf=b.dataset.vf;vLimit=20;renderVoice()}};
 async function toggleLike(id){
   const mine=D.reacts.find(r=>r.post===id&&r.by===myId);
   try{if(mine)await del('reacts',mine.id);else await put('reacts',{post:id,by:myId,at:Date.now()},`${id}_${myId}`)}catch(e){toast(errMsg(e),'error')}
 }
-async function copyPost(id){
-  const v=D.voices.find(x=>x.id===id);if(!v)return;
-  const t=`[부산동부지사 현장목소리]\n분류: ${v.cat}\n작성: ${nmFull(v.by)} ${tstr(v.at)}\n${v.place?'위치: '+v.place+'\n':''}\n${v.text}${v.photos&&v.photos.length?`\n(사진 ${v.photos.length}장 첨부)`:''}`;
-  try{await navigator.clipboard.writeText(t);toast('내용을 복사했습니다. 메신저에 붙여넣어 전파하세요.','ok')}catch(e){toast('복사하지 못했습니다. 글을 길게 눌러 복사해 주세요.','error')}
-}
 document.addEventListener('click',e=>{
-  const o=e.target.closest('[data-open]'),l=e.target.closest('[data-like]'),s=e.target.closest('[data-share]'),vw=e.target.closest('[data-view]');
+  const o=e.target.closest('[data-open]'),l=e.target.closest('[data-like]'),vw=e.target.closest('[data-view]');
   if(vw){openViewer(vw.dataset.view,vw.dataset.post);return}
   if(l){toggleLike(l.dataset.like);return}
-  if(s){copyPost(s.dataset.share);return}
   if(o&&cur!=='post'){openPost(o.dataset.open)}
 });
 
@@ -2513,20 +2560,18 @@ setInterval(()=>{if(document.visibilityState==='visible')checkUpdate()},10*60*10
 /* 메인 화면 맨 위에서 아래로 당기면 새로고침 */
 /* 당겨서 새로고침: 조금 당기면 엘리베이터 문이 스르륵 열림 (첫 화면 문과 같은 방식: 위치 이동 + 전환 효과) */
 let ptrOpenAt=0;/* 문이 열리기 시작한 시각 */
-function ptrDoor(k){const E=document.querySelector('.ptr-elv');if(!E)return;const o=k>=0.3;if(o&&!E.classList.contains('open'))ptrOpenAt=Date.now();E.classList.toggle('open',o)}
-(()=>{let y0=null,dy=0,act=false;const ind=()=>$('#ptr');
+function ptrDoor(k){const E=$('#hElv');if(!E)return;const o=k>=0.3;if(o&&!E.classList.contains('open'))ptrOpenAt=Date.now();E.classList.toggle('open',o)}
+(()=>{let y0=null,dy=0,act=false;
   /* 안드로이드 크롬은 당기는 동작을 브라우저가 가져가면 손가락 움직임 신호를 끊어 버림
      → 맨 위에서 아래로 당길 때는 브라우저 기본 동작을 막고(preventDefault) 앱이 직접 처리 */
-  const reset=()=>{const el=ind();el.style.transform='translateY(-70px)';el.style.opacity=0;ptrDoor(0);y0=null;dy=0;act=false};
+  const reset=()=>{ptrDoor(0);y0=null;dy=0;act=false};
   document.addEventListener('touchstart',e=>{if(e.touches.length>1||window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0;act=false},{passive:true});
   document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
     if(dy<=0||window.scrollY>0){if(act)reset();else y0=null;return}
     act=true;if(e.cancelable)e.preventDefault();
-    const el=ind(),k=Math.min(dy/90,1);el.style.transform=`translateY(${Math.min(dy,110)-70}px)`;el.style.opacity=Math.max(k,.4);
-    ptrDoor(k)},{passive:false});
+    ptrDoor(Math.min(dy/90,1))},{passive:false});
   document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);y0=null;
       /* 화면 전환 없이 제자리 새로고침: 날씨·최신 버전 확인 후 현재 화면만 다시 그림 */
-      const el=ind();el.style.transform='translateY(40px)';el.style.opacity=1;
       Promise.allSettled([loadWeather(true),checkUpdate(false)]).then(()=>{try{render();sbSig=''}catch(e){}});
       setTimeout(()=>{ptrDoor(0);setTimeout(()=>{if(y0==null)reset()},700)},Math.max(600,2500-(Date.now()-ptrOpenAt)))}else reset()});
   document.addEventListener('touchcancel',()=>{if(y0!=null)reset()});
@@ -2678,11 +2723,11 @@ async function init(){
     db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true})}catch(e){}
     myId=fu.uid;
   }catch(e){$('#lockMsg').innerHTML='서버에 연결하지 못했어요.<br><span class="text-xs opacity-80">'+esc(String(e&&e.message||e))+'</span>';$('#login').classList.add('hidden');return}
-  $('#lock').classList.add('hidden');
+  lockGo=true;setTimeout(()=>{if(lockGo&&!ready)$('#lock').classList.add('hidden')},8000);
   if($('#pfAcct')&&fu.email)$('#pfAcct').textContent=`${fu.email} 계정으로 자동 로그인됩니다. 다른 기기에서도 같은 계정으로 열면 같은 프로필로 들어옵니다.`;
   /* 멤버 상태 확인: 없음 → 가입, 대기 → 승인 대기 화면, 내보냄 → 차단 화면 */
   let mine=null;try{const d=await db.doc('members/'+myId).get();mine=d.exists?{id:d.id,...d.data()}:null}catch(e){}
-  const lockWith=(html)=>{$('#lock').classList.remove('hidden');$('#lockMsg').innerHTML=html+`<br><button id="lockOut" class="mt-5 px-5 min-h-[44px] rounded-xl bg-white/20 text-sm font-bold">다른 계정으로 로그인</button>`;$('#login').classList.add('hidden');$('#lockOut').onclick=doLogout};
+  const lockWith=(html)=>{lockGo=false;$('#lock').classList.remove('hidden');$('#lockMsg').innerHTML=html+`<br><button id="lockOut" class="mt-5 px-5 min-h-[44px] rounded-xl bg-white/20 text-sm font-bold">다른 계정으로 로그인</button>`;$('#login').classList.add('hidden');$('#lockOut').onclick=doLogout};
   if(!mine){
     let blocked=false;try{blocked=(await db.doc('blocks/'+myId).get()).exists}catch(e){}
     if(blocked)return lockWith('이 계정은 지사 관리자가 이용을 제한했어요.<br><span class="text-xs opacity-80">문의는 지사 관리자에게 해 주세요.</span>');
