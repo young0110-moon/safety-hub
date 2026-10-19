@@ -100,6 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ptr-elv.open .ptr-d.l{transform:translate3d(-110%,0,0)}.ptr-elv.open .ptr-d.r{transform:translate3d(110%,0,0)}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
 /* 헤더 새로고침(엘리베이터 문) */
+.rec-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:4px;animation:recB 1s infinite}@keyframes recB{50%{opacity:.2}}.rec-spin{width:34px;height:34px;border:4px solid #C4B5FD;border-top-color:#6D28D9;border-radius:50%;animation:recS .9s linear infinite}@keyframes recS{to{transform:rotate(360deg)}}
 @media (max-width:379px){#hRight{gap:2px}#bellBtn,#meBtn{width:40px!important;height:40px!important}}
 .ptr-elv.hdr:before{top:1.5px;margin-left:-4.5px;border-width:0 4.5px 4.5px}.ptr-elv.hdr{filter:none;box-shadow:0 2px 5px rgba(76,29,149,.28);border-color:#6D28D9;background:#fff;width:33px;height:39px;padding:8px 3px 3px;border-width:2.5px;border-radius:7px}.ptr-elv.hdr:before{border-bottom-color:#6D28D9}.ptr-elv.hdr .ptr-d{border-color:#6D28D9}.dark .ptr-elv.hdr{border-color:#C4B5FD;background:#1E1B4B}.dark .ptr-elv.hdr:before{border-bottom-color:#C4B5FD}.dark .ptr-elv.hdr .ptr-d{border-color:#C4B5FD;background:#6D5BB5}
 html.sunset .ptr-elv.hdr{border-color:#ED8A17}html.sunset .ptr-elv.hdr:before{border-bottom-color:#ED8A17}html.sunset .ptr-elv.hdr .ptr-d{border-color:#ED8A17;background:#FFC27A}html.mint .ptr-elv.hdr{border-color:#0F9D8A}html.mint .ptr-elv.hdr:before{border-bottom-color:#0F9D8A}html.mint .ptr-elv.hdr .ptr-d{border-color:#0F9D8A;background:#99F6E4}
@@ -427,6 +428,14 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <h2 class="font-black text-base mb-2">☀️ 오늘의 안내</h2>
     <p id="briefText" class="text-sm leading-relaxed p-3 rounded-xl sub"></p>
     <button id="ttsBtn" class="mt-3 w-full min-h-[52px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">▶ 음성 브리핑 재생</button>
+  </div>
+  <div class="card space-y-3" id="recCard">
+    <div class="flex items-center justify-between"><h2 class="font-black text-base">🎙️ 브리핑 녹음 → AI 정리</h2><span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style="background:#0D9488">Gemini</span></div>
+    <p class="text-[12px] opacity-80 leading-relaxed">브리핑을 녹음하면 AI가 <b>대화 정리 · 핵심 요약 · 결정 사항 · 할 일</b>로 나눠 적어 줘요. 휴대폰 녹음 앱으로 녹음한 파일을 올려도 돼요.</p>
+    <div id="recBody"></div>
+    <details class="text-[11px] opacity-80 leading-relaxed"><summary class="font-bold cursor-pointer min-h-[32px] flex items-center">⚠️ 녹음 전에 꼭 읽어 주세요</summary>
+      <ul class="list-disc pl-4 space-y-0.5 mt-1"><li>녹음 전에 참석자에게 <b>녹음한다고 알리고</b> 동의를 받아 주세요.</li><li>고객 이름·전화번호 같은 <b>개인정보</b>가 나오는 대화는 녹음하지 마세요.</li><li>무료 AI(Gemini 무료 등급)라 보낸 내용이 Google 서비스 개선에 쓰일 수 있어요. <b>대외비 내용은 녹음하지 마세요.</b></li><li>녹음 파일은 정리에만 쓰고 서버에 저장하지 않아요. 정리본은 <b>이 휴대폰에만</b> 저장돼요.</li><li>최대 60분. 녹음 중에는 화면이 꺼지지 않게 유지돼요. (아이폰은 화면을 끄면 녹음이 멈출 수 있어요)</li></ul></details>
+    <div id="recList" class="space-y-2"></div>
   </div>
   <div class="card">
     <h2 class="font-black text-base mb-2">🎤 음성 보고 메모</h2>
@@ -1140,6 +1149,86 @@ function postCard(v,compact,hq){
     </div>
   </article>`;
 }
+/* ===== 🎙️ 브리핑 녹음 → AI 정리 (Cloudflare Workers + Gemini)
+   녹음은 서버(AI_URL)로만 보내고 저장하지 않음. 정리본은 이 휴대폰(localStorage)에만 보관 ===== */
+const REC_MAX_MS=60*60*1000,REC_MAX_B=18*1024*1024;
+let aiRec={st:'idle',mr:null,chunks:[],t0:0,tick:0,stream:null,lock:null,err:'',open:null,mime:'',delArm:''};
+const recSaved=()=>store.get('koelsa_rec',[]);
+const recUrl=()=>String(window.AI_URL||'').trim();
+const recFmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+function recPickMime(){if(!window.MediaRecorder)return '';for(const m of ['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
+async function recStart(){
+  if(!recUrl())return toast('AI 정리 서버 주소가 아직 등록되지 않았어요.','error');
+  if(!navigator.mediaDevices||!window.MediaRecorder)return toast('이 브라우저는 녹음을 지원하지 않아요. 녹음 앱으로 녹음한 뒤 파일을 올려 주세요.','error');
+  try{aiRec.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}})}catch(e){return toast('마이크 사용을 허용해 주세요. (설정 → 사이트 권한 → 마이크)','error')}
+  aiRec.mime=recPickMime();aiRec.chunks=[];aiRec.err='';
+  try{aiRec.mr=new MediaRecorder(aiRec.stream,aiRec.mime?{mimeType:aiRec.mime,audioBitsPerSecond:32000}:{})}catch(e){aiRec.mr=new MediaRecorder(aiRec.stream)}
+  aiRec.mr.ondataavailable=e=>{if(e.data&&e.data.size)aiRec.chunks.push(e.data)};
+  aiRec.mr.onstop=()=>{const type=(aiRec.mr.mimeType||aiRec.mime||'audio/webm').split(';')[0];const blob=new Blob(aiRec.chunks,{type});const cancel=aiRec.st==='cancel';recCleanup();if(cancel){aiRec.st='idle';renderRec();toast('녹음을 취소했어요.');return}recSend(blob)};
+  aiRec.mr.start(1000);aiRec.st='aiRec';aiRec.t0=Date.now();
+  try{aiRec.lock=await navigator.wakeLock.request('screen')}catch(e){}
+  clearInterval(aiRec.tick);aiRec.tick=setInterval(()=>{const ms=Date.now()-aiRec.t0;const el=$('#recTime');if(el)el.textContent=recFmt(ms);if(ms>=REC_MAX_MS){toast('60분이 되어 녹음을 마쳤어요.');recStop()}},500);
+  renderRec()}
+function recStop(){if(aiRec.mr&&aiRec.mr.state!=='inactive'){aiRec.st='busy';aiRec.mr.stop();renderRec()}}
+function recCancel(){if(aiRec.mr&&aiRec.mr.state!=='inactive'){aiRec.st='cancel';aiRec.mr.stop()}}
+function recCleanup(){clearInterval(aiRec.tick);try{aiRec.stream&&aiRec.stream.getTracks().forEach(t=>t.stop())}catch(e){}aiRec.stream=null;try{aiRec.lock&&aiRec.lock.release()}catch(e){}aiRec.lock=null}
+async function recSend(blob){
+  if(blob.size>REC_MAX_B){aiRec.st='idle';renderRec();return toast('파일이 너무 커요(18MB 초과). 나눠서 올려 주세요.','error')}
+  if(blob.size<2000){aiRec.st='idle';renderRec();return toast('녹음이 너무 짧아요.','error')}
+  const sec=Math.round((Date.now()-aiRec.t0)/1000);
+  aiRec.st='busy';aiRec.err='';renderRec();
+  try{const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인이 필요해요.');const tk=await fu.getIdToken();
+    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),180000);
+    const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm'},body:blob,signal:ctl.signal});clearTimeout(to);
+    const j=await r.json().catch(()=>({error:'서버 응답을 읽지 못했어요.'}));
+    if(!r.ok||!j.ok)throw new Error(j.error||('오류 '+r.status));
+    const A=x=>Array.isArray(x)?x:[];
+    const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};
+    store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';toast('AI 정리가 끝났어요.','ok')}
+  catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(e.message||'정리하지 못했어요.'))}
+  renderRec()}
+function recText(it){const L=[`[${it.title}] ${new Date(it.at).toLocaleString('ko-KR')}`,'',`■ 요약\n${it.summary}`];
+  if(it.points.length)L.push('','■ 주요 안건',...it.points.map(x=>'· '+x));
+  if(it.decisions.length)L.push('','■ 결정 사항',...it.decisions.map(x=>'· '+x));
+  if(it.todos.length)L.push('','■ 할 일',...it.todos.map(t=>`· ${t.what}${t.who?' — '+t.who:''}${t.when?' ('+t.when+')':''}`));
+  if(it.safety.length)L.push('','■ 안전 당부',...it.safety.map(x=>'· '+x));
+  if(it.dialogue.length)L.push('','■ 대화 정리',...it.dialogue.map(d=>`${d.s}: ${d.t}`));
+  return L.join('\n')}
+const REC_COL=['#7C3AED','#0D9488','#EA580C','#2563EB','#DB2777','#65A30D'];
+function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=>REC_COL[sp.indexOf(s)%REC_COL.length];
+  const sec=(t,arr,f)=>arr&&arr.length?`<div><div class="text-xs font-black mb-1.5">${t}</div><ul class="space-y-1">${arr.map(f).join('')}</ul></div>`:'';
+  return `<div class="rounded-2xl border border-purple-400/40 p-3 space-y-3">
+    <button data-recopen="${it.id}" class="w-full text-left"><div class="text-[11px] opacity-60">${new Date(it.at).toLocaleString('ko-KR')}${it.sec?' · '+recFmt(it.sec*1000):''} · 접기 ▲</div><div class="font-black">${esc(it.title)}</div></button>
+    <p class="text-sm leading-relaxed sub rounded-xl p-3" style="border-left:4px solid #0D9488">${esc(it.summary)}</p>
+    ${sec('📌 주요 안건',it.points,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
+    ${sec('✅ 결정 사항',it.decisions,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
+    ${sec('📝 할 일 (눌러서 체크)',it.todos,(t,i)=>`<li><button data-rectodo="${it.id}:${i}" class="w-full text-left flex items-start gap-2 text-[13px] sub rounded-lg px-3 py-2 min-h-[40px]"><span>${t.done?'☑️':'⬜'}</span><span class="flex-1 ${t.done?'line-through opacity-60':''}">${esc(t.what)}${t.who?` <b class="text-[11px] text-[#7C3AED] dark:text-purple-300">${esc(t.who)}</b>`:''}${t.when?` <span class="text-[11px] opacity-70">· ${esc(t.when)}</span>`:''}</span></button></li>`)}
+    ${sec('⛑️ 안전 당부',it.safety,x=>`<li class="text-[13px] rounded-lg px-3 py-2" style="background:#FEF3C7;color:#78350F">${esc(x)}</li>`)}
+    ${it.dialogue.length?`<details><summary class="text-xs font-black cursor-pointer min-h-[36px] flex items-center">💬 대화 정리 (${it.dialogue.length}마디) — 눌러서 펼치기</summary><div class="space-y-1.5 mt-1">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
+    <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
+  </div>`}
+function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
+  if(!url)B.innerHTML='<div class="rounded-xl p-3 text-[12px] sub">⏳ AI 정리 서버 연결 준비 중이에요. 서버 주소가 등록되면 바로 쓸 수 있어요.</div>';
+  else if(aiRec.st==='aiRec')B.innerHTML=`<div class="rounded-2xl p-4 text-center text-white" style="background:linear-gradient(135deg,#B91C1C,#7C3AED)"><div class="text-xs font-bold opacity-90"><span class="rec-dot"></span> 녹음 중</div><div id="recTime" class="text-4xl font-black tabular-nums mt-1">${recFmt(Date.now()-aiRec.t0)}</div><div class="text-[11px] opacity-80 mt-1">휴대폰을 말하는 사람 가까이 두세요 · 최대 60분</div></div>
+    <div class="grid grid-cols-3 gap-2 mt-2"><button data-rec="cancel" class="min-h-[52px] rounded-xl border border-purple-400/50 text-sm font-bold">취소</button><button data-rec="stop" class="col-span-2 min-h-[52px] rounded-xl text-white text-sm font-black" style="background:#B91C1C">⏹ 녹음 끝 · AI 정리</button></div>`;
+  else if(aiRec.st==='busy'||aiRec.st==='cancel')B.innerHTML='<div class="rounded-2xl p-4 text-center sub"><div class="rec-spin mx-auto"></div><div class="text-sm font-black mt-2">AI가 정리하고 있어요…</div><div class="text-[11px] opacity-70 mt-1">10분 녹음 기준 보통 20초~1분 걸려요. 화면을 닫지 마세요.</div></div>';
+  else B.innerHTML=`${aiRec.err?`<div class="rounded-xl p-3 text-[12px] font-bold mb-2" style="background:#FEE2E2;color:#991B1B">⚠️ ${esc(aiRec.err)}</div>`:''}<div class="grid grid-cols-3 gap-2"><button data-rec="start" class="col-span-2 min-h-[56px] rounded-xl text-white text-sm font-black" style="background:#B91C1C">● 녹음 시작</button><label class="min-h-[56px] rounded-xl border border-purple-400/50 text-[12px] font-bold flex flex-col items-center justify-center cursor-pointer text-center leading-tight">🎵 파일<br>올리기<input id="recFile" type="file" accept="audio/*,.m4a,.mp3,.wav,.aac,.ogg,.webm" class="hidden"></label></div>`;
+  const L=recSaved(),Lb=$('#recList');if(!Lb)return;
+  Lb.innerHTML=L.length?`<div class="text-xs font-black pt-1">📚 정리 기록 <span class="opacity-60 font-bold">(이 휴대폰에만 · 최근 15개)</span></div>`+L.map(it=>aiRec.open===it.id?recView(it):`<button data-recopen="${it.id}" class="w-full text-left flex items-center gap-3 sub rounded-xl px-3 py-2.5 min-h-[48px]"><span class="text-lg">📝</span><span class="flex-1 min-w-0"><span class="block text-sm font-bold truncate">${esc(it.title)}</span><span class="block text-[11px] opacity-60">${new Date(it.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · 할 일 ${it.todos.filter(t=>!t.done).length}개 남음</span></span><span class="opacity-50">›</span></button>`).join(''):''}
+document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
+  if(b=e.target.closest('[data-rec]')){const a=b.dataset.rec;if(a==='start')recStart();else if(a==='stop')recStop();else if(a==='cancel')recCancel();return}
+  if(b=e.target.closest('[data-recopen]')){aiRec.open=aiRec.open===b.dataset.recopen?null:b.dataset.recopen;aiRec.delArm='';renderRec();return}
+  if(b=e.target.closest('[data-rectodo]')){const [id,i]=b.dataset.rectodo.split(':');const L=recSaved();const it=L.find(x=>x.id===id);if(it&&it.todos[+i]){it.todos[+i].done=!it.todos[+i].done;store.set('koelsa_rec',L);renderRec()}return}
+  const it_=id=>recSaved().find(x=>x.id===id);
+  if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recText(it));toast('정리본을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
+  if(b=e.target.closest('[data-recshare]')){const it=it_(b.dataset.recshare);if(!it)return;const t=recText(it);if(navigator.share){try{await navigator.share({title:it.title,text:t})}catch(err){}}else{try{await navigator.clipboard.writeText(t);toast('공유 기능이 없어 복사했어요. 메신저에 붙여넣어 주세요.','ok')}catch(err){}}return}
+  if(b=e.target.closest('[data-recdel]')){const id=b.dataset.recdel;if(aiRec.delArm!==id){aiRec.delArm=id;renderRec();setTimeout(()=>{if(aiRec.delArm===id){aiRec.delArm='';renderRec()}},4000);return}
+    aiRec.delArm='';store.set('koelsa_rec',recSaved().filter(x=>x.id!==id));aiRec.open=null;renderRec();toast('삭제했어요.');return}
+});
+document.addEventListener('change',e=>{if(!e.target||e.target.id!=='recFile')return;const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  if(!recUrl())return toast('AI 정리 서버 주소가 아직 등록되지 않았어요.','error');
+  aiRec.t0=Date.now();const n=f.name||'';const type=(f.type&&f.type!=='application/octet-stream')?f.type:(/\.m4a$/i.test(n)?'audio/mp4':/\.wav$/i.test(n)?'audio/wav':/\.aac$/i.test(n)?'audio/aac':/\.ogg$/i.test(n)?'audio/ogg':/\.webm$/i.test(n)?'audio/webm':'audio/mpeg');
+  recSend(new Blob([f],{type}))});
 /* ===== 현장목소리 검색 (승강기 안전기준 검색과 같은 방식)
    · 여러 낱말 = 모두 포함(AND) · "따옴표" = 그대로 · -낱말 = 제외 · 초성(ㅇㅈㅂ) · 동의어 · 오타 교정 · 관련도/최신 정렬 ===== */
 let vq='',vSort='rel',vLimit=20;
@@ -1353,7 +1442,7 @@ function briefText(){
   return `${n.getMonth()+1}월 ${n.getDate()}일 부산동부지사 아침 브리핑입니다. 오늘 공용 일정은 ${c}건입니다. ${ne&&dday(ne.date)>0?`다음 일정은 ${dday(ne.date)}일 후 ${ne.cat||'일반'}, ${ne.title}입니다. `:''}${un?`읽지 않은 공지가 ${un}건 있습니다. `:''}현장목소리는 오늘 ${tv}건이 올라왔습니다. ${D.hazards.filter(h=>key(new Date(h.at))===key(n)).length?`오늘 등록된 위험현장은 ${D.hazards.filter(h=>key(new Date(h.at))===key(n)).length}건입니다. `:''}${wxBrief()}작업 전 안전모와 안전화를 착용하고, 2인 1조 작업을 지켜 주세요. 오늘도 안전한 하루 되시길 바랍니다.`;
 }
 let memos=store.get('koelsa_memos',[]);
-function renderBrief(){
+function renderBrief(){try{renderRec()}catch(e){}
   $('#briefText').textContent=briefText();
   $('#memoList').innerHTML=memos.map(m=>`<div class="flex items-start gap-2 p-2 rounded-xl sub"><div class="flex-1 min-w-0 text-sm"><div class="text-[10px] opacity-60">${esc(m.at)}</div>${m.sum?`<div class="font-bold mb-1">📌 요점</div><ul class="list-disc pl-5 space-y-0.5">${m.sum.map(x=>`<li class="break-words">${esc(x)}</li>`).join('')}</ul><details class="mt-1"><summary class="text-[11px] opacity-70 cursor-pointer min-h-[28px]">원문 보기</summary><div class="break-words text-xs mt-1">${esc(m.text)}</div></details>`:`<div class="break-words">${esc(m.text)}</div>`}</div><button data-dm="${m.id}" aria-label="메모 삭제" class="w-11 h-11 shrink-0">🗑️</button></div>`).join('');
 }
