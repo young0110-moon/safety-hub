@@ -1505,21 +1505,36 @@ function sbFlow(t){
 /* 제목이 '…'로 잘린 조항은 본문 첫 문장을 제목으로 보여줌 (화면에서 잘리지 않게) */
 function sbTitle(c){const t=c.t||c.id;if(!/…$/.test(t))return t;const body=(c.cur||(c.hist[0]&&c.hist[0].x)||'').replace(/\s+/g,' ').trim();if(!body)return t;
   const m=body.match(/^.{10,160}?(?:다\.|함\.|음\.|것\.|[.:;])(?=\s|$)/);return m?m[0]:body.length<=160?body:body.slice(0,158)+'…'}
-/* 본문 HTML: 그림 설명(캡션 [ 그림 N - … ] 앞의 그림 속 글자 묶음)은 접어서 '원문 그림 보기'로 안내 */
+/* 캡션 인식: [ 그림 N - … ] / [표 N ― …] / 표 N (표 제목 줄) */
+const CAP_RE=/^\[\s*(그림|표)\s*([\d.]+)\s*[-–―.]?\s*(.*?)\s*\]\s*$/,CAP_T=/^(표)\s*([\d.]+)\s*(<[^>]*>)?\s*$/;
+function sbCapOf(l){l=l.trim();let m=l.match(CAP_RE);if(m)return {kind:m[1],no:m[2].replace(/\.$/,''),t:m[3]};m=l.match(CAP_T);if(m)return {kind:'표',no:m[2].replace(/\.$/,''),t:(m[3]||'').replace(/[<>]/g,'').trim()};return null}
+function sbCapsOf(c){let r=String(c.cur||'').split('\n').map(sbCapOf).filter(Boolean);if(!r.length)for(const h of (c.hist||[])){r=String(h.x||'').split('\n').map(sbCapOf).filter(Boolean);if(r.length)break}return r}
+/* 본문 HTML: 그림 설명(그림 캡션 앞의 그림 속 글자)과 표 내용(표 캡션 뒤의 칸 글자)은 접어서 '원문 그림·표 보기'로 안내 */
 function sbBody(c,x,q){
   const t=sbFlow(x);if(!t)return '(본문 없음)';
-  const L=t.split('\n'),cap=/^\[\s*그림\s*[\d.]+\s*[-–.]?\s*.*\]\s*$/,endS=l=>l.length>=25&&/(다|함|음|것|임|됨)\.\s*$/.test(l);
-  const caps=[];L.forEach((l,i)=>{if(cap.test(l))caps.push(i)});
+  const L=t.split('\n'),endS=l=>l.length>=25&&/(다|함|음|것|임|됨)\.\s*$/.test(l),head=/^\s*(\d+(\.\d+)*[.)]?\s|[가-힣][.)]\s|[①-⑳]|비고)/;
+  const caps=[];L.forEach((l,i)=>{const cp=sbCapOf(l);if(cp)caps.push({i,...cp})});
   if(!caps.length)return sbHL(t,q);
   const figs=sbFigPages(c),out=[];let pos=0,k=0;
-  for(const ci of caps){
-    let st=pos;if(k===0){let j=ci-1;while(j>=pos&&!endS(L[j])&&!cap.test(L[j]))j--;st=j+1}   // 첫 그림: 마지막 본문 문장 뒤부터 / 이후 그림: 앞 캡션 바로 뒤부터
-    const blk=L.slice(st,ci).filter(l=>l.trim()),before=L.slice(pos,st).join('\n');
-    if(before.trim())out.push(sbHL(before,q));
-    const key=c.id+'|fig'+k,open=sbOpen.has(key),page=figs[Math.min(k,figs.length-1)];
-    if(blk.length>=3){out.push(`<span class="block my-1.5 rounded-xl sub px-2.5 py-2" style="white-space:normal;text-align:left"><span class="inline-flex items-center gap-1.5 flex-wrap"><b class="text-[12px]">🖼️ ${esc(L[ci].replace(/^\[\s*|\s*\]$/g,''))}</b>${page?`<button data-sbfig="${page}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[30px] !text-[11px]">원문 그림 보기 p.${page}</button>`:''}<button data-sbfigtxt="${esc(key)}" class="chip !min-h-[30px] !text-[11px]">${open?'그림 글자 접기':'그림 속 글자 보기'}</button></span>${open?`<span class="block mt-1.5 text-[12px] opacity-80" style="white-space:pre-line">${sbHL(blk.join('\n'),q)}</span><span class="block text-[10px] opacity-60 mt-1">그림 안의 글자를 뽑은 것이라 순서가 뒤섞여 있어요.</span>`:''}</span>`)}
-    else{out.push(sbHL(L.slice(st,ci+1).join('\n'),q))}
-    pos=ci+1;k++}
+  const box=(cp,page,blk,key)=>{const open=sbOpen.has(key);return `<span class="block my-1.5 rounded-xl sub px-2.5 py-2" style="white-space:normal;text-align:left"><span class="inline-flex items-center gap-1.5 flex-wrap"><b class="text-[12px]">${cp.kind==='표'?'📊':'🖼️'} ${esc(cp.kind+' '+cp.no+(cp.t?' - '+cp.t:''))}</b>${page?`<button data-sbfig="${page}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[30px] !text-[11px]">원문 보기 p.${page}</button>`:''}<button data-sbfigtxt="${esc(key)}" class="chip !min-h-[30px] !text-[11px]">${open?'글자 접기':(cp.kind==='표'?'표 글자 보기':'그림 속 글자 보기')}</button></span>${open?`<span class="block mt-1.5 text-[12px] opacity-80" style="white-space:pre-line">${sbHL(blk.join('\n'),q)}</span><span class="block text-[10px] opacity-60 mt-1">${cp.kind==='표'?'표의 칸 글자를 한 줄씩 뽑은 것이라 원문 표와 배치가 달라요.':'그림 안의 글자를 뽑은 것이라 순서가 뒤섞여 있어요.'}</span>`:''}</span>`};
+  for(const cp of caps){
+    if(cp.i<pos)continue;
+    const page=figs[Math.min(k,figs.length-1)],key=c.id+'|fig'+k;
+    if(cp.kind==='그림'){
+      let st=pos;if(k===0){let j=cp.i-1;while(j>=pos&&!endS(L[j]))j--;st=j+1}
+      const blk=L.slice(st,cp.i).filter(l=>l.trim()),before=L.slice(pos,st).join('\n');
+      if(before.trim())out.push(sbHL(before,q));
+      if(blk.length>=3&&page)out.push(box(cp,page,blk,key));else out.push(sbHL(L.slice(st,cp.i+1).join('\n'),q));
+      pos=cp.i+1;
+    }else{ /* 표: 캡션 뒤의 칸 글자 */
+      const before=L.slice(pos,cp.i).join('\n');if(before.trim())out.push(sbHL(before,q));
+      let e=cp.i+1;while(e<L.length&&e<cp.i+40&&!sbCapOf(L[e])&&!/^\d+(\.\d+)+\s/.test(L[e])&&!(endS(L[e])&&!L[e].includes(' · ')))e++;
+      const blk=L.slice(cp.i+1,e).filter(l=>l.trim());
+      if(blk.length>=2&&page)out.push(box(cp,page,blk,key));else out.push(sbHL(L.slice(cp.i,e).join('\n'),q));
+      pos=e;
+    }
+    k++;
+  }
   const rest=L.slice(pos).join('\n');if(rest.trim())out.push(sbHL(rest,q));
   return out.map((h,i)=>h.startsWith('<span class="block')||(i>0&&out[i-1].startsWith('<span class="block'))?h:(i?'\n':'')+h).join('');
 }
@@ -1560,7 +1575,7 @@ function sbIngest(book,meta,cl){
 function sbSetBook(b){
   if(!BOOKS[b]||b===sbBook)return;
   sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||(sbFavAll[b]=[]);
-  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbKind=null;sbNoFix=false;sbFigCh='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
+  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbKind=null;sbNoFix=false;sbFigCh='all';sbFigKind='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
   sbSig='';renderInsp();renderStd(true);sbLoad();window.scrollTo({top:0});
   /* 자료 전환 알림창은 띄우지 않음 */
@@ -1821,7 +1836,7 @@ function sbListHTML(list,q,more){
 }
 function renderStd(force){
   if(ihTab!=='std'&&ihTab!=='fav'&&ihTab!=='fig')return;
-  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbFigCh,sbQ,sbKind,sbNoFix,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
+  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbFigCh,sbFigKind,sbQ,sbKind,sbNoFix,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
   if(!force&&sig===sbSig)return;sbSig=sig;
   $('#ihStd').style.setProperty('--sbfs',sbFs+'px');$('#ihFav').style.setProperty('--sbfs',sbFs+'px');
   if(ihTab==='fav')return renderSbFav();
@@ -1868,12 +1883,11 @@ function renderStd(force){
   main.innerHTML=sbCatalog();
 }
 /* 그림·표 모아보기: 원문에 그림·표가 있는 쪽을 장(章)별로 모아 보여주고, 누르면 보기 창 */
-let sbFigCh='all';
+let sbFigCh='all',sbFigKind='all';
 /* 쪽 → 그림·표 번호: 조항 본문의 캡션([ 그림 N - … ], [ 표 N … ])을 그 조항의 그림 쪽에 차례로 배정 */
 function sbFigCaps(){
-  if(SB._caps)return SB._caps;const M={};const re=/^\[\s*(그림|표)\s*([\d.]+)\s*[-–.]?\s*(.*?)\s*\]\s*$/;
-  SB.list.forEach(c=>{const caps=[];String(c.cur||'').split('\n').forEach(l=>{const m=l.trim().match(re);if(m)caps.push({kind:m[1],no:m[2].replace(/\.$/,''),t:m[3]})});
-    if(!caps.length)return;const F=sbFigPages(c);if(!F.length)return;
+  if(SB._caps)return SB._caps;const M={};
+  SB.list.forEach(c=>{const caps=sbCapsOf(c);if(!caps.length)return;const F=sbFigPages(c);if(!F.length)return;
     caps.forEach((cp,k)=>{const pg=F[Math.min(k,F.length-1)];(M[pg]=M[pg]||[]).push(cp)})});
   SB._caps=M;return M}
 const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];return L.map(x=>`${x.kind} ${x.no}`).join(' · ')};
@@ -1883,13 +1897,17 @@ function renderSbFig(){
   const F=(SB.meta&&SB.meta.figs)||[];
   if(!F.length){box.innerHTML=`<div class="card text-center text-sm py-8 leading-relaxed">${BOOKS[sbBook].icon} ${esc(BOOKS[sbBook].name)}에는 원문 그림·표 자료가 없어요.</div>`;return}
   /* 각 쪽에 해당하는 조항: 그 쪽 이전에 시작한 마지막 조항 */
-  const items=F.map(p=>{let c=null;for(const x of SB.list){if(x.p<=p)c=x;else break}const ch=c?SB.chap.find(k=>k.id===chapOf(c)):null;return {p,c,ch}});
+  const CM=sbFigCaps();const kindOf=p=>{const L=CM[p]||[];return L.length?(L.some(x=>x.kind==='그림')&&L.some(x=>x.kind==='표')?'둘다':L[0].kind):'기타'};
+  const all=F.map(p=>{let c=null;for(const x of SB.list){if(x.p<=p)c=x;else break}const ch=c?SB.chap.find(k=>k.id===chapOf(c)):null;return {p,c,ch,kind:kindOf(p)}});
+  const kc={'그림':all.filter(x=>x.kind==='그림'||x.kind==='둘다').length,'표':all.filter(x=>x.kind==='표'||x.kind==='둘다').length,'기타':all.filter(x=>x.kind==='기타').length};
+  const items=all.filter(x=>sbFigKind==='all'||(sbFigKind==='기타'?x.kind==='기타':(x.kind===sbFigKind||x.kind==='둘다')));
   const groups=[];items.forEach(it=>{const id=it.ch?it.ch.id:'기타';let g=groups.find(x=>x.id===id);if(!g){g={id,t:it.ch?it.ch.t:'기타',items:[]};groups.push(g)}g.items.push(it)});
   const show=sbFigCh==='all'?groups:groups.filter(g=>g.id===sbFigCh);
   box.innerHTML=`<div class="flex items-center justify-between px-1"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>원문 그림·표 <span class="tabular-nums opacity-70">${F.length}장</span></h2><span class="text-[11px] opacity-70">누르면 크게 보여요</span></div>
-    <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 ${F.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
-    ${show.map(g=>`<div class="card !p-3"><div class="flex items-center gap-2 mb-2"><span class="sb-ch">${esc(g.id.replace('부속서 ',''))}</span><b class="text-sm flex-1 min-w-0 truncate">${esc(g.t)}</b><span class="text-[11px] opacity-70 tabular-nums">${g.items.length}장</span></div>
-      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}${sbFigLabel(it.p)?` <span class="text-purple-700 dark:text-purple-300">· ${esc(sbFigLabel(it.p))}</span>`:''}</span>${(()=>{const L=sbFigCaps()[it.p]||[];return L.length?`<span class="block text-[10px] opacity-80 line-clamp-2 leading-snug">${esc(L.map(x=>x.t).filter(Boolean).join(' / '))}</span>`:it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''})()}</span></button>`).join('')}</div></div>`).join('')}`;
+    <div class="flex gap-1.5 flex-wrap"><button data-sbfigkind="all" class="chip !min-h-[36px] ${sbFigKind==='all'?'sel':''}">전체 <span class="tabular-nums opacity-80">${F.length}</span></button><button data-sbfigkind="그림" class="chip !min-h-[36px] ${sbFigKind==='그림'?'sel':''}">🖼️ 그림 <span class="tabular-nums opacity-80">${kc['그림']}</span></button><button data-sbfigkind="표" class="chip !min-h-[36px] ${sbFigKind==='표'?'sel':''}">📊 표 <span class="tabular-nums opacity-80">${kc['표']}</span></button>${kc['기타']?`<button data-sbfigkind="기타" class="chip !min-h-[36px] ${sbFigKind==='기타'?'sel':''}">번호 없음 <span class="tabular-nums opacity-80">${kc['기타']}</span></button>`:''}</div>
+    <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 장 ${items.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
+    ${!show.length?'<div class="card text-center text-sm py-8 opacity-80">해당하는 그림·표가 없어요.</div>':''}${show.map(g=>`<div class="card !p-3"><div class="flex items-center gap-2 mb-2"><span class="sb-ch">${esc(g.id.replace('부속서 ',''))}</span><b class="text-sm flex-1 min-w-0 truncate">${esc(g.t)}</b><span class="text-[11px] opacity-70 tabular-nums">${g.items.length}장</span></div>
+      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}${sbFigLabel(it.p)?` <span class="text-purple-700 dark:text-purple-300">· ${esc(sbFigLabel(it.p))}</span>`:' <span class="opacity-50">· 번호 없음</span>'}</span>${(()=>{const L=sbFigCaps()[it.p]||[];return L.length?`<span class="block text-[10px] opacity-80 line-clamp-2 leading-snug">${esc(L.map(x=>x.t).filter(Boolean).join(' / '))}</span>`:it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''})()}</span></button>`).join('')}</div></div>`).join('')}`;
 }
 function renderSbFav(){
   const box=$('#ihFav');
@@ -2022,6 +2040,7 @@ document.addEventListener('click',async e=>{
   if(g('data-sbmore')){sbShow+=20;renderStd(true);return}
   if(b=g('data-sbf')){sbFilter=b.dataset.sbf;sbShow=20;renderStd(true);return}
   if(b=g('data-sbfigtxt')){const k=b.dataset.sbfigtxt;sbOpen.has(k)?sbOpen.delete(k):sbOpen.add(k);sbRenderSheet();renderStd(true);return}
+  if(b=g('data-sbfigkind')){sbFigKind=b.dataset.sbfigkind;sbFigCh='all';renderStd(true);return}
   if(b=g('data-sbfigch')){sbFigCh=b.dataset.sbfigch;renderStd(true);return}
   if(b=g('data-sbkind')){const v=b.dataset.sbkind;sbKind=v==='all'?null:v==='none'?'':v;sbShow=20;renderStd(true);return}
   if(b=g('data-sbqx')){sbSubmit(b.dataset.sbqx,true);return}
