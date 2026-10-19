@@ -665,8 +665,9 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <div id="pfThemeList" class="grid grid-cols-1 gap-2"></div>
   </div>
   <div class="card space-y-2" id="pfPush">
-    <h2 class="font-black text-sm">🔔 휴대폰 알림</h2>
-    <p class="text-[11px] opacity-75 leading-relaxed">앱이 꺼져 있어도 잠금 화면에 알림이 와요. 휴대폰마다 한 번씩 켜 주세요.</p>
+    <h2 class="font-black text-sm">🔔 알림 · 📍 위치</h2>
+    <p class="text-[11px] opacity-75 leading-relaxed">앱이 꺼져 있어도 잠금 화면에 알림이 와요. 위치는 SOS를 보낼 때 동료에게 함께 전달돼요.</p>
+    <div id="geoBox"></div>
     <div id="pushBox"></div>
   </div>
   <div class="card space-y-2" id="pfUpd">
@@ -1294,7 +1295,9 @@ async function pushOff(){const t=store.get('koelsa_push_tok','');pushBusy=true;r
 async function pushPrefLoad(){if(pushPrefs||!db)return;try{const d=await db.doc('pushTokens/'+myId).get();pushPrefs=(d.exists&&d.data().off)||[]}catch(e){pushPrefs=[]}renderPush()}
 async function pushPrefToggle(k){pushPrefs=pushPrefs||[];pushPrefs=pushPrefs.includes(k)?pushPrefs.filter(x=>x!==k):[...pushPrefs,k];renderPush();
   try{await db.doc('pushTokens/'+myId).set({off:pushPrefs,at:Date.now()},{merge:true})}catch(e){toast(errMsg(e),'error')}}
-function renderPush(){const B=$('#pushBox');if(!B)return;const on=!!store.get('koelsa_push_tok','')&&pushOK()&&Notification.permission==='granted';
+function renderGeo(){const G=$('#geoBox');if(!G)return;const on=geoState==='granted',den=geoState==='denied';
+  G.innerHTML=`<div class="flex items-center gap-3 rounded-xl p-3 sub"><span class="text-2xl">📍</span><div class="flex-1 min-w-0 leading-tight"><div class="text-sm font-black">${on?'위치 허용됨':den?'위치 차단됨':'위치 허용 안 됨'}</div><div class="text-[11px] opacity-70">${on?'SOS 때 위치가 함께 전달돼요':den?'휴대폰 설정 → 앱(브라우저) → 권한 → 위치에서 허용해 주세요':'버튼을 눌러 허용해 주세요'}</div></div>${on||den?'':`<button data-geo class="shrink-0 min-h-[44px] px-4 rounded-xl text-xs font-bold text-white" style="background:#6D28D9">위치 허용</button>`}</div>`}
+function renderPush(){renderGeo();if(geoState==='unknown')geoCheck().then(renderGeo);const B=$('#pushBox');if(!B)return;const on=!!store.get('koelsa_push_tok','')&&pushOK()&&Notification.permission==='granted';
   let h='';
   if(isIOS&&!isStandalone())h=`<div class="rounded-xl p-3 text-[12px] sub leading-relaxed">📱 <b>아이폰은 먼저 앱 설치가 필요해요.</b><br>사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b> → 홈 화면의 '안전 허브' 아이콘으로 열고 여기서 알림을 켜 주세요. (iOS 16.4 이상)</div>`;
   else if(!pushOK())h='<div class="rounded-xl p-3 text-[12px] sub">이 브라우저는 알림을 지원하지 않아요. 크롬(안드로이드)이나 홈 화면에 설치한 앱(아이폰)에서 열어 주세요.</div>';
@@ -1304,29 +1307,37 @@ function renderPush(){const B=$('#pushBox');if(!B)return;const on=!!store.get('k
     h+=`<div class="text-[11px] font-bold opacity-70 mt-2 mb-1">받을 알림 고르기</div><div class="grid grid-cols-1 gap-1.5">${PUSH_KINDS.map(([k,l])=>`<button data-pushk="${k}" class="flex items-center justify-between rounded-xl px-3 min-h-[42px] text-[13px] font-bold sub"><span>${l}</span><span>${off.includes(k)?'⬜':'✅'}</span></button>`).join('')}</div>
     <button data-push="test" class="w-full mt-2 min-h-[40px] rounded-xl border border-purple-400/50 text-xs font-bold">🔔 나에게 시험 알림 보내기</button>`}
   B.innerHTML=h}
+document.addEventListener('click',async e=>{if(e.target.closest('[data-geo]')){const ok=await geoAsk();toast(ok?'위치를 허용했어요.':'위치를 허용하지 못했어요. 휴대폰 설정에서 허용해 주세요.',ok?'ok':'error');renderGeo()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-push],[data-pushk]');if(!b||!b.closest('#pushBox'))return;
   if(b.dataset.pushk){if(b.dataset.pushk==='sos'&&!(pushPrefs||[]).includes('sos')&&!confirm('긴급 SOS 알림을 끄면 동료의 긴급 상황을 놓칠 수 있어요. 그래도 끌까요?'))return;pushPrefToggle(b.dataset.pushk);return}
   const a=b.dataset.push;if(a==='on')pushOn();else if(a==='off')pushOff();else if(a==='test'){pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 와요!','#profile');toast('시험 알림을 보냈어요. 몇 초 안에 와요.','ok')}});
-/* 앱을 켤 때 알림이 꺼져 있으면 한 번 물어보기 ('나중에'를 누르면 3일 뒤 다시) */
-function pushAsk(){try{
-  if(!ready||!me()||!db||!window.FCM_VAPID||!pushOK())return;
-  if(store.get('koelsa_push_tok','')&&Notification.permission==='granted')return;   /* 이미 켜짐 */
-  if(Notification.permission==='denied')return;                                      /* 휴대폰에서 차단함 → 묻지 않음 */
-  if(Date.now()-store.get('koelsa_push_ask',0)<3*864e5)return;
-  if($('#briefPop')||$('#pushAskPop')||!$('#lock').classList.contains('hidden')){setTimeout(pushAsk,3000);return}
-  const o=document.createElement('div');o.id='pushAskPop';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
+/* 처음 로그인(설치)했을 때 한 번만: 위치·알림 권한 묻기. 이후에는 내 프로필에서 설정 */
+let geoState='unknown';
+async function geoCheck(){try{if(navigator.permissions&&navigator.permissions.query){const r=await navigator.permissions.query({name:'geolocation'});geoState=r.state;r.onchange=()=>{geoState=r.state;renderPush()}}}catch(e){}return geoState}
+function geoAsk(){return new Promise(ok=>{if(!navigator.geolocation)return ok(false);navigator.geolocation.getCurrentPosition(()=>{geoState='granted';ok(true)},err=>{if(err&&err.code===1)geoState='denied';ok(false)},{timeout:15000,maximumAge:600000})})}
+async function permAsk(){try{
+  if(!ready||!me()||!db||store.get('koelsa_perm_asked',false))return;
+  if($('#briefPop')||$('#permPop')||!$('#lock').classList.contains('hidden')){setTimeout(permAsk,3000);return}
+  await geoCheck();
+  const pushNeed=pushOK()&&!!window.FCM_VAPID&&Notification.permission!=='denied'&&!(store.get('koelsa_push_tok','')&&Notification.permission==='granted');
+  const geoNeed=!!navigator.geolocation&&geoState!=='granted'&&geoState!=='denied';
+  if(!pushNeed&&!geoNeed){store.set('koelsa_perm_asked',true);return}
+  const row=(i,t,d)=>`<div style="display:flex;gap:12px;align-items:flex-start;text-align:left;background:#F5F3FF;border-radius:14px;padding:12px 14px;margin-top:8px"><span style="font-size:24px;line-height:1">${i}</span><span><b style="font-size:14px">${t}</b><br><span style="font-size:12px;opacity:.75;line-height:1.5">${d}</span></span></div>`;
+  const o=document.createElement('div');o.id='permPop';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
   o.style.cssText='position:fixed;inset:0;z-index:131;background:rgba(15,10,40,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px';
   o.innerHTML=`<div style="width:100%;max-width:420px;background:#fff;color:#1E1B4B;border-radius:24px;padding:22px 20px 18px;box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center">
-    <div style="font-size:44px;line-height:1">🔔</div>
-    <div style="font-size:18px;font-weight:900;margin-top:8px">알림을 켤까요?</div>
-    <p style="font-size:13px;line-height:1.6;opacity:.8;margin-top:6px">앱이 꺼져 있어도 아래 소식을<br>휴대폰 잠금 화면으로 바로 알려 드려요.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;font-size:12px;font-weight:800;text-align:left">${PUSH_KINDS.map(([,l])=>`<div style="background:#F5F3FF;border-radius:10px;padding:8px 10px">${l}</div>`).join('')}</div>
-    <button id="pushAskOk" style="width:100%;min-height:52px;margin-top:14px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">알림 켜기</button>
-    <button id="pushAskNo" style="width:100%;min-height:44px;margin-top:6px;border-radius:14px;color:#6B7280;font-weight:700;font-size:13px">나중에</button>
-    <div style="font-size:10px;opacity:.6;margin-top:4px">받을 알림 종류는 내 프로필에서 언제든 바꿀 수 있어요</div></div>`;
+    <div style="font-size:18px;font-weight:900">처음 한 번만 허용해 주세요</div>
+    <p style="font-size:12px;opacity:.7;margin-top:4px">안전 허브를 제대로 쓰려면 아래 두 가지가 필요해요</p>
+    ${geoNeed?row('📍','위치 허용','SOS를 보낼 때 내 위치를 동료에게 함께 알리고, 현재 위치 날씨를 보여줘요.'):''}
+    ${pushNeed?row('🔔','알림 허용','앱이 꺼져 있어도 브리핑 전달사항 · 긴급 SOS · 새 공지 · 긴급 위험현장을 잠금 화면으로 알려줘요.'):''}
+    <button id="permOk" style="width:100%;min-height:52px;margin-top:16px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">허용하고 시작하기</button>
+    <button id="permNo" style="width:100%;min-height:44px;margin-top:6px;border-radius:14px;color:#6B7280;font-weight:700;font-size:13px">나중에 할게요</button>
+    <div style="font-size:10px;opacity:.6;margin-top:4px">나중에 <b>내 프로필 → 🔔 알림 · 📍 위치</b>에서 언제든 켜고 끌 수 있어요</div></div>`;
   document.body.appendChild(o);
-  o.addEventListener('click',e=>{const id=e.target.id;if(id==='pushAskOk'){o.remove();store.set('koelsa_push_ask',Date.now());pushOn()}
-    else if(id==='pushAskNo'||e.target===o){o.remove();store.set('koelsa_push_ask',Date.now());toast('나중에 내 프로필 → 🔔 휴대폰 알림에서 켤 수 있어요.')}});
+  o.addEventListener('click',async e=>{const id=e.target.id;if(id!=='permOk'&&id!=='permNo'&&e.target!==o)return;
+    o.remove();store.set('koelsa_perm_asked',true);
+    if(id==='permOk'){if(pushNeed)await pushOn();if(geoNeed)await geoAsk();renderPush()}
+    else toast('내 프로필 → 🔔 알림 · 📍 위치에서 언제든 켤 수 있어요.')});
 }catch(e){}}
 /* 알림을 켠 휴대폰은 앱을 열 때마다 알림 주소를 새로 확인 (주소가 바뀌는 경우 대비) */
 async function pushRefresh(){try{const old=store.get('koelsa_push_tok','');if(!old||!pushOK()||Notification.permission!=='granted'||!window.FCM_VAPID||!db)return;
@@ -2856,7 +2867,7 @@ async function init(){
   }
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
-  setSync();setTimeout(pushRefresh,4000);setTimeout(pushAsk,3500);
+  setSync();setTimeout(pushRefresh,4000);setTimeout(permAsk,3500);
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
