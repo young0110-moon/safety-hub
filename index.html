@@ -1548,7 +1548,7 @@ async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.s
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
   B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_hj:sbCho(c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
-  B.byId={};B.list.forEach(c=>B.byId[c.id]=c);
+  B.byId={};B._caps=null;B.list.forEach(c=>B.byId[c.id]=c);
   /* 어휘 사전(오타 교정·자동완성용): 조항 제목의 낱말 + 동의어 사전 */
   B.vocab=new Map();const addW=(w,n)=>{const k=sbN(w);if(k.length<2||!/[가-힣]/.test(w))return;const o=B.vocab.get(k);if(o)o.n+=n;else B.vocab.set(k,{raw:w,n})};
   B.list.forEach(c=>String(c.t||'').split(/[\s·,/()\[\]–\-]+/).forEach(w=>addW(w,1)));SYN.forEach(g=>g.forEach(w=>addW(w,1)));(SB_RECS[book]||[]).forEach(w=>addW(w,3));
@@ -1651,7 +1651,7 @@ function sbCard(c,q){
     <div class="mt-2 space-y-2">${ver(V[0],0)}
       ${c.hist.length?`<button data-sbhist="${esc(c.id)}" class="sb-act w-full px-3 sub text-left">${histOpen?'▲':'▼'} 종전 기준 ${c.hist.length}건 ${histOpen?'접기':'보기'}</button>${histOpen?V.slice(1).map((v,k)=>ver(v,k+1)).join(''):''}`:''}
     </div>
-    ${(()=>{const F=sbFigPages(c);return F.length?`<div class="flex flex-wrap gap-1.5 mt-2">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}</button>`).join('')}</div>`:''})()}
+    ${(()=>{const F=sbFigPages(c);return F.length?`<div class="flex flex-wrap gap-1.5 mt-2">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}${sbFigLabel(p)?" · "+esc(sbFigLabel(p)):""}</button>`).join('')}</div>`:''})()}
     <div class="grid grid-cols-4 gap-1 mt-2 pt-2 border-t border-purple-400/25">
       <button data-sbfav="${esc(c.id)}" class="sb-act ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button>
       <button data-sbcopy="${esc(c.id)}" class="sb-act">📋 복사</button>
@@ -1869,6 +1869,14 @@ function renderStd(force){
 }
 /* 그림·표 모아보기: 원문에 그림·표가 있는 쪽을 장(章)별로 모아 보여주고, 누르면 보기 창 */
 let sbFigCh='all';
+/* 쪽 → 그림·표 번호: 조항 본문의 캡션([ 그림 N - … ], [ 표 N … ])을 그 조항의 그림 쪽에 차례로 배정 */
+function sbFigCaps(){
+  if(SB._caps)return SB._caps;const M={};const re=/^\[\s*(그림|표)\s*([\d.]+)\s*[-–.]?\s*(.*?)\s*\]\s*$/;
+  SB.list.forEach(c=>{const caps=[];String(c.cur||'').split('\n').forEach(l=>{const m=l.trim().match(re);if(m)caps.push({kind:m[1],no:m[2].replace(/\.$/,''),t:m[3]})});
+    if(!caps.length)return;const F=sbFigPages(c);if(!F.length)return;
+    caps.forEach((cp,k)=>{const pg=F[Math.min(k,F.length-1)];(M[pg]=M[pg]||[]).push(cp)})});
+  SB._caps=M;return M}
+const sbFigLabel=p=>{const L=sbFigCaps()[p]||[];return L.map(x=>`${x.kind} ${x.no}`).join(' · ')};
 function renderSbFig(){
   const box=$('#ihFig');
   if(SB.state!=='ready'){box.innerHTML=`<div class="card text-center text-sm py-8">${SB.state==='none'?'초대받은 직원 계정으로 접속하면 볼 수 있어요.':'🖼️ 자료를 불러오는 중…'}</div>`;return}
@@ -1881,7 +1889,7 @@ function renderSbFig(){
   box.innerHTML=`<div class="flex items-center justify-between px-1"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>원문 그림·표 <span class="tabular-nums opacity-70">${F.length}장</span></h2><span class="text-[11px] opacity-70">누르면 크게 보여요</span></div>
     <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 ${F.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
     ${show.map(g=>`<div class="card !p-3"><div class="flex items-center gap-2 mb-2"><span class="sb-ch">${esc(g.id.replace('부속서 ',''))}</span><b class="text-sm flex-1 min-w-0 truncate">${esc(g.t)}</b><span class="text-[11px] opacity-70 tabular-nums">${g.items.length}장</span></div>
-      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}</span>${it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''}</span></button>`).join('')}</div></div>`).join('')}`;
+      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}${sbFigLabel(it.p)?` <span class="text-purple-700 dark:text-purple-300">· ${esc(sbFigLabel(it.p))}</span>`:''}</span>${(()=>{const L=sbFigCaps()[it.p]||[];return L.length?`<span class="block text-[10px] opacity-80 line-clamp-2 leading-snug">${esc(L.map(x=>x.t).filter(Boolean).join(' / '))}</span>`:it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''})()}</span></button>`).join('')}</div></div>`).join('')}`;
 }
 function renderSbFav(){
   const box=$('#ihFav');
@@ -1915,7 +1923,7 @@ function sbSheetHTML(c,q){
   const head=`<div class="flex items-start gap-3"><span class="sb-id">${esc(sbIdLabel(c))}</span><div class="flex-1 min-w-0"><div class="text-[11px] opacity-70"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${ch?esc((isJudg()?'':ch.id+' ')+ch.t)+' · ':''}p.${c.p}</div><b class="text-base break-words block leading-snug">${sbHL(sbTitle(c),q)}</b></div><button data-sbclose aria-label="닫기" class="w-9 h-9 rounded-full sb-sec shrink-0">✕</button></div>${verdict}`;
   const body=`<div class="space-y-2">${tools}${ver(V[0],0)}
     ${c.hist.length?`<button data-sbhist="${esc(c.id)}" class="sb-act w-full px-3 sb-sec text-left">${hist?'▲':'▼'} 종전 기준 ${c.hist.length}건 ${hist?'접기':'보기'}</button>${hist?V.slice(1).map((v,k)=>ver(v,k+1)).join(''):''}`:''}
-    ${F.length?`<div class="flex flex-wrap gap-1.5 pt-1">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}</button>`).join('')}</div>`:''}</div>`;
+    ${F.length?`<div class="flex flex-wrap gap-1.5 pt-1">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}${sbFigLabel(p)?" · "+esc(sbFigLabel(p)):""}</button>`).join('')}</div>`:''}</div>`;
   const foot=`<div class="grid grid-cols-3 gap-2"><button data-sbfav="${esc(c.id)}" class="sb-sec ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button><button data-sbcopy="${esc(c.id)}" class="sb-sec">📋 복사</button><button data-sbsec="${esc(isJudg()?chapOf(c):isStd()?(c.ids||[c.id])[0]:c.id)}" class="sb-sec">${isJudg()?'📑 같은 목록':isStd()?'📑 같은 조항':'📑 하위 조항'}</button></div>${c.hist.length&&!hist?`<button data-sbhist="${esc(c.id)}" class="sb-pri w-full mt-2">종전 기준 ${c.hist.length}건 보기</button>`:''}`;
   return {head,body,foot};
 }
@@ -1955,7 +1963,7 @@ async function sbFig(p){
 }
 function sbApplyZoom(){const im=$('#sbvImg');im.style.width=(sbZoom*100)+'%'}
 async function sbOpenFig(p,cid){
-  sbvPage=p;sbZoom=1;$('#sbvTitle').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].code} · ${cid?cid+' · ':''}원문 p.${p}`;$('#sbvCap').textContent='불러오는 중…';
+  sbvPage=p;sbZoom=1;$('#sbvTitle').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].code} · ${cid?cid+' · ':''}원문 p.${p}${sbFigLabel(p)?' · '+sbFigLabel(p):''}`;$('#sbvCap').textContent='불러오는 중…';
   const im=$('#sbvImg');im.removeAttribute('src');sbApplyZoom();
   $('#sbViewer').classList.remove('hidden');$('#sbViewer').classList.add('flex');
   const src=await sbFig(p);
