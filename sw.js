@@ -8,7 +8,7 @@ self.addEventListener('fetch',e=>{
   const u=new URL(e.request.url);
   if(e.request.method!=='GET'||u.origin!==location.origin)return;
   if(u.pathname.includes('/data/')){ // 연혁집: 캐시 우선, 없으면 받아서 저장
-    e.respondWith(caches.open(VER).then(async c=>{const h=await c.match(e.request);if(h)return h;const r=await fetch(e.request);if(r.ok)c.put(e.request,r.clone());return r}));return;
+    e.respondWith(caches.open(VER).then(async c=>{const h=await c.match(e.request);if(h)return h;const r=await fetch(e.request,{cache:'no-cache'});if(r.ok)c.put(e.request,r.clone());return r}));return;
   }
   // 앱 파일: 네트워크 우선(브라우저 HTTP 캐시도 건너뜀 → 항상 최신), 실패 시 캐시
   const nav=e.request.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname.endsWith('/')||u.pathname.endsWith('/version.json')||u.pathname.endsWith('/config.js')||u.pathname.endsWith('/tailwind.css');

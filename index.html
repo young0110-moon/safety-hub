@@ -1486,6 +1486,20 @@ const secPrefix=sid=>sid.startsWith('부속서')?sid.slice(-1)+'.':sid+'.';
 const inSec=(c,sid)=>c.id===sid||c.id.startsWith(secPrefix(sid))||c.id.startsWith(sid+'#')||(c.ids||[]).some(x=>x===sid||x.startsWith(sid+'.'));
 const sbIdLabel=c=>(c.cid||c.id).replace('부속서 ','부');
 const chapOf=c=>{if(/^[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]/.test(c.id))return '부속서 '+c.id[0];if(c.id.startsWith('부속서'))return c.id;return c.id.split('.')[0]};
+/* PDF에서 온 줄바꿈 정리: 문장 중간에서 끊긴 줄은 이어 붙이고, 번호·항목·표 줄은 그대로 둠
+   (원문 PDF의 한 줄 폭이 휴대폰 폭과 달라 문장이 어중간하게 내려가던 현상 해결) */
+function sbFlow(t){
+  if(!t)return t;const L=String(t).split('\n'),out=[];
+  const head=/^\s*(\d+(\.\d+)*[.)]?\s|[가-힣][.)]\s|[①-⑳㉠-㉿]|[•・·\-–※▶▷○●□■◦]|\[|\(\d+\)|[a-zA-Z][.)]\s|비고|표\s?\d|그림\s?\d|주\)|[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]\.|＜|<)/;
+  const endp=/[.:;!?」』\]]\s*$|[다요음것함됨임]\s*$|\)\s*$/;
+  for(const raw of L){const ln=raw.trim();
+    if(!ln){out.push('');continue}
+    const prev=out.length?out[out.length-1]:null;
+    const table=s=>s.includes(' · ');
+    if(prev!==null&&prev!==''&&!head.test(ln)&&!endp.test(prev)&&!table(prev)&&!table(ln)&&prev.length>=12){out[out.length-1]=prev+' '+ln}
+    else out.push(ln)}
+  return out.join('\n');
+}
 function sbHL(t,q){
   t=esc(t);if(!q)return t;
   const kw=[...new Set(q.split(/[\s,]+/).map(x=>x.trim()).filter(Boolean))].sort((a,b)=>b.length-a.length);
@@ -1503,11 +1517,11 @@ async function sbLoad(book){
   if(B.state==='loading'||B.state==='ready')return;
   B.state='loading';renderStd(true);
   try{
-    const r=await fetch('data/'+book+'.json',{cache:'force-cache'});if(!r.ok)throw new Error(r.status);
+    const r=await fetch('data/'+book+'.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7)),{cache:'force-cache'});if(!r.ok)throw new Error(r.status);
     const j=await r.json();sbIngest(book,j.meta,j.clauses);
   }catch(e){B.state='error';renderStd(true)}
 }
-async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json',{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
+async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7)),{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
   B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_hj:sbCho(c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
@@ -1603,7 +1617,7 @@ function sbCard(c,q){
   const ver=(v,i)=>`<div class="sb-ver ${A[i]||''} pl-3 py-1">
       <div class="flex items-start gap-2 flex-wrap"><span class="text-[11px] font-black flex-1 min-w-0">${i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${esc(v.lab)}</span>${sbBadge(A[i])}</div>
       <div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>
-      ${folded?'':`<div class="sbt mt-1.5">${sbHL(v.x||'(본문 없음)',q)}</div>`}
+      ${folded?'':`<div class="sbt mt-1.5">${sbHL(sbFlow(v.x)||'(본문 없음)',q)}</div>`}
       ${i>0&&!folded?`<button data-sbcmp="${esc(c.id)}|${i}" class="sb-act mt-1.5 px-3 border border-purple-400/50">${sbCmp.has(c.id+'|'+i)?'비교 닫기':'↔ 신·구 비교'}</button>${sbCmp.has(c.id+'|'+i)?sbCmpHTML(c,i):''}`:''}
     </div>`;
   return `<article class="card !p-3" data-sbcard="${esc(c.id)}">
@@ -1848,7 +1862,7 @@ function sbSheetHTML(c,q){
   const ver=(v,i)=>{const fd=sbVFold.has(i);return `<div class="sb-ver ${A[i]||''} pl-3 py-1.5">
       <button data-sbvfold="${i}" class="w-full flex items-start gap-2 flex-wrap text-left min-h-[32px]" aria-expanded="${!fd}"><span class="text-[11px] font-black flex-1 min-w-0">${isJudg()?`<span class="px-1.5 py-0.5 rounded-md text-white mr-1" style="background:#BE123C">${esc(c.vl||'판정 내용')}</span>`:isStd()?`<span class="px-1.5 py-0.5 rounded-md bg-[#D97706] text-white mr-1">표준화 적용 방법</span>`:i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${isDoc()?'':esc(v.lab)}</span>${isDoc()?'':sbBadge(A[i])}<span class="text-xs opacity-60 self-center">${fd?'▼':'▲'}</span></button>
       ${isJudg()?(c.kind||c.nos?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1">${c.kind?`<span class="ap-judg">${esc(c.kind)}${c.code?' · '+esc(c.code):''}</span>`:''}${c.nos&&c.nos.length?`<span class="opacity-75">검사항목 ${esc(c.nos.slice(0,8).join(' · '))}${c.nos.length>8?' 외':''}</span>`:''}</div>`:''):isStd()?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1"><span class="opacity-70">적용(표준화 안내)</span>${c.ap?`<span class="ap-std">📌 ${esc(c.ap)}</span>`:'<span class="opacity-60">표시 없음</span>'}</div>`:`<div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>`}
-      ${fd?`<button data-sbvfold="${i}" class="block w-full text-left text-xs opacity-70 mt-1 min-h-[28px] truncate">${esc((v.x||'').replace(/\s+/g,' ').slice(0,60))}… <u>펼치기</u></button>`:`<div class="sbt mt-1.5">${sbHL(v.x||'(본문 없음)',q)}</div>
+      ${fd?`<button data-sbvfold="${i}" class="block w-full text-left text-xs opacity-70 mt-1 min-h-[28px] truncate">${esc((v.x||'').replace(/\s+/g,' ').slice(0,60))}… <u>펼치기</u></button>`:`<div class="sbt mt-1.5">${sbHL(sbFlow(v.x)||'(본문 없음)',q)}</div>
       ${i>0?`<button data-sbcmp="${esc(c.id)}|${i}" class="sb-act mt-1.5 px-3 border border-purple-400/50">${sbCmp.has(c.id+'|'+i)?'비교 닫기':'↔ 신·구 비교'}</button>${sbCmp.has(c.id+'|'+i)?sbCmpHTML(c,i):''}`:''}`}
     </div>`};
   const tools=`<div class="flex items-center gap-1.5 pt-1 pb-1"><span class="text-[11px] opacity-70 mr-auto">글자 ${sbFs}px</span>
