@@ -321,7 +321,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <button data-go="food" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">🍽️</div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap">맛집공유</div></button>
     <button data-go="members" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">👥</div><div id="memCnt" class="text-[11px] font-bold whitespace-nowrap">멤버</div></button>
   </div>
-  <div class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리</h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
+  <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리 <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
   </div>
 </section>
@@ -1090,6 +1090,9 @@ function renderMini(){
   });
   $('#miniGrid').innerHTML=h;
 }
+const HOME_VOICE_MS=60*60*1000;
+/* 1분마다 확인해 1시간 지난 글은 메인에서 내림 */
+setInterval(()=>{if(cur==="home"&&document.visibilityState==="visible")try{renderHome()}catch(e){}},60*1000);
 function renderHome(){
   renderBanner();renderMini();
   const pub=D.notices.filter(pubd).sort((a,b)=>b.at-a.at),un=pub.filter(n=>!isRead(n));
@@ -1104,8 +1107,10 @@ function renderHome(){
   $('#ddayBar').classList.toggle('hidden',!soon.length);
   if(soon.length){const f=soon[0],d=dday(f.date);$('#ddayBar').textContent=`📅 ${d?'D-1 내일':'D-DAY 오늘'} [${f.cat||'일반'}] ${f.title}${f.time?' '+f.time:''}${soon.length>1?` 외 ${soon.length-1}건`:''}`;
     const tk=key(new Date());if(store.get('koelsa_dday_toast','')!==tk&&me()){store.set('koelsa_dday_toast',tk);setTimeout(()=>toast(`📅 오늘·내일 공용 일정 ${soon.length}건이 있습니다.`),800)}}
-  const vs=voicesSorted().slice(0,1);
-  $('#homeFeed').innerHTML=vs.length?vs.map(v=>postCard(v,true)).join(''):emptyVoice();
+  /* 메인에는 올린 지 1시간 이내 글만 (최대 3개). 1시간이 지나면 현장목소리 목록에서 확인 */
+  const vs=voicesSorted().filter(v=>Date.now()-v.at<HOME_VOICE_MS).slice(0,3);
+  $('#homeFeedHd').classList.toggle('hidden',!vs.length);$('#homeFeedHd').classList.toggle('flex',!!vs.length);
+  $('#homeFeed').innerHTML=vs.map(v=>postCard(v,true)).join('');
   hydrate($('#homeFeed'));
 }
 
