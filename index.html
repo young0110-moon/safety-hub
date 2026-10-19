@@ -1505,19 +1505,22 @@ async function sbLoad(book){
     const j=await r.json();sbIngest(book,j.meta,j.clauses);
   }catch(e){B.state='error';renderStd(true)}
 }
+async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json',{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
   B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
   B.byId={};B.list.forEach(c=>B.byId[c.id]=c);
   B.chap=(meta.toc||[]).filter(t=>!t.id.includes('.')).map(t=>({...t,items:B.list.filter(c=>inSec(c,t.id))}));
-  B.state='ready';if(book===sbBook){renderStd(true);renderIhStats()}
+  B.state='ready';if(book===sbBook){renderStd(true);renderIhStats();renderBookSwitch()}
+  /* 나머지 책도 뒤에서 미리 불러오기 → 버튼 누르면 바로 바뀜 */
+  setTimeout(()=>Object.keys(SBS).forEach(k=>{if(SBS[k].state==='idle')sbPrefetch(k)}),800);
 }
 function sbSetBook(b){
   if(!BOOKS[b]||b===sbBook)return;
   sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||(sbFavAll[b]=[]);
   sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
-  renderInsp();sbLoad();window.scrollTo({top:0});
+  sbSig='';renderInsp();renderStd(true);sbLoad();window.scrollTo({top:0});
   toast(isJudg()?`${BOOKS[b].icon} 승강기 검사결과 판정지침으로 바꿨어요.`:isStd()?`${BOOKS[b].icon} 엘리베이터 검사방법 표준화자료로 바꿨어요.`:`${BOOKS[b].icon} ${BOOKS[b].name} 연혁집(${BOOKS[b].code})으로 바꿨어요.`,'ok');
 }
 function renderBookSwitch(){
@@ -1700,7 +1703,7 @@ function sbListHTML(list,q,more){
 }
 function renderStd(force){
   if(ihTab!=='std'&&ihTab!=='fav')return;
-  const sig=JSON.stringify([SB.state,ihTab,sbQ,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
+  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbQ,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
   if(!force&&sig===sbSig)return;sbSig=sig;
   $('#ihStd').style.setProperty('--sbfs',sbFs+'px');$('#ihFav').style.setProperty('--sbfs',sbFs+'px');
   if(ihTab==='fav')return renderSbFav();
