@@ -1505,6 +1505,24 @@ function sbFlow(t){
 /* 제목이 '…'로 잘린 조항은 본문 첫 문장을 제목으로 보여줌 (화면에서 잘리지 않게) */
 function sbTitle(c){const t=c.t||c.id;if(!/…$/.test(t))return t;const body=(c.cur||(c.hist[0]&&c.hist[0].x)||'').replace(/\s+/g,' ').trim();if(!body)return t;
   const m=body.match(/^.{10,160}?(?:다\.|함\.|음\.|것\.|[.:;])(?=\s|$)/);return m?m[0]:body.length<=160?body:body.slice(0,158)+'…'}
+/* 본문 HTML: 그림 설명(캡션 [ 그림 N - … ] 앞의 그림 속 글자 묶음)은 접어서 '원문 그림 보기'로 안내 */
+function sbBody(c,x,q){
+  const t=sbFlow(x);if(!t)return '(본문 없음)';
+  const L=t.split('\n'),cap=/^\[\s*그림\s*[\d.]+\s*[-–.]?\s*.*\]\s*$/,endS=l=>l.length>=25&&/(다|함|음|것|임|됨)\.\s*$/.test(l);
+  const caps=[];L.forEach((l,i)=>{if(cap.test(l))caps.push(i)});
+  if(!caps.length)return sbHL(t,q);
+  const figs=sbFigPages(c),out=[];let pos=0,k=0;
+  for(const ci of caps){
+    let st=pos;if(k===0){let j=ci-1;while(j>=pos&&!endS(L[j])&&!cap.test(L[j]))j--;st=j+1}   // 첫 그림: 마지막 본문 문장 뒤부터 / 이후 그림: 앞 캡션 바로 뒤부터
+    const blk=L.slice(st,ci).filter(l=>l.trim()),before=L.slice(pos,st).join('\n');
+    if(before.trim())out.push(sbHL(before,q));
+    const key=c.id+'|fig'+k,open=sbOpen.has(key),page=figs[Math.min(k,figs.length-1)];
+    if(blk.length>=3){out.push(`<span class="block my-1.5 rounded-xl sub px-2.5 py-2" style="white-space:normal;text-align:left"><span class="inline-flex items-center gap-1.5 flex-wrap"><b class="text-[12px]">🖼️ ${esc(L[ci].replace(/^\[\s*|\s*\]$/g,''))}</b>${page?`<button data-sbfig="${page}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[30px] !text-[11px]">원문 그림 보기 p.${page}</button>`:''}<button data-sbfigtxt="${esc(key)}" class="chip !min-h-[30px] !text-[11px]">${open?'그림 글자 접기':'그림 속 글자 보기'}</button></span>${open?`<span class="block mt-1.5 text-[12px] opacity-80" style="white-space:pre-line">${sbHL(blk.join('\n'),q)}</span><span class="block text-[10px] opacity-60 mt-1">그림 안의 글자를 뽑은 것이라 순서가 뒤섞여 있어요.</span>`:''}</span>`)}
+    else{out.push(sbHL(L.slice(st,ci+1).join('\n'),q))}
+    pos=ci+1;k++}
+  const rest=L.slice(pos).join('\n');if(rest.trim())out.push(sbHL(rest,q));
+  return out.map((h,i)=>h.startsWith('<span class="block')||(i>0&&out[i-1].startsWith('<span class="block'))?h:(i?'\n':'')+h).join('');
+}
 function sbHL(t,q){
   t=esc(t);if(!q)return t;
   const kw=[...new Set(q.split(/[\s,]+/).map(x=>x.trim()).filter(Boolean))].sort((a,b)=>b.length-a.length);
@@ -1622,7 +1640,7 @@ function sbCard(c,q){
   const ver=(v,i)=>`<div class="sb-ver ${A[i]||''} pl-3 py-1">
       <div class="flex items-start gap-2 flex-wrap"><span class="text-[11px] font-black flex-1 min-w-0">${i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${esc(v.lab)}</span>${sbBadge(A[i])}</div>
       <div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>
-      ${folded?'':`<div class="sbt mt-1.5">${sbHL(sbFlow(v.x)||'(본문 없음)',q)}</div>`}
+      ${folded?'':`<div class="sbt mt-1.5">${sbBody(c,v.x,q)}</div>`}
       ${i>0&&!folded?`<button data-sbcmp="${esc(c.id)}|${i}" class="sb-act mt-1.5 px-3 border border-purple-400/50">${sbCmp.has(c.id+'|'+i)?'비교 닫기':'↔ 신·구 비교'}</button>${sbCmp.has(c.id+'|'+i)?sbCmpHTML(c,i):''}`:''}
     </div>`;
   return `<article class="card !p-3" data-sbcard="${esc(c.id)}">
@@ -1884,7 +1902,7 @@ function sbSheetHTML(c,q){
   const ver=(v,i)=>{const fd=sbVFold.has(i);return `<div class="sb-ver ${A[i]||''} pl-3 py-1.5">
       <button data-sbvfold="${i}" class="w-full flex items-start gap-2 flex-wrap text-left min-h-[32px]" aria-expanded="${!fd}"><span class="text-[11px] font-black flex-1 min-w-0">${isJudg()?`<span class="px-1.5 py-0.5 rounded-md text-white mr-1" style="background:#BE123C">${esc(c.vl||'판정 내용')}</span>`:isStd()?`<span class="px-1.5 py-0.5 rounded-md bg-[#D97706] text-white mr-1">표준화 적용 방법</span>`:i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${isDoc()?'':esc(v.lab)}</span>${isDoc()?'':sbBadge(A[i])}<span class="text-xs opacity-60 self-center">${fd?'▼':'▲'}</span></button>
       ${isJudg()?(c.kind||c.nos?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1">${c.kind?`<span class="ap-judg">${esc(c.kind)}${c.code?' · '+esc(c.code):''}</span>`:''}${c.nos&&c.nos.length?`<span class="opacity-75">검사항목 ${esc(c.nos.slice(0,8).join(' · '))}${c.nos.length>8?' 외':''}</span>`:''}</div>`:''):isStd()?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1"><span class="opacity-70">적용(표준화 안내)</span>${c.ap?`<span class="ap-std">📌 ${esc(c.ap)}</span>`:'<span class="opacity-60">표시 없음</span>'}</div>`:`<div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>`}
-      ${fd?`<button data-sbvfold="${i}" class="block w-full text-left text-xs opacity-70 mt-1 min-h-[28px] truncate">${esc((v.x||'').replace(/\s+/g,' ').slice(0,60))}… <u>펼치기</u></button>`:`<div class="sbt mt-1.5">${sbHL(sbFlow(v.x)||'(본문 없음)',q)}</div>
+      ${fd?`<button data-sbvfold="${i}" class="block w-full text-left text-xs opacity-70 mt-1 min-h-[28px] truncate">${esc((v.x||'').replace(/\s+/g,' ').slice(0,60))}… <u>펼치기</u></button>`:`<div class="sbt mt-1.5">${sbBody(c,v.x,q)}</div>
       ${i>0?`<button data-sbcmp="${esc(c.id)}|${i}" class="sb-act mt-1.5 px-3 border border-purple-400/50">${sbCmp.has(c.id+'|'+i)?'비교 닫기':'↔ 신·구 비교'}</button>${sbCmp.has(c.id+'|'+i)?sbCmpHTML(c,i):''}`:''}`}
     </div>`};
   const tools=`<div class="flex items-center gap-1.5 pt-1 pb-1"><span class="text-[11px] opacity-70 mr-auto">글자 ${sbFs}px</span>
@@ -1995,6 +2013,7 @@ document.addEventListener('click',async e=>{
     try{await navigator.clipboard.writeText(t);toast('조항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요. 본문을 길게 눌러 복사해 주세요.','error')}return}
   if(g('data-sbmore')){sbShow+=20;renderStd(true);return}
   if(b=g('data-sbf')){sbFilter=b.dataset.sbf;sbShow=20;renderStd(true);return}
+  if(b=g('data-sbfigtxt')){const k=b.dataset.sbfigtxt;sbOpen.has(k)?sbOpen.delete(k):sbOpen.add(k);sbRenderSheet();renderStd(true);return}
   if(b=g('data-sbfigch')){sbFigCh=b.dataset.sbfigch;renderStd(true);return}
   if(b=g('data-sbkind')){const v=b.dataset.sbkind;sbKind=v==='all'?null:v==='none'?'':v;sbShow=20;renderStd(true);return}
   if(b=g('data-sbqx')){sbSubmit(b.dataset.sbqx,true);return}
