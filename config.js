@@ -13,4 +13,4 @@ window.ADMIN_EMAILS = ["glare0110@gmail.com"];
 
 /* 브리핑 녹음 AI 정리 서버 (Cloudflare Workers) 주소. 비어 있으면 '준비 중'으로 표시됩니다.
    Gemini 키는 여기에 넣지 마세요! (Cloudflare 의 비밀 변수 GEMINI_KEY 에만) */
-window.AI_URL = "";
+window.AI_URL = "https://koelsa-ai.glare0110.workers.dev";
