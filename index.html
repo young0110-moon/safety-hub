@@ -651,7 +651,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
 </section>
 </main>
 
-<footer class="text-center text-[11px] opacity-75 px-4 pb-28 leading-relaxed">한국승강기안전공단 (KoELSA) 부산동부지사<br>본사: 부산시 해운대구 센텀중앙로90 | 대표전화: 051-784-8502<br>© 2026 KoELSA All Rights Reserved.</footer>
+<footer class="text-center text-[11px] opacity-75 px-4 pb-28 leading-relaxed">한국승강기안전공단 (KoELSA) 부산동부지사<br>지사: 부산시 해운대구 센텀중앙로90 | 대표전화: 051-784-8502<br>© 2026 KoELSA All Rights Reserved.</footer>
 
 <nav class="fixed bottom-0 inset-x-0 z-50 backdrop-blur-md bg-white/80 dark:bg-indigo-950/80 border-t border-purple-400/30" style="padding-bottom:env(safe-area-inset-bottom,0px)">
   <div class="max-w-xl mx-auto grid grid-cols-6">
@@ -1521,7 +1521,7 @@ function sbSetBook(b){
   sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
   sbSig='';renderInsp();renderStd(true);sbLoad();window.scrollTo({top:0});
-  toast(isJudg()?`${BOOKS[b].icon} 승강기 검사결과 판정지침으로 바꿨어요.`:isStd()?`${BOOKS[b].icon} 엘리베이터 검사방법 표준화자료로 바꿨어요.`:`${BOOKS[b].icon} ${BOOKS[b].name} 연혁집(${BOOKS[b].code})으로 바꿨어요.`,'ok');
+  /* 자료 전환 알림창은 띄우지 않음 */
 }
 function renderBookSwitch(){
   const sec=$('#p-insp');sec.classList.remove('bk-esc','bk-elv','bk-std','bk-judg');sec.classList.add('bk-'+sbBook);
