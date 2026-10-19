@@ -458,6 +458,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   <div class="ih-tabs sticky z-30 -mx-3 px-3" style="top:calc(60px + env(safe-area-inset-top,0px))">
     <div class="flex" role="tablist" aria-label="안전기준 연혁집 메뉴">
       <button data-iht="std" role="tab" class="ih-tab flex-1"><span id="ihTabStd">📚 안전기준</span></button>
+      <button data-iht="fig" role="tab" class="ih-tab flex-1">🖼️ 그림·표<span id="ihFigCnt" class="tabular-nums"></span></button>
       <button data-iht="fav" role="tab" class="ih-tab flex-1">⭐ 즐겨찾기<span id="ihFavCnt" class="tabular-nums"></span></button>
     </div>
   </div>
@@ -483,6 +484,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
   </div>
 
   <div id="ihFav" class="hidden space-y-3"></div>
+  <div id="ihFig" class="hidden space-y-3"></div>
 </section>
 <button id="sbTop" type="button" class="hidden fixed right-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(72px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
 
@@ -1540,7 +1542,7 @@ function sbIngest(book,meta,cl){
 function sbSetBook(b){
   if(!BOOKS[b]||b===sbBook)return;
   sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||(sbFavAll[b]=[]);
-  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbKind=null;sbNoFix=false;sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
+  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbKind=null;sbNoFix=false;sbFigCh='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
   sbSig='';renderInsp();renderStd(true);sbLoad();window.scrollTo({top:0});
   /* 자료 전환 알림창은 띄우지 않음 */
@@ -1760,12 +1762,12 @@ function sbSubmit(q,noFix){
 }
 function renderInsp(){
   document.querySelectorAll('.ih-tab').forEach(b=>{const on=b.dataset.iht===ihTab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-  $('#ihStd').classList.toggle('hidden',ihTab!=='std');$('#ihFav').classList.toggle('hidden',ihTab!=='fav');
+  $('#ihStd').classList.toggle('hidden',ihTab!=='std');$('#ihFav').classList.toggle('hidden',ihTab!=='fav');$('#ihFig').classList.toggle('hidden',ihTab!=='fig');
   renderBookSwitch();renderIhStats();sbLoad();renderStd();
 }
 function renderIhStats(){
   const m=SB.meta,B=BOOKS[sbBook];$('#ihStats').innerHTML=isJudg()?`<span>${B.icon} 설치·안전검사 결과 판정지침</span><span>⚖️ 항목 ${m?m.count:'-'}</span>`:isStd()?`<span>${B.icon} 엘리베이터 검사방법 표준화</span><span>📋 항목 ${m?m.count:'-'}</span>`:`<span>${B.icon} ${B.name} ${B.code}</span><span>📚 조항 ${m?m.count:'-'}</span><span>➥ 종전 기준 ${m?m.hist:'-'}</span>`;
-  $('#ihFavCnt').textContent=sbFav.length?` ${sbFav.length}`:'';
+  $('#ihFavCnt').textContent=sbFav.length?` ${sbFav.length}`:'';$('#ihFigCnt').textContent=m&&m.figs&&m.figs.length?` ${m.figs.length}`:'';
 }
 function sbBookCard(){
   const m=SB.meta;if(!m)return '';const b=m.book;
@@ -1800,11 +1802,12 @@ function sbListHTML(list,q,more){
   return shown.map(c=>sbRow(c,q)).join('')+(L.length>sbShow?`<button data-sbmore class="w-full min-h-[48px] rounded-xl border border-purple-400/50 text-sm font-bold">${more||'더 보기'} (${L.length-sbShow}개 남음)</button>`:'');
 }
 function renderStd(force){
-  if(ihTab!=='std'&&ihTab!=='fav')return;
-  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbQ,sbKind,sbNoFix,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
+  if(ihTab!=='std'&&ihTab!=='fav'&&ihTab!=='fig')return;
+  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbFigCh,sbQ,sbKind,sbNoFix,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
   if(!force&&sig===sbSig)return;sbSig=sig;
   $('#ihStd').style.setProperty('--sbfs',sbFs+'px');$('#ihFav').style.setProperty('--sbfs',sbFs+'px');
   if(ihTab==='fav')return renderSbFav();
+  if(ihTab==='fig')return renderSbFig();
   const main=$('#sbMain');
   $('#sbDate').value=sbDate;$('#sbTools').innerHTML=sbToolsHTML();$('#sbDateHelp').classList.toggle('hidden',!!sbDate);$('#sbDateClr').classList.toggle('hidden',!sbDate);$('#sbDateCard').classList.toggle('hidden',isDoc());
   const today=key(new Date());
@@ -1845,6 +1848,22 @@ function renderStd(force){
     return;
   }
   main.innerHTML=sbCatalog();
+}
+/* 그림·표 모아보기: 원문에 그림·표가 있는 쪽을 장(章)별로 모아 보여주고, 누르면 보기 창 */
+let sbFigCh='all';
+function renderSbFig(){
+  const box=$('#ihFig');
+  if(SB.state!=='ready'){box.innerHTML=`<div class="card text-center text-sm py-8">${SB.state==='none'?'초대받은 직원 계정으로 접속하면 볼 수 있어요.':'🖼️ 자료를 불러오는 중…'}</div>`;return}
+  const F=(SB.meta&&SB.meta.figs)||[];
+  if(!F.length){box.innerHTML=`<div class="card text-center text-sm py-8 leading-relaxed">${BOOKS[sbBook].icon} ${esc(BOOKS[sbBook].name)}에는 원문 그림·표 자료가 없어요.</div>`;return}
+  /* 각 쪽에 해당하는 조항: 그 쪽 이전에 시작한 마지막 조항 */
+  const items=F.map(p=>{let c=null;for(const x of SB.list){if(x.p<=p)c=x;else break}const ch=c?SB.chap.find(k=>k.id===chapOf(c)):null;return {p,c,ch}});
+  const groups=[];items.forEach(it=>{const id=it.ch?it.ch.id:'기타';let g=groups.find(x=>x.id===id);if(!g){g={id,t:it.ch?it.ch.t:'기타',items:[]};groups.push(g)}g.items.push(it)});
+  const show=sbFigCh==='all'?groups:groups.filter(g=>g.id===sbFigCh);
+  box.innerHTML=`<div class="flex items-center justify-between px-1"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>원문 그림·표 <span class="tabular-nums opacity-70">${F.length}장</span></h2><span class="text-[11px] opacity-70">누르면 크게 보여요</span></div>
+    <div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbfigch="all" class="chip !min-h-[34px] !text-[11px] ${sbFigCh==='all'?'sel':''}">전체 ${F.length}</button>${groups.map(g=>`<button data-sbfigch="${esc(g.id)}" class="chip !min-h-[34px] !text-[11px] ${sbFigCh===g.id?'sel':''}">${esc(g.id.replace('부속서 ','부'))} ${esc(g.t.length>10?g.t.slice(0,10)+'…':g.t)} <span class="tabular-nums opacity-80">${g.items.length}</span></button>`).join('')}</div></div>
+    ${show.map(g=>`<div class="card !p-3"><div class="flex items-center gap-2 mb-2"><span class="sb-ch">${esc(g.id.replace('부속서 ',''))}</span><b class="text-sm flex-1 min-w-0 truncate">${esc(g.t)}</b><span class="text-[11px] opacity-70 tabular-nums">${g.items.length}장</span></div>
+      <div class="grid grid-cols-2 gap-2">${g.items.map(it=>`<button data-sbfig="${it.p}" data-sbfigc="${esc(it.c?sbIdLabel(it.c):'')}" class="text-left rounded-xl overflow-hidden border border-purple-400/30 sub"><span class="block aspect-[3/4] overflow-hidden bg-white"><img loading="lazy" src="data/fig/${sbBook}_${String(it.p).padStart(3,'0')}.webp" alt="원문 p.${it.p}" class="w-full h-full object-cover object-top"></span><span class="block px-2 py-1.5"><span class="block text-[11px] font-black">p.${it.p}${it.c?' · '+esc(sbIdLabel(it.c)):''}</span>${it.c?`<span class="block text-[10px] opacity-70 line-clamp-2 leading-snug">${esc(it.c.t||'')}</span>`:''}</span></button>`).join('')}</div></div>`).join('')}`;
 }
 function renderSbFav(){
   const box=$('#ihFav');
@@ -1976,6 +1995,7 @@ document.addEventListener('click',async e=>{
     try{await navigator.clipboard.writeText(t);toast('조항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요. 본문을 길게 눌러 복사해 주세요.','error')}return}
   if(g('data-sbmore')){sbShow+=20;renderStd(true);return}
   if(b=g('data-sbf')){sbFilter=b.dataset.sbf;sbShow=20;renderStd(true);return}
+  if(b=g('data-sbfigch')){sbFigCh=b.dataset.sbfigch;renderStd(true);return}
   if(b=g('data-sbkind')){const v=b.dataset.sbkind;sbKind=v==='all'?null:v==='none'?'':v;sbShow=20;renderStd(true);return}
   if(b=g('data-sbqx')){sbSubmit(b.dataset.sbqx,true);return}
   if(g('data-sbtips')){sbTips=!sbTips;sbSuggest();return}
