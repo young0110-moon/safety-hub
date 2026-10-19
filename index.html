@@ -2246,19 +2246,18 @@ const CS_CHECK={
  4:'전반적으로 협조적이고 검사 진행에 지장이 없으며, 제도적 아쉬움을 차분한 어조로 한두 차례 언급한 수준입니다. 1점과의 차이는 반복성·격앙된 어조·진행 차질 여부입니다.',
  5:'검사원을 전문가로 예우하고 검사 진행 전반에 적극 협조한 경우입니다. ‘제도 만족’ 표현만으로는 5점 근거가 되지 않습니다(검사원이 조절할 수 없는 영역). 예우·안내·경청·수용·신뢰 표현 중 하나가 있어야 합니다.'};
 function csJudgeOne(f){const g=CSG[f-1];return {f,n:f,why:[g.t],note:g.chip,check:CS_CHECK[f]}}
-/* 전체 판정: 얼굴 1개면 그대로, 2개 이상이면 가이드 원칙으로 종합 */
+/* 전체 판정: 얼굴 1개면 그대로. 2개 이상이면 체크한 항목마다 가이드 점수를 매기고 평균(반올림)으로 종합.
+   .5는 낮은 쪽으로 (예: 1점+2점 → 1점). 가이드 엄격 적용 시 점수(1·2점 우선)는 참고로 함께 표시 */
 function csJudge(){
   if(!csFaces.length)return {n:null};
   const parts=csFaces.map(csJudgeOne);
   if(parts.length===1)return {...parts[0],parts};
-  const ns=[...new Set(parts.map(x=>x.n))].sort((a,b)=>a-b),lines=[];
-  let n=ns[0],tie=false;
-  if(ns.includes(1)&&ns.includes(2)){tie=true;n=csPick||1;lines.push('제도 불만(1점)과 검사원 개인에 대한 냉담·무례(2점)가 함께 있어요. 가이드에는 둘 사이의 우선순위가 없어 검사원이 고릅니다. 불만의 대상이 제도·기관이었는지(1점), 검사원 개인이었는지(2점)로 가르는 것이 가이드의 기준입니다.')}
-  else if(ns[0]===1)lines.push('제도 불만이 반복·격앙·진행 차질 중 하나라도 해당하면 다른 태도와 관계없이 1점입니다 (가이드 1점 정의). 다만 그 불만이 차분한 한두 차례였다면 😡 대신 🙂을 체크해 주세요.');
-  else if(ns[0]===2)lines.push('검사원 개인을 향한 무시·냉담한 태도가 있으면 협조 여부와 관계없이 2점입니다 (핵심 원칙 2 · 검사원 보호).');
-  else if(ns[0]===3)lines.push('협조가 형식적·무관심 수준이면 3점(중립)을 기본값으로 판정합니다 (핵심 원칙 3). 협조가 실제로 유지됐다면 😐 대신 🙂을 체크해 주세요.');
-  else if(ns[0]===4&&ns.includes(5))lines.push('적극 협조했더라도 제도 아쉬움을 언급했으면 4점입니다 — “전반적으로 만족스럽고 협조적인 태도에서 사소한 개선 의견 하나를 제안함”은 가이드의 4점 예시입니다.');
-  return {n,parts,multi:true,tie,lines,why:parts.map(x=>x.why[0]),note:tie?'두 점수 중 하나를 골라 주세요':`체크한 ${parts.length}가지 중 가이드 기준으로 가장 낮은 단계가 최종 점수`,check:CS_CHECK[n]};
+  const sum=parts.reduce((a,x)=>a+x.n,0),avg=sum/parts.length;
+  let n=Math.round(avg);if(avg-Math.floor(avg)===0.5)n=Math.floor(avg);
+  const strict=Math.min(...parts.map(x=>x.n));
+  const lines=[`체크한 항목 ${parts.length}개의 점수를 합쳐 평균했어요: (${parts.map(x=>x.n).join(' + ')}) ÷ ${parts.length} = ${avg.toFixed(1)} → ${n}점`];
+  if(strict!==n){lines.push(strict===1?'※ 가이드를 엄격히 적용하면 제도 불만이 반복·격앙·진행 차질 중 하나라도 해당할 때 1점입니다. 그 요건이 분명했다면 1점으로 기록하세요.':strict===2?'※ 가이드 핵심 원칙 2(검사원 보호)를 엄격히 적용하면 개인을 향한 무시·냉담이 있었을 때 2점입니다.':`※ 가장 낮은 항목 기준으로는 ${strict}점이에요.`)}
+  return {n,parts,multi:true,strict,lines,why:parts.map(x=>x.why[0]),note:`항목 ${parts.length}개 평균 ${avg.toFixed(1)} → ${n}점`,check:CS_CHECK[n]};
 }
 let csSel=3,csRes=null;
 /* ===== 🎮 이 손님 몇 점? — 가이드 상황별 예시 25개로 하는 5문제 퀴즈 (기록은 이 폰에만) ===== */
@@ -2307,14 +2306,13 @@ function renderCS(){
   const faces=`<div class="space-y-1.5 mt-1.5">${CS_FACE.map(f=>{const on=csFaces.includes(f.n),g=CSG[f.n-1],c=g.c;return `<button data-csface="${f.n}" class="w-full flex items-center gap-3 text-left rounded-2xl px-3 py-2.5 border-2 transition ${on?'':'sub'}" style="border-color:${on?c:'transparent'};${on?`background:${c}1A`:''}" aria-pressed="${on}"><span class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-[28px] leading-none ${on?'bg-white shadow':'bg-white/60'}" style="${on?`box-shadow:0 0 0 3px ${c}`:''}">${f.e}</span><span class="flex-1 min-w-0"><b class="block text-[13px] leading-snug">${esc(g.t)}</b><span class="block text-[11px] opacity-75 leading-snug mt-0.5">${esc(g.chip)}</span></span>${on?`<span class="text-lg">✅</span>`:''}</button>`}).join('')}</div><p class="text-[10px] opacity-60 mt-1.5">여러 개를 함께 체크할 수 있어요. 체크하면 바로 분석과 점수가 나와요.</p>`;
   const step2='';
   let analysis='';
-  if(csRes.n&&!csRes.multi){const g=CSG[csRes.n-1],ex=g.ex.slice(0,2);analysis=`<div class="mt-3 rounded-2xl sub p-3"><div class="text-[11px] font-black mb-1.5">🔍 분석</div><p class="text-[12px] leading-relaxed">${esc(g.d)}</p><p class="text-[11px] leading-snug mt-2" style="border-left:3px solid #0D9488;padding-left:8px">✔ 확인 포인트 · ${esc(csRes.check)}</p><div class="text-[11px] opacity-75 mt-2">비슷한 예시: ${ex.map(x=>`“${esc(x)}”`).join(' · ')}</div></div>`}
+  if(csRes.n&&!csRes.multi){const g=CSG[csRes.n-1],ex=g.ex.slice(0,2);analysis=`<div class="mt-3 rounded-2xl sub p-3"><div class="text-[11px] font-black mb-1.5">🔍 분석</div><p class="text-[12px] leading-relaxed">${esc(g.d)}</p><p class="text-[11px] leading-snug mt-2" style="border-left:3px solid #0D9488;padding-left:8px">✔ 확인 포인트 · ${esc(csRes.check)}</p><div class="text-[11px] opacity-75 mt-2">비슷한 예시: ${ex.map(x=>/^[“"]/.test(x)?esc(x):`“${esc(x)}”`).join(' · ')}</div></div>`}
   if(csRes.multi){analysis=`<div class="mt-3 rounded-2xl sub p-3"><div class="text-[11px] font-black mb-1.5">🔍 종합 분석 · 체크 ${csRes.parts.length}개</div>
-      <div class="space-y-1">${csRes.parts.map(x=>`<div class="flex items-center gap-2 text-[12px]"><span class="text-base">${CS_FACE[x.f-1].e}</span><span class="flex-1 min-w-0 truncate">${esc(x.why[0]||'')}</span><b class="shrink-0 px-1.5 py-0.5 rounded-md text-white text-[10px]" style="background:${CSG[x.n-1].c}">${x.n}점</b></div>`).join('')}</div>
-      ${csRes.lines.map(l=>`<p class="text-[11px] mt-2 leading-snug" style="border-left:3px solid #0D9488;padding-left:8px">${esc(l)}</p>`).join('')}
-      <p class="text-[11px] leading-snug mt-2 opacity-85">✔ 확인 포인트 · ${esc(csRes.check||'')}</p>
-      ${csRes.tie?`<div class="grid grid-cols-2 gap-2 mt-2"><button data-cspick="1" class="min-h-[44px] rounded-xl text-white text-xs font-bold ${csPick===1?'':'opacity-60'}" style="background:${CSG[0].c}">1점 · 제도 불만</button><button data-cspick="2" class="min-h-[44px] rounded-xl text-white text-xs font-bold ${csPick===2?'':'opacity-60'}" style="background:${CSG[1].c}">2점 · 개인 냉담·무례</button></div>`:''}</div>`}
+      <div class="space-y-2">${csRes.parts.map(x=>{const g=CSG[x.n-1];return `<div class="rounded-xl p-2.5" style="background:${g.c}14;border-left:3px solid ${g.c}"><div class="flex items-center gap-2 text-[12px]"><span class="text-base">${CS_FACE[x.f-1].e}</span><b class="flex-1 min-w-0">${esc(g.t)}</b><b class="shrink-0 px-1.5 py-0.5 rounded-md text-white text-[10px]" style="background:${g.c}">${x.n}점</b></div><p class="text-[11px] leading-snug mt-1 opacity-85">${esc(g.d)}</p><p class="text-[10px] opacity-70 mt-1">예: ${g.ex.slice(0,2).map(e=>/^[“"]/.test(e)?esc(e):`“${esc(e)}”`).join(' · ')}</p></div>`}).join('')}</div>
+      ${csRes.lines.map((l,i)=>`<p class="text-[11px] mt-2 leading-snug ${i?'opacity-80':'font-bold'}" style="border-left:3px solid #0D9488;padding-left:8px">${esc(l)}</p>`).join('')}
+      <p class="text-[11px] leading-snug mt-2 opacity-85">✔ 확인 포인트 · ${esc(csRes.check||'')}</p></div>`}
   const bar=r?`<div id="csLive" class="mt-3 rounded-2xl p-3 text-white shadow-lg" style="background:${r.c}"><div class="flex items-center gap-3"><span class="w-12 h-12 rounded-full bg-white flex flex-col items-center justify-center shrink-0 leading-none" style="color:${r.c}"><b class="text-xl font-black">${r.n}</b><span class="text-[9px] font-black">점</span></span>
-      <div class="flex-1 min-w-0"><div class="text-[10px] opacity-90">${csRes.multi?'종합 판정':'판정 결과'} · 최종 판정은 검사원이 합니다</div><b class="text-base block leading-tight">${r.tag}</b><div class="text-[11px] opacity-95 leading-snug mt-0.5">${esc(csRes.note||'')}</div></div></div>
+      <div class="flex-1 min-w-0"><div class="text-[10px] opacity-90">${csRes.multi?'종합 판정(항목 평균)':'판정 결과'} · 최종 판정은 검사원이 합니다</div><b class="text-base block leading-tight">${r.tag}</b><div class="text-[11px] opacity-95 leading-snug mt-0.5">${esc(csRes.note||'')}</div></div></div>
       ${csRes.warn?`<div class="mt-2 text-[11px] font-bold bg-white/20 rounded-lg px-2 py-1.5">⚠️ ${esc(csRes.warn)}</div>`:''}
       <div class="grid grid-cols-3 gap-2 mt-3"><button data-cssel="${r.n}" data-csgo class="min-h-[40px] rounded-xl bg-white/90 text-[11px] font-bold" style="color:${r.c}">${r.n}점 기준·예시</button><button data-cscopy class="min-h-[40px] rounded-xl bg-white/20 text-[11px] font-bold">📋 판정 메모</button><button data-csreset class="min-h-[40px] rounded-xl bg-white/20 text-[11px] font-bold">↺ 다시</button></div></div>`
     :'';
@@ -2323,9 +2321,8 @@ function renderCS(){
 document.addEventListener('click',e=>{if(cur!=='cs')return;let b;
   const refresh=()=>{const j=csJudge();if(j.n)csSel=j.n;const y=window.scrollY;renderCS();window.scrollTo(0,y);const L=$('#csLive');if(L)L.animate([{transform:'scale(1.03)'},{transform:'scale(1)'}],{duration:220})};
   if(b=e.target.closest('[data-csface]')){const n=+b.dataset.csface;if(csFaces.includes(n))csFaces=csFaces.filter(x=>x!==n);else csFaces=[...csFaces,n].sort();csPick=null;refresh();return}
-  if(b=e.target.closest('[data-cspick]')){csPick=+b.dataset.cspick;refresh();return}
   if(e.target.closest('[data-csreset]')){csFaces=[];csAns={};csEv=[];csPick=null;csSel=3;renderCS();$('#csHelper').scrollIntoView({behavior:'smooth',block:'start'});return}
-  if(e.target.closest('[data-cscopy]')){const r=CSG[csRes.n-1];if(!csRes.n){toast('먼저 판정을 끝내 주세요.','error');return}const t=`[고객우호도 판정] ${r.n}점 · ${r.tag}\n체크: ${csFaces.map(f=>CS_FACE[f-1].e+' '+CSG[f-1].tag).join(', ')}\n근거: ${(csRes.why||[]).join(' / ')}${csRes.lines&&csRes.lines.length?'\n종합: '+csRes.lines.join(' ')+(csRes.tie?' → 검사원 선택 '+r.n+'점':''):''}\n(고객우호도 판정 가이드 기준)`;
+  if(e.target.closest('[data-cscopy]')){const r=CSG[csRes.n-1];if(!csRes.n){toast('먼저 판정을 끝내 주세요.','error');return}const t=`[고객우호도 판정] ${r.n}점 · ${r.tag}\n체크: ${csFaces.map(f=>CS_FACE[f-1].e+' '+CSG[f-1].tag).join(', ')}\n근거: ${(csRes.why||[]).join(' / ')}${csRes.lines&&csRes.lines.length?'\n종합: '+csRes.lines.join(' '):''}\n(고객우호도 판정 가이드 기준)`;
     navigator.clipboard.writeText(t).then(()=>toast('판정 메모를 복사했어요.','ok'),()=>toast('복사하지 못했어요.','error'));return}
   if(b=e.target.closest('[data-cssel]')){csSel=+b.dataset.cssel;renderCS();if(b.hasAttribute('data-csgo')||b.closest('#csDetail'))$('#csDetail').scrollIntoView({behavior:'smooth',block:'start'});return}
 });
