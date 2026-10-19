@@ -129,8 +129,21 @@ body{letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;-moz-osx-font-smo
 .bk-btn{min-height:44px;border-radius:14px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,.75)}
 .bk-btn.on{background:#fff;color:#1E1B4B;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .bk-btn .bk-sub{font-size:10px;font-weight:700;opacity:.75}
+#sbBooks.grid-cols-4 .bk-btn{flex-direction:column;gap:1px!important;font-size:12px;min-height:52px;padding:4px 2px}#sbBooks.grid-cols-4 .bk-btn>span:first-child{font-size:16px;line-height:1.1}#sbBooks.grid-cols-4 .bk-btn .bk-sub{display:none!important}#sbBooks.grid-cols-4 .bk-btn .min-w-0{max-width:100%;text-align:center}
 #p-insp.bk-esc #ihCover{background:linear-gradient(135deg,#0D9488,#0E7490 55%,#1E40AF)}
 #p-insp.bk-elv #ihCover{background:linear-gradient(135deg,#7C3AED,#6D28D9 55%,#312E81)}
+#p-insp.bk-judg #ihCover{background:linear-gradient(135deg,#BE123C,#9F1239 55%,#4C0519)}
+#p-insp.bk-judg .sb-id{background:linear-gradient(135deg,#E11D48,#9F1239);font-size:11px;line-height:1.15;max-width:92px;white-space:normal;word-break:break-all;text-align:center}
+#sbSheet[data-bk=judg] .sb-id{background:linear-gradient(135deg,#E11D48,#9F1239);font-size:11px;line-height:1.15;max-width:92px;white-space:normal;word-break:break-all;text-align:center}
+#sbSheet[data-bk=judg] .sb-pri{background:#E11D48}
+#p-insp.bk-judg .sb-ch{background:rgba(225,29,72,.14);color:#9F1239}.dark #p-insp.bk-judg .sb-ch{background:rgba(251,113,133,.2);color:#FECDD3}
+#p-insp.bk-judg .ih-tab.on{color:#BE123C}.dark #p-insp.bk-judg .ih-tab.on{color:#FDA4AF}
+#p-insp.bk-judg .ih-tab.on::after{background:#E11D48}
+#p-insp.bk-judg .sb-box{border-color:#E11D48}.dark #p-insp.bk-judg .sb-box{border-color:#FB7185}
+#p-insp.bk-judg #sbGo,#p-insp.bk-judg .nt-btn,#p-insp.bk-judg .sb-act.sel{background:#E11D48!important}
+#p-insp.bk-judg .chip.sel,#p-insp.bk-judg .opt.sel{background:#E11D48;border-color:#E11D48;box-shadow:0 0 10px rgba(225,29,72,.35)}
+#p-insp.bk-judg .sb-pri,#p-insp.bk-judg .sb-sheet .sb-pri{background:#E11D48}
+.ap-judg{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:rgba(225,29,72,.12);color:#9F1239;white-space:nowrap}.dark .ap-judg{background:rgba(251,113,133,.22);color:#FECDD3}
 #p-insp.bk-std #ihCover{background:linear-gradient(135deg,#D97706,#B45309 55%,#7C2D12)}
 #p-insp.bk-std .sb-id{background:linear-gradient(135deg,#D97706,#B91C1C)}
 #p-insp.bk-std .sb-ch{background:rgba(217,119,6,.16);color:#9A3412}.dark #p-insp.bk-std .sb-ch{background:rgba(251,191,36,.2);color:#FDE68A}
@@ -149,7 +162,7 @@ body{letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;-moz-osx-font-smo
 #p-insp.bk-esc #sbGo,#p-insp.bk-esc .nt-btn,#p-insp.bk-esc .sb-act.sel{background:#0D9488!important}
 #p-insp.bk-esc .chip.sel,#p-insp.bk-esc .opt.sel{background:#0D9488;border-color:#0D9488;box-shadow:0 0 10px rgba(13,148,136,.35)}
 .bk-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;color:#fff}
-.bk-tag.esc{background:#0D9488}.bk-tag.elv{background:#6D28D9}.bk-tag.std{background:#D97706}
+.bk-tag.esc{background:#0D9488}.bk-tag.elv{background:#6D28D9}.bk-tag.std{background:#D97706}.bk-tag.judg{background:#E11D48}
 .sb-sheet{background:#fff;color:#1E1B4B;box-shadow:0 -12px 40px rgba(0,0,0,.28);transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .dark .sb-sheet{background:#1E1B3A;color:#F3F0FF}
 #sbSheetWrap.on .sb-sheet{transform:none}
@@ -436,7 +449,7 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
       <div class="text-[11px] font-bold opacity-85">부산동부지사 · 기준 자료실</div>
       <div id="ihTitle" class="text-xl font-black mt-0.5">안전기준 연혁집</div>
       <div id="ihDesc" class="text-xs opacity-90 mt-0.5">조항별 연혁을 찾고, 건축허가일에 맞는 기준을 확인해요</div>
-      <div id="sbBooks" class="grid grid-cols-3 gap-1 mt-3 p-1 rounded-2xl bg-black/20" role="tablist" aria-label="연혁집 선택"></div>
+      <div id="sbBooks" class="grid grid-cols-4 gap-1 mt-3 p-1 rounded-2xl bg-black/20" role="tablist" aria-label="연혁집 선택"></div>
       <div id="ihStats" class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-bold mt-2 tabular-nums"></div>
     </div>
   </div>
@@ -1427,14 +1440,15 @@ $('#contacts').onclick=e=>{const b=e.target.closest('[data-dc]');if(!b)return;co
 
 /* ===== 승강기 안전기준 연혁집 (별표24 에스컬레이터 v2.0)
    데이터는 페이지 코드가 아니라 직원 전용 공유 저장소(stdbook)에 보관 — 초대받은 직원만 읽을 수 있음 ===== */
-const BOOKS={elv:{id:'elv',name:'엘리베이터',icon:'🛗',code:'별표22',col:'elv',kind:'연혁집'},esc:{id:'esc',name:'에스컬레이터',icon:'🪜',code:'별표24',col:'esc',kind:'연혁집'},std:{id:'std',name:'표준화자료',icon:'📋',code:'검사방법 표준화',col:'std',kind:'표준화자료'}};
+const BOOKS={elv:{id:'elv',name:'엘리베이터',icon:'🛗',code:'별표22',col:'elv',kind:'연혁집'},esc:{id:'esc',name:'에스컬레이터',icon:'🪜',code:'별표24',col:'esc',kind:'연혁집'},std:{id:'std',name:'표준화자료',icon:'📋',code:'검사방법 표준화',col:'std',kind:'표준화자료',doc:1},judg:{id:'judg',name:'판정지침',icon:'⚖️',code:'검사결과 판정',col:'judg',kind:'판정지침',doc:1}};
+const isDoc=()=>!!BOOKS[sbBook].doc,isJudg=()=>sbBook==='judg';
 const isStd=()=>sbBook==='std';
-const SBS={esc:{state:'idle',meta:null,list:[],byId:{},chap:[]},elv:{state:'idle',meta:null,list:[],byId:{},chap:[]},std:{state:'idle',meta:null,list:[],byId:{},chap:[]}};
+const SBS={esc:{state:'idle',meta:null,list:[],byId:{},chap:[]},elv:{state:'idle',meta:null,list:[],byId:{},chap:[]},std:{state:'idle',meta:null,list:[],byId:{},chap:[]},judg:{state:'idle',meta:null,list:[],byId:{},chap:[]}};
 let sbBook=store.get('koelsa_sb_book','elv');if(!BOOKS[sbBook])sbBook='elv';
 let SB=SBS[sbBook];
-const SB_RECS={esc:['스커트','브레이크','손잡이','콤','틈새','비상정지','경사도','조명','안전표지','난간','주 개폐기','자동 기동'],elv:['추락방지안전장치','완충기','승강장문','비상통화','과속조절기','피트','잠금해제구간','정격하중','비상구출문','주 개폐기','소방구조용','장애인용'],std:['보호난간','칸막이','자동구출','비상문','피트 출입','벨트','문닫힘 안전장치','점검운전','과부하','소방운전','제연설비','리모델링']};
+const SB_RECS={esc:['스커트','브레이크','손잡이','콤','틈새','비상정지','경사도','조명','안전표지','난간','주 개폐기','자동 기동'],elv:['추락방지안전장치','완충기','승강장문','비상통화','과속조절기','피트','잠금해제구간','정격하중','비상구출문','주 개폐기','소방구조용','장애인용'],std:['보호난간','칸막이','자동구출','비상문','피트 출입','벨트','문닫힘 안전장치','점검운전','과부하','소방운전','제연설비','리모델링'],judg:['조건부합격','현장시정조치','시정권고','수검 미비','브레이크','추락방지안전장치','문닫힘안전장치','완충기','과부하','비상통화','절연저항','안전계통']};
 let ihTab='std',sbQ='',sbFilter='all',sbSort='rel',sbSec=null,sbOpenCh=null,sbShow=20,sbAppliedOnly=false,sbFold=!!store.get('koelsa_sb_fold',false),sbSig='';
-let sbDate=store.get('koelsa_sb_date','')||'',sbFs=store.get('koelsa_sb_fs',14),sbRecent=store.get('koelsa_sb_recent',[]),sbFavAll=store.get('koelsa_sb_fav2',{esc:[],elv:[],std:[]}),sbFav=sbFavAll[sbBook]||[],sbAutoSave=store.get('koelsa_sb_autosave',true);
+let sbDate=store.get('koelsa_sb_date','')||'',sbFs=store.get('koelsa_sb_fs',14),sbRecent=store.get('koelsa_sb_recent',[]),sbFavAll=store.get('koelsa_sb_fav2',{esc:[],elv:[],std:[],judg:[]}),sbFav=sbFavAll[sbBook]||[],sbAutoSave=store.get('koelsa_sb_autosave',true);
 const sbOpen=new Set(),sbCmp=new Set(),sbFoldIds=new Set(),sbUnfold=new Set(),sbChClosed=new Set();let sbChAll=false;
 const ROMS='ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ';
 const sbN=s=>String(s||'').toLowerCase().replace(/㎜/g,'mm').replace(/㎐/g,'hz').replace(/㎏/g,'kg').replace(/㎝/g,'cm').replace(/㎾/g,'kw').replace(/[ㆍ･‧]/g,'·').replace(/\s+/g,'');
@@ -1467,25 +1481,26 @@ async function sbLoad(book){
 }
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
-  B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
+  B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
   B.byId={};B.list.forEach(c=>B.byId[c.id]=c);
   B.chap=(meta.toc||[]).filter(t=>!t.id.includes('.')).map(t=>({...t,items:B.list.filter(c=>inSec(c,t.id))}));
   B.state='ready';if(book===sbBook){renderStd(true);renderIhStats()}
 }
 function sbSetBook(b){
   if(!BOOKS[b]||b===sbBook)return;
-  sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||[];
+  sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||(sbFavAll[b]=[]);
   sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
   renderInsp();sbLoad();window.scrollTo({top:0});
-  toast(isStd()?`${BOOKS[b].icon} 엘리베이터 검사방법 표준화자료로 바꿨어요.`:`${BOOKS[b].icon} ${BOOKS[b].name} 연혁집(${BOOKS[b].code})으로 바꿨어요.`,'ok');
+  toast(isJudg()?`${BOOKS[b].icon} 승강기 검사결과 판정지침으로 바꿨어요.`:isStd()?`${BOOKS[b].icon} 엘리베이터 검사방법 표준화자료로 바꿨어요.`:`${BOOKS[b].icon} ${BOOKS[b].name} 연혁집(${BOOKS[b].code})으로 바꿨어요.`,'ok');
 }
 function renderBookSwitch(){
-  const sec=$('#p-insp');sec.classList.remove('bk-esc','bk-elv','bk-std');sec.classList.add('bk-'+sbBook);
-  $('#sbBooks').innerHTML=['elv','esc','std'].map(k=>{const B=BOOKS[k],st=SBS[k];return `<button data-sbbook="${k}" role="tab" aria-selected="${k===sbBook}" class="bk-btn !gap-1 !px-1 ${k===sbBook?'on':''}"><span>${B.icon}</span><span class="min-w-0"><span class="block truncate">${B.name}</span><span class="bk-sub block truncate">${B.code}${st.meta?' · '+st.meta.count+'건':''}</span></span></button>`}).join('');
-  $('#ihTabStd').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}${isStd()?'':' 기준'}`;
-  $('#ihTitle').textContent=isStd()?'검사방법 표준화자료':`${BOOKS[sbBook].name} 안전기준 연혁집`;
-  $('#ihDesc').textContent=isStd()?'조항별로 검사 현장 적용 방법과 표준화 회차를 확인해요':`${BOOKS[sbBook].name} 조항별 연혁을 찾고, 건축허가일에 맞는 기준을 확인해요`;
+  const sec=$('#p-insp');sec.classList.remove('bk-esc','bk-elv','bk-std','bk-judg');sec.classList.add('bk-'+sbBook);
+  $('#sbBooks').innerHTML=Object.keys(BOOKS).map(k=>{const B=BOOKS[k],st=SBS[k];return `<button data-sbbook="${k}" role="tab" aria-selected="${k===sbBook}" class="bk-btn !gap-1 !px-1 ${k===sbBook?'on':''}"><span>${B.icon}</span><span class="min-w-0"><span class="block truncate">${B.name}</span><span class="bk-sub block truncate">${B.code}${st.meta?' · '+st.meta.count+'건':''}</span></span></button>`}).join('');
+  $('#ihTabStd').textContent=`${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}${isDoc()?'':' 기준'}`;
+  $('#sbQ').placeholder=isJudg()?'검사항목 번호·검사대상 (예: 브레이크, 6.1.8.3)':isStd()?'조항번호·용어·적용 내용 (예: 보호난간, 6.3.1)':'조항번호·용어·기준 내용 (예: 스커트, 5.3.5)';
+  $('#ihTitle').textContent=isJudg()?'검사결과 판정지침':isStd()?'검사방법 표준화자료':`${BOOKS[sbBook].name} 안전기준 연혁집`;
+  $('#ihDesc').textContent=isJudg()?'검사항목 번호나 검사대상으로 기종별 불합격 판정 내용을 찾아요':isStd()?'조항별로 검사 현장 적용 방법과 표준화 회차를 확인해요':`${BOOKS[sbBook].name} 조항별 연혁을 찾고, 건축허가일에 맞는 기준을 확인해요`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-sbbook]');if(b&&cur==='insp')sbSetBook(b.dataset.sbbook)});
 function sbVers(c){
@@ -1527,9 +1542,10 @@ function sbRow(c,q){
   const ch=SB.chap.find(x=>x.id===chapOf(c));
   const body=(c.cur||(c.hist[0]&&c.hist[0].x)||'').replace(/\s+/g,' ').trim();
   const hq=q&&!sbN(c.cur).includes(sbN(q))&&c.hist.find(h=>sbN(h.x+' '+h.lab).includes(sbN(q)));
-  const prev=hq?('종전 · '+hq.x.replace(/\s+/g,' ')):body;
-  const status=d&&!isStd()?(A[0]==='cm'?'cm':appliedIdx>=0?'ok':'no'):null;
-  const sub=isStd()?`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.ap?` <span class="ap-std">📌 ${esc(c.ap)}</span>`:''}`:d&&appliedIdx>0?`📌 ${esc(V[appliedIdx].lab)}`:`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.hist.length?` · 종전 ${c.hist.length}건`:''}`;
+  let prev=hq?('종전 · '+hq.x.replace(/\s+/g,' ')):body;
+  if(q&&!hq){const k=q.trim().split(/\s+/)[0],ix=k?prev.indexOf(k):-1;if(ix>60)prev='…'+prev.slice(ix-30)}
+  const status=d&&!isDoc()?(A[0]==='cm'?'cm':appliedIdx>=0?'ok':'no'):null;
+  const sub=isJudg()?`${c.kind?esc(c.kind)+' · ':(ch?esc(ch.t)+' · ':'')}${c.nos&&c.nos.length>1?'검사항목 '+esc(c.nos.join(' · '))+' · ':''}p.${c.p}`:isStd()?`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.ap?` <span class="ap-std">📌 ${esc(c.ap)}</span>`:''}`:d&&appliedIdx>0?`📌 ${esc(V[appliedIdx].lab)}`:`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.hist.length?` · 종전 ${c.hist.length}건`:''}`;
   return `<button data-sbopen="${esc(c.id)}" class="sb-row" data-sbcard="${esc(c.id)}">
     <span class="sb-id">${esc(sbIdLabel(c))}</span>
     <span class="flex-1 min-w-0"><span class="flex items-start gap-2"><b class="flex-1 min-w-0 text-sm break-words" style="font-size:var(--sbfs,14px)">${sbHL(c.t||c.id,q)}</b>${status?sbBadge(status):''}${fav?'<span class="text-amber-500 text-sm shrink-0">★</span>':''}</span>
@@ -1581,9 +1597,9 @@ function sbSearch(q){
     if(!c.cur&&!c.hist.length)return;
     const all=c._h+'|'+c._c+'|'+c._o;
     const inH=toks.every(t=>c._h.includes(t)),inC=toks.every(t=>c._c.includes(t)),inO=toks.every(t=>c._o.includes(t));
-    const any=idq?(c.ids||[c.id]).some(x=>x===qid||x.startsWith(qid+'.')):toks.every(t=>all.includes(t));
+    const IDS=c.nos&&c.nos.length?c.nos:(c.ids||[c.id]);const any=idq?IDS.some(x=>x===qid||x.startsWith(qid+'.')):toks.every(t=>all.includes(t));
     if(!(inH||inC||inO||any))return;
-    let s=0;if(idq){s+=(c.ids||[c.id]).includes(qid)?5000:(3000-c.id.length)}
+    let s=0;if(idq){s+=IDS.includes(qid)?5000:(3000-c.id.length)}
     toks.forEach(t=>{s+=sbCnt(c._h,t)*40+Math.min(sbCnt(c._c,t),6)*8+Math.min(sbCnt(c._o,t),6)*2;if(c._h.startsWith(t))s+=30});
     res.push({c,s,inH,inC,inO});
   });
@@ -1603,10 +1619,10 @@ function sbSuggest(){
     box.classList.remove('hidden');return;
   }
   const n=sbN(v),idq=/^[0-9ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ][0-9.]*$/.test(v);
-  const hits=SB.list.filter(c=>c.cur||c.hist.length).map(c=>{let s=0;if(idq&&(c.ids||[c.id]).some(x=>x.startsWith(v)))s=100-c.id.length;else if(c._h.includes(n))s=50-(c._h.indexOf(n));return {c,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,7);
+  const hits=SB.list.filter(c=>c.cur||c.hist.length).map(c=>{let s=0;if(idq&&(c.nos&&c.nos.length?c.nos:(c.ids||[c.id])).some(x=>x.startsWith(v)))s=100-c.id.length;else if(c._h.includes(n))s=50-(c._h.indexOf(n));return {c,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,7);
   const nBody=SB.list.filter(c=>c._c.includes(n)||c._o.includes(n)).length;
   box.innerHTML=`<button type="button" data-sbq="${esc(v)}" class="w-full text-left px-4 min-h-[46px] flex items-center gap-2 border-b border-purple-400/20"><span>🔍</span><span class="flex-1 min-w-0 truncate"><b>‘${esc(v)}’</b> 전체 검색</span><span class="text-[11px] opacity-70 shrink-0">본문 ${nBody}건</span></button>`+
-    (hits.length?hits.map(({c})=>`<button type="button" data-sbsec="${esc(c.id)}" class="w-full text-left px-4 min-h-[44px] flex items-center gap-2 hover:bg-purple-500/10"><span class="text-[11px] font-black text-purple-700 dark:text-purple-300 shrink-0 tabular-nums">${esc(sbIdLabel(c))}</span><span class="flex-1 min-w-0 truncate text-sm">${sbHL(c.t,v)}</span><span class="text-[10px] opacity-60 shrink-0">p.${c.p}</span></button>`).join(''):'<p class="px-4 py-3 text-xs opacity-70">조항 제목에서 찾지 못했어요. ‘전체 검색’으로 본문까지 찾아보세요.</p>');
+    (hits.length?hits.map(({c})=>`<button type="button" data-sbsec="${esc(c.id)}" class="w-full text-left px-4 min-h-[44px] flex items-center gap-2 hover:bg-purple-500/10"><span class="text-[11px] font-black text-purple-700 dark:text-purple-300 shrink-0 tabular-nums">${esc(sbIdLabel(c))}</span><span class="flex-1 min-w-0 truncate text-sm">${c.kind?`<span class="text-[10px] opacity-70">${esc(c.kind)} · </span>`:''}${sbHL(c.t,v)}</span><span class="text-[10px] opacity-60 shrink-0">p.${c.p}</span></button>`).join(''):'<p class="px-4 py-3 text-xs opacity-70">조항 제목에서 찾지 못했어요. ‘전체 검색’으로 본문까지 찾아보세요.</p>');
   box.classList.remove('hidden');
 }
 function sbSubmit(q){
@@ -1621,29 +1637,29 @@ function renderInsp(){
   renderBookSwitch();renderIhStats();sbLoad();renderStd();
 }
 function renderIhStats(){
-  const m=SB.meta,B=BOOKS[sbBook];$('#ihStats').innerHTML=isStd()?`<span>${B.icon} 엘리베이터 검사방법 표준화</span><span>📋 항목 ${m?m.count:'-'}</span>`:`<span>${B.icon} ${B.name} ${B.code}</span><span>📚 조항 ${m?m.count:'-'}</span><span>➥ 종전 기준 ${m?m.hist:'-'}</span>`;
+  const m=SB.meta,B=BOOKS[sbBook];$('#ihStats').innerHTML=isJudg()?`<span>${B.icon} 설치·안전검사 결과 판정지침</span><span>⚖️ 항목 ${m?m.count:'-'}</span>`:isStd()?`<span>${B.icon} 엘리베이터 검사방법 표준화</span><span>📋 항목 ${m?m.count:'-'}</span>`:`<span>${B.icon} ${B.name} ${B.code}</span><span>📚 조항 ${m?m.count:'-'}</span><span>➥ 종전 기준 ${m?m.hist:'-'}</span>`;
   $('#ihFavCnt').textContent=sbFav.length?` ${sbFav.length}`:'';
 }
 function sbBookCard(){
   const m=SB.meta;if(!m)return '';const b=m.book;
   return `<div class="card !p-3"><div class="flex items-start gap-3"><span class="sb-id !rounded-full" aria-hidden="true">📌</span><div class="flex-1 min-w-0">
-    <div class="text-[11px] font-black text-purple-700 dark:text-purple-300"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${isStd()?'적용 해석 자료':'기준 자료'}</div>
+    <div class="text-[11px] font-black text-purple-700 dark:text-purple-300"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${isJudg()?'검사 판정 기준':isStd()?'적용 해석 자료':'기준 자료'}</div>
     <b class="text-sm block">${esc(b.title)}</b></div></div>
-    <button data-sbguide class="sb-act w-full mt-2 px-3 sub text-left">${sbOpen.has('__guide')?'▲ 활용 안내 접기':isStd()?'▼ 표준화자료 활용 안내':'▼ 연혁집 활용 안내'}</button>
-    ${sbOpen.has('__guide')?`<ul class="mt-2 space-y-1.5 text-xs leading-relaxed list-disc pl-5">${(m.guide||[]).map(g=>`<li>${esc(g)}</li>`).join('')}</ul><div class="flex flex-wrap gap-1.5 mt-2">${sbBadge('ok')}${sbBadge('no')}${sbBadge('cm')}<span class="text-[10px] opacity-70 self-center">◻ 공통 = 연혁 표시가 없는 기준</span></div>`:''}</div>`;
+    <button data-sbguide class="sb-act w-full mt-2 px-3 sub text-left">${sbOpen.has('__guide')?'▲ 활용 안내 접기':isJudg()?'▼ 판정 기준 한눈에 보기':isStd()?'▼ 표준화자료 활용 안내':'▼ 연혁집 활용 안내'}</button>
+    ${sbOpen.has('__guide')?`<ul class="mt-2 space-y-1.5 text-xs leading-relaxed list-disc pl-5">${(m.guide||[]).map(g=>`<li>${esc(g)}</li>`).join('')}</ul>${isDoc()?'':`<div class="flex flex-wrap gap-1.5 mt-2">${sbBadge('ok')}${sbBadge('no')}${sbBadge('cm')}<span class="text-[10px] opacity-70 self-center">◻ 공통 = 연혁 표시가 없는 기준</span></div>`}`:''}</div>`;
 }
 function sbToolsHTML(){
   const t=(attr,label,on,title)=>`<button ${attr} title="${title}" aria-pressed="${!!on}" class="chip !min-h-[38px] ${on?'sel':''}">${label}</button>`;
   return t('data-sbtool="toc"','📑 목차',!sbQ&&!sbSec,'목차로')+
-    (isStd()?'':t('data-sbtool="applied"','✅ 적용',sbAppliedOnly,'허가일에 적용되는 조항만 보기'))+
+    (isDoc()?'':t('data-sbtool="applied"','✅ 적용',sbAppliedOnly,'허가일에 적용되는 조항만 보기'))+
     t('data-sbtool="fold"',sbFold?'📖 펼치기':'📕 접기',sbFold,'본문 미리보기 접기/펼치기')+
     `<span class="ml-auto inline-flex items-center rounded-full border border-purple-400/50 overflow-hidden"><button data-sbtool="fs-" aria-label="글자 작게" class="min-h-[38px] w-10 text-xs font-bold">가−</button><span class="w-px h-5 bg-purple-400/40"></span><button data-sbtool="fs+" aria-label="글자 크게" class="min-h-[38px] w-10 text-sm font-black">가+</button></span>`;
 }
 function sbCatalog(){
   const d=sbDate;
-  return `<div class="card !p-0 overflow-hidden"><div class="flex items-center justify-between px-3 pt-3 pb-2"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${isStd()?'표준화자료':'연혁집'} 목차</h2><div class="flex items-center gap-2"><span class="text-[11px] opacity-70">${isStd()?`항목 ${SB.meta.count}`:`조항 ${SB.meta.count} · 종전 ${SB.meta.hist}`}</span><button data-sbchall class="chip !min-h-[30px] !text-[11px] ${sbChAll?'sel':''}">${sbChAll?'모두 접기':'모두 펼치기'}</button></div></div>
+  return `<div class="card !p-0 overflow-hidden"><div class="flex items-center justify-between px-3 pt-3 pb-2"><h2 class="font-black text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${isJudg()?'판정지침':isStd()?'표준화자료':'연혁집'} 목차</h2><div class="flex items-center gap-2"><span class="text-[11px] opacity-70">${isDoc()?`항목 ${SB.meta.count}`:`조항 ${SB.meta.count} · 종전 ${SB.meta.hist}`}</span><button data-sbchall class="chip !min-h-[30px] !text-[11px] ${sbChAll?'sel':''}">${sbChAll?'모두 접기':'모두 펼치기'}</button></div></div>
   ${SB.chap.map(ch=>{
-    const open=sbChAll?!sbChClosed.has(ch.id):sbOpenCh===ch.id,its=ch.items.filter(c=>c.cur||c.hist.length),hn=its.reduce((a,c)=>a+c.hist.length,0),ap=d&&!isStd()?its.filter(c=>sbApplies(c,d)).length:null;
+    const open=sbChAll?!sbChClosed.has(ch.id):sbOpenCh===ch.id,its=ch.items.filter(c=>c.cur||c.hist.length),hn=its.reduce((a,c)=>a+c.hist.length,0),ap=d&&!isDoc()?its.filter(c=>sbApplies(c,d)).length:null;
     const subs=(SB.meta.toc||[]).filter(t=>t.id!==ch.id&&(t.id.startsWith(secPrefix(ch.id))));
     return `<div class="border-t border-purple-400/20"><button data-sbch="${esc(ch.id)}" class="w-full flex items-center gap-3 px-3 min-h-[56px] text-left" aria-expanded="${open}">
       <span class="sb-ch">${esc(ch.id.replace('부속서 ',''))}</span><span class="flex-1 min-w-0"><b class="text-sm block truncate">${ch.id.startsWith('부속서')?'부속서 · ':''}${esc(ch.t)}</b><span class="text-[11px] opacity-70 tabular-nums">p.${ch.p} · 조항 ${its.length}${hn?` · 종전 ${hn}`:''}${ap!=null?` · 적용 ${ap}`:''}</span></span><span class="text-xs opacity-60">${open?'▲':'▼'}</span></button>
@@ -1663,12 +1679,12 @@ function renderStd(force){
   $('#ihStd').style.setProperty('--sbfs',sbFs+'px');$('#ihFav').style.setProperty('--sbfs',sbFs+'px');
   if(ihTab==='fav')return renderSbFav();
   const main=$('#sbMain');
-  $('#sbDate').value=sbDate;$('#sbTools').innerHTML=sbToolsHTML();$('#sbDateHelp').classList.toggle('hidden',!!sbDate);$('#sbDateClr').classList.toggle('hidden',!sbDate);$('#sbDateCard').classList.toggle('hidden',isStd());
+  $('#sbDate').value=sbDate;$('#sbTools').innerHTML=sbToolsHTML();$('#sbDateHelp').classList.toggle('hidden',!!sbDate);$('#sbDateClr').classList.toggle('hidden',!sbDate);$('#sbDateCard').classList.toggle('hidden',isDoc());
   const today=key(new Date());
   $('#sbQuick').innerHTML=[['2013-09-14','~2013.9.14'],['2013-09-15','2013.9.15~'],['2019-03-28','2019.3.28~'],[today,'오늘']].map(([v,l])=>`<button type="button" data-sbqd="${v}" class="chip !min-h-[32px] !text-[11px] ${sbDate===v?'sel':''}">${l}</button>`).join('');
   if(SB.state!=='ready'){
     $('#sbBook').innerHTML='';
-    main.innerHTML=`<div class="card text-center text-sm py-8 leading-relaxed">${SB.state==='loading'||SB.state==='idle'?`${BOOKS[sbBook].icon} ${BOOKS[sbBook].name} 연혁집을 불러오는 중…`:SB.state==='none'?'연혁집은 지사 공유 저장소에 보관돼 있어요.<br>초대받은 직원 계정으로 접속하면 볼 수 있어요.':SB.state==='empty'?'아직 연혁집 자료가 올라오지 않았어요.':'연혁집을 불러오지 못했어요. 잠시 후 다시 열어 주세요.'}</div>`;return;
+    main.innerHTML=`<div class="card text-center text-sm py-8 leading-relaxed">${SB.state==='loading'||SB.state==='idle'?`${BOOKS[sbBook].icon} ${BOOKS[sbBook].name} 자료를 불러오는 중…`:SB.state==='none'?'연혁집은 지사 공유 저장소에 보관돼 있어요.<br>초대받은 직원 계정으로 접속하면 볼 수 있어요.':SB.state==='empty'?'아직 연혁집 자료가 올라오지 않았어요.':'연혁집을 불러오지 못했어요. 잠시 후 다시 열어 주세요.'}</div>`;return;
   }
   $('#sbBook').innerHTML=sbBookCard();
   if(sbQ){
@@ -1676,7 +1692,7 @@ function renderStd(force){
     const cnt={all:res.length,h:res.filter(x=>x.inH).length,c:res.filter(x=>x.inC).length,o:res.filter(x=>x.inO).length};
     let R=res.filter(x=>sbFilter==='all'||(sbFilter==='h'&&x.inH)||(sbFilter==='c'&&x.inC)||(sbFilter==='o'&&x.inO));
     R=R.sort((a,b)=>sbSort==='rel'?(b.s-a.s)||(a.c.n-b.c.n):a.c.n-b.c.n);
-    const tabs=[['all','전체'],['h','조항명'],['c','현행 기준'],['o','종전 기준']];
+    const tabs=isDoc()?[['all','전체'],['h',isJudg()?'검사항목·대상':'조항명'],['c',isJudg()?'판정 내용':'본문']]:[['all','전체'],['h','조항명'],['c','현행 기준'],['o','종전 기준']];
     main.innerHTML=`<div class="flex items-end justify-between gap-2 px-1"><div class="min-w-0"><div class="text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span><b>‘${esc(sbQ)}’</b> 검색 결과 <b class="text-purple-700 dark:text-purple-300 tabular-nums">${res.length}</b>건</div>${fuzzy?'<div class="text-[11px] opacity-75 mt-0.5">정확히 일치하는 결과가 없어 비슷한 조항을 보여드려요.</div>':''}</div>
       <button data-sbsort class="chip !min-h-[32px] !text-[11px] shrink-0">${sbSort==='rel'?'정확도순 ▾':'조항순 ▾'}</button></div>
       ${fuzzy?'':`<div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max">${tabs.map(([k,l])=>`<button data-sbf="${k}" class="chip !min-h-[36px] ${sbFilter===k?'sel':''}">${l} <span class="tabular-nums opacity-80">${cnt[k]}</span></button>`).join('')}</div></div>`}
@@ -1712,8 +1728,8 @@ function sbSheetHTML(c,q){
   const ch=SB.chap.find(x=>x.id===chapOf(c));const hist=sbOpen.has(c.id)||(d&&appliedIdx>0)||(q&&!sbN(c.cur).includes(sbN(q)));
   const shownN=1+(hist?V.length-1:0),foldedN=V.slice(0,shownN).filter((v,i)=>sbVFold.has(i)).length,allFolded=shownN>0&&foldedN===shownN;
   const ver=(v,i)=>{const fd=sbVFold.has(i);return `<div class="sb-ver ${A[i]||''} pl-3 py-1.5">
-      <button data-sbvfold="${i}" class="w-full flex items-start gap-2 flex-wrap text-left min-h-[32px]" aria-expanded="${!fd}"><span class="text-[11px] font-black flex-1 min-w-0">${isStd()?`<span class="px-1.5 py-0.5 rounded-md bg-[#D97706] text-white mr-1">표준화 적용 방법</span>`:i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${isStd()?'':esc(v.lab)}</span>${isStd()?'':sbBadge(A[i])}<span class="text-xs opacity-60 self-center">${fd?'▼':'▲'}</span></button>
-      ${isStd()?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1"><span class="opacity-70">적용(표준화 안내)</span>${c.ap?`<span class="ap-std">📌 ${esc(c.ap)}</span>`:'<span class="opacity-60">표시 없음</span>'}</div>`:`<div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>`}
+      <button data-sbvfold="${i}" class="w-full flex items-start gap-2 flex-wrap text-left min-h-[32px]" aria-expanded="${!fd}"><span class="text-[11px] font-black flex-1 min-w-0">${isJudg()?`<span class="px-1.5 py-0.5 rounded-md text-white mr-1" style="background:#BE123C">${esc(c.vl||'판정 내용')}</span>`:isStd()?`<span class="px-1.5 py-0.5 rounded-md bg-[#D97706] text-white mr-1">표준화 적용 방법</span>`:i===0?'<span class="px-1.5 py-0.5 rounded-md bg-[#6D28D9] text-white mr-1">현행</span>':'➥ '}${isDoc()?'':esc(v.lab)}</span>${isDoc()?'':sbBadge(A[i])}<span class="text-xs opacity-60 self-center">${fd?'▼':'▲'}</span></button>
+      ${isJudg()?(c.kind||c.nos?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1">${c.kind?`<span class="ap-judg">${esc(c.kind)}${c.code?' · '+esc(c.code):''}</span>`:''}${c.nos&&c.nos.length?`<span class="opacity-75">검사항목 ${esc(c.nos.slice(0,8).join(' · '))}${c.nos.length>8?' 외':''}</span>`:''}</div>`:''):isStd()?`<div class="text-[11px] mt-1 flex flex-wrap items-center gap-1"><span class="opacity-70">적용(표준화 안내)</span>${c.ap?`<span class="ap-std">📌 ${esc(c.ap)}</span>`:'<span class="opacity-60">표시 없음</span>'}</div>`:`<div class="text-[10px] opacity-70 tabular-nums mt-0.5">적용 기간 ${sbRange(v)}${v.note?' · '+esc(v.note):''}${v.extra?' · 추가 종전 기준':''}${v.inst?' · 설치일 기준':''}${v.sh?' · 시행':''}</div>`}
       ${fd?`<button data-sbvfold="${i}" class="block w-full text-left text-xs opacity-70 mt-1 min-h-[28px] truncate">${esc((v.x||'').replace(/\s+/g,' ').slice(0,60))}… <u>펼치기</u></button>`:`<div class="sbt mt-1.5">${sbHL(v.x||'(본문 없음)',q)}</div>
       ${i>0?`<button data-sbcmp="${esc(c.id)}|${i}" class="sb-act mt-1.5 px-3 border border-purple-400/50">${sbCmp.has(c.id+'|'+i)?'비교 닫기':'↔ 신·구 비교'}</button>${sbCmp.has(c.id+'|'+i)?sbCmpHTML(c,i):''}`:''}`}
     </div>`};
@@ -1721,14 +1737,14 @@ function sbSheetHTML(c,q){
     <span class="inline-flex items-center rounded-full border border-purple-400/50 overflow-hidden"><button data-sbtool="fs-" aria-label="글자 작게" class="min-h-[34px] w-10 text-xs font-bold">가−</button><span class="w-px h-5 bg-purple-400/40"></span><button data-sbtool="fs+" aria-label="글자 크게" class="min-h-[34px] w-10 text-sm font-black">가+</button></span>
     <button data-sbvfoldall="${allFolded?'0':'1'}" class="chip !min-h-[34px] !text-[11px]">${allFolded?'📖 모두 펼치기':'📕 모두 접기'}</button></div>`;
   let verdict='';
-  if(d&&!isStd()){const st=A[0]==='cm'?'cm':appliedIdx>=0?'ok':'no';
+  if(d&&!isDoc()){const st=A[0]==='cm'?'cm':appliedIdx>=0?'ok':'no';
     verdict=`<div class="mt-2 px-3 py-2.5 rounded-xl ${st==='ok'?'ap-ok':st==='no'?'ap-no':'ap-cm'} text-xs font-bold leading-relaxed">${st==='cm'?'◻ 연혁 구분 없이 공통으로 보는 기준이에요.':st==='ok'?`🟩 ${fmtD(d)} 허가분에 적용 · ${appliedIdx===0?'현행 기준':esc(V[appliedIdx].lab)}`:(c.hist.length?`🟥 ${fmtD(d)} 허가분에 해당하는 연혁 기준이 없어요. 원문을 확인해 주세요.`:`🟥 ${fmtD(c.from)} 이후 허가분부터 생긴 기준이라 적용되지 않아요.`)}</div>`}
   const F=sbFigPages(c);
-  const head=`<div class="flex items-start gap-3"><span class="sb-id">${esc(sbIdLabel(c))}</span><div class="flex-1 min-w-0"><div class="text-[11px] opacity-70"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}</div><b class="text-base break-words block leading-snug">${sbHL(c.t||c.id,q)}</b></div><button data-sbclose aria-label="닫기" class="w-9 h-9 rounded-full sb-sec shrink-0">✕</button></div>${verdict}`;
+  const head=`<div class="flex items-start gap-3"><span class="sb-id">${esc(sbIdLabel(c))}</span><div class="flex-1 min-w-0"><div class="text-[11px] opacity-70"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span>${ch?esc((isJudg()?'':ch.id+' ')+ch.t)+' · ':''}p.${c.p}</div><b class="text-base break-words block leading-snug">${sbHL(c.t||c.id,q)}</b></div><button data-sbclose aria-label="닫기" class="w-9 h-9 rounded-full sb-sec shrink-0">✕</button></div>${verdict}`;
   const body=`<div class="space-y-2">${tools}${ver(V[0],0)}
     ${c.hist.length?`<button data-sbhist="${esc(c.id)}" class="sb-act w-full px-3 sb-sec text-left">${hist?'▲':'▼'} 종전 기준 ${c.hist.length}건 ${hist?'접기':'보기'}</button>${hist?V.slice(1).map((v,k)=>ver(v,k+1)).join(''):''}`:''}
     ${F.length?`<div class="flex flex-wrap gap-1.5 pt-1">${F.map(p=>`<button data-sbfig="${p}" data-sbfigc="${esc(sbIdLabel(c))}" class="chip !min-h-[34px] !text-[11px]">🖼️ 원문 그림·표 p.${p}</button>`).join('')}</div>`:''}</div>`;
-  const foot=`<div class="grid grid-cols-3 gap-2"><button data-sbfav="${esc(c.id)}" class="sb-sec ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button><button data-sbcopy="${esc(c.id)}" class="sb-sec">📋 복사</button><button data-sbsec="${esc(isStd()?(c.ids||[c.id])[0]:c.id)}" class="sb-sec">${isStd()?'📑 같은 조항':'📑 하위 조항'}</button></div>${c.hist.length&&!hist?`<button data-sbhist="${esc(c.id)}" class="sb-pri w-full mt-2">종전 기준 ${c.hist.length}건 보기</button>`:''}`;
+  const foot=`<div class="grid grid-cols-3 gap-2"><button data-sbfav="${esc(c.id)}" class="sb-sec ${fav?'text-amber-500':''}" aria-pressed="${fav}">${fav?'★ 저장됨':'☆ 즐겨찾기'}</button><button data-sbcopy="${esc(c.id)}" class="sb-sec">📋 복사</button><button data-sbsec="${esc(isJudg()?chapOf(c):isStd()?(c.ids||[c.id])[0]:c.id)}" class="sb-sec">${isJudg()?'📑 같은 목록':isStd()?'📑 같은 조항':'📑 하위 조항'}</button></div>${c.hist.length&&!hist?`<button data-sbhist="${esc(c.id)}" class="sb-pri w-full mt-2">종전 기준 ${c.hist.length}건 보기</button>`:''}`;
   return {head,body,foot};
 }
 function sbOpenSheet(id,q){
@@ -1740,7 +1756,7 @@ function sbOpenSheet(id,q){
 function sbRenderSheet(){
   if(!sbSheetId)return;const c=SB.byId[sbSheetId];if(!c){sbCloseSheet();return}
   const h=sbSheetHTML(c,sbSheetQ),bd=$('#sbSheetBody'),st=bd.scrollTop;$('#sbSheet').style.setProperty('--sbfs',sbFs+'px');
-  $('#sbSheetHead').innerHTML=h.head;bd.innerHTML=h.body;$('#sbSheetFoot').innerHTML=h.foot;bd.scrollTop=st;
+  $('#sbSheet').dataset.bk=sbBook;$('#sbSheetHead').innerHTML=h.head;bd.innerHTML=h.body;$('#sbSheetFoot').innerHTML=h.foot;bd.scrollTop=st;
 }
 function sbCloseSheet(fromPop){
   if(!sbSheetId)return;const w=$('#sbSheetWrap');w.classList.remove('on');w.setAttribute('aria-hidden','true');
@@ -1821,7 +1837,7 @@ document.addEventListener('click',async e=>{
   if(b=g('data-sbfav')){const id=b.dataset.sbfav;sbFav=sbFav.includes(id)?sbFav.filter(x=>x!==id):[id,...sbFav].slice(0,200);sbFavAll[sbBook]=sbFav;store.set('koelsa_sb_fav2',sbFavAll);toast(sbFav.includes(id)?'즐겨찾기에 담았어요.':'즐겨찾기에서 뺐어요.','ok');renderIhStats();sbRenderSheet();renderStd(true);return}
   if(g('data-sbfavclr')){sbFav=[];sbFavAll[sbBook]=[];store.set('koelsa_sb_fav2',sbFavAll);renderIhStats();renderStd(true);return}
   if(b=g('data-sbfold')){const id=b.dataset.sbfold;const folded=(sbFold&&!sbUnfold.has(id))||sbFoldIds.has(id);if(folded){sbFoldIds.delete(id);if(sbFold)sbUnfold.add(id)}else{sbUnfold.delete(id);sbFoldIds.add(id)}renderStd(true);return}
-  if(b=g('data-sbcopy')){const c=SB.byId[b.dataset.sbcopy];if(!c)return;const V=sbVers(c);const t=isStd()?[`[엘리베이터 검사방법 표준화 ${SB.meta.book.ver}] ${sbIdLabel(c)} ${c.t}`,`p.${c.p} · 적용(표준화 안내): ${c.ap||'표시 없음'}`,'',c.cur||''].join('\n\n'):[`[${BOOKS[sbBook].name} 안전기준 · ${SB.meta.book.code} ${SB.meta.book.ver}] ${c.id} ${c.st?'':c.t}`.trim(),`p.${c.p}`,'',...V.map((v,i)=>`${i?'➥ ':'■ 현행 · '}${v.lab} (${sbRange(v)})\n${v.x||''}`)].join('\n\n');
+  if(b=g('data-sbcopy')){const c=SB.byId[b.dataset.sbcopy];if(!c)return;const V=sbVers(c);const t=isJudg()?[`[승강기 검사결과 판정지침 ${SB.meta.book.ver}] ${c.kind?c.kind+' · ':''}${c.nos&&c.nos.length?c.nos.join(' · '):(c.cid||c.id)} ${c.t}`,`p.${c.p} · ${c.vl||'판정 내용'}`,'',c.cur||''].join('\n\n'):isStd()?[`[엘리베이터 검사방법 표준화 ${SB.meta.book.ver}] ${sbIdLabel(c)} ${c.t}`,`p.${c.p} · 적용(표준화 안내): ${c.ap||'표시 없음'}`,'',c.cur||''].join('\n\n'):[`[${BOOKS[sbBook].name} 안전기준 · ${SB.meta.book.code} ${SB.meta.book.ver}] ${c.id} ${c.st?'':c.t}`.trim(),`p.${c.p}`,'',...V.map((v,i)=>`${i?'➥ ':'■ 현행 · '}${v.lab} (${sbRange(v)})\n${v.x||''}`)].join('\n\n');
     try{await navigator.clipboard.writeText(t);toast('조항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요. 본문을 길게 눌러 복사해 주세요.','error')}return}
   if(g('data-sbmore')){sbShow+=20;renderStd(true);return}
   if(b=g('data-sbf')){sbFilter=b.dataset.sbf;sbShow=20;renderStd(true);return}
