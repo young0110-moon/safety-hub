@@ -578,11 +578,6 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <div id="csScores" class="grid grid-cols-5 gap-1.5"></div>
   </div>
   <div id="csDetail"></div>
-  <div class="rounded-2xl p-4 text-white" style="background:linear-gradient(135deg,#0F4C5C,#134E4A)">
-    <h3 class="font-black text-base">판정 시 핵심 원칙</h3>
-    <p class="text-[11px] opacity-80 mt-0.5">아래 4가지만 기억하면 누구나 일관된 기준으로 판정할 수 있습니다.</p>
-    <div id="csRules" class="grid grid-cols-2 gap-2 mt-3"></div>
-  </div>
   <p class="text-[11px] opacity-70 text-center leading-relaxed px-2">표준화된 고객우호도 판정 가이드로, 신뢰할 수 있는 PCSI 표본 선정 체계를 만들어갑니다.</p>
 </section>
 
@@ -2517,7 +2512,6 @@ function renderCS(){
       <ol class="space-y-1.5">${g.ex.map((x,i)=>`<li class="flex items-start gap-2 sub rounded-xl px-3 py-2.5"><span class="w-5 h-5 rounded-full text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-px" style="background:${g.c}">${i+1}</span><span class="text-[13px] leading-snug">${esc(x)}</span></li>`).join('')}</ol></div>
       <div class="grid grid-cols-2 gap-2 pt-1">${csSel>1?`<button data-cssel="${csSel-1}" class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">‹ ${csSel-1}점 보기</button>`:'<span></span>'}${csSel<5?`<button data-cssel="${csSel+1}" class="min-h-[42px] rounded-xl border border-purple-400/40 text-xs font-bold">${csSel+1}점 보기 ›</button>`:'<span></span>'}</div>
     </div></article>`;
-  $('#csRules').innerHTML=CS_RULES.map(([t,d],i)=>`<div class="rounded-xl p-3" style="background:rgba(255,255,255,.08);border:1px solid rgba(94,234,212,.35)"><div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center" style="background:#14B8A6;color:#fff">${i+1}</span><b class="text-[13px]">${t}</b></div><p class="text-[11px] mt-1.5 leading-snug opacity-90">${d}</p></div>`).join('');
   const qz=$('#csQuiz');csRes=csJudge();const r=csRes.n?CSG[csRes.n-1]:null;
   const faces=`<div class="space-y-1.5 mt-1.5">${CS_FACE.map(f=>{const on=csFaces.includes(f.n),g=CSG[f.n-1],c=g.c;return `<button data-csface="${f.n}" class="w-full flex items-center gap-3 text-left rounded-2xl px-3 py-2.5 border-2 transition ${on?'':'sub'}" style="border-color:${on?c:'transparent'};${on?`background:${c}1A`:''}" aria-pressed="${on}"><span class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-[28px] leading-none ${on?'bg-white shadow':'bg-white/60'}" style="${on?`box-shadow:0 0 0 3px ${c}`:''}">${f.e}</span><span class="flex-1 min-w-0"><b class="block text-[13px] leading-snug">${esc(g.t)} <span class="font-bold opacity-70">· ${esc(g.chip)}</span></b><span class="block text-[11px] opacity-80 leading-snug mt-1">${esc(CS_SUM[f.n])}</span></span>${on?`<span class="text-lg shrink-0">✅</span>`:''}</button>`}).join('')}</div><p class="text-[10px] opacity-60 mt-1.5">여러 개를 함께 체크할 수 있어요. 체크하면 바로 분석과 점수가 나와요.</p>`;
   const step2='';
