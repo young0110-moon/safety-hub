@@ -664,6 +664,11 @@ mark.sbm{background:#FDE68A;color:#1E1B4B;border-radius:3px;padding:0 1px}
     <p class="text-[11px] opacity-75">기본 보라 테마는 그대로 두고, 원하는 테마를 골라 쓸 수 있어요. 이 휴대폰에만 적용되고, 낮/밤 전환은 위쪽 ☀️🌙 버튼으로.</p>
     <div id="pfThemeList" class="grid grid-cols-1 gap-2"></div>
   </div>
+  <div class="card space-y-2" id="pfPush">
+    <h2 class="font-black text-sm">🔔 휴대폰 알림</h2>
+    <p class="text-[11px] opacity-75 leading-relaxed">앱이 꺼져 있어도 잠금 화면에 알림이 와요. 휴대폰마다 한 번씩 켜 주세요.</p>
+    <div id="pushBox"></div>
+  </div>
   <div class="card space-y-2" id="pfUpd">
     <h2 class="font-black text-sm">🔄 최신 버전 업데이트</h2>
     <div class="flex items-center gap-3">
@@ -890,7 +895,7 @@ function show(name,back){
   $('#pageTitle').textContent=p.dataset.title||'';
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.go===name));
   window.scrollTo({top:0});
-  if(name==='profile'){fillProfile();renderHomeAcct()}
+  if(name==='profile'){fillProfile();renderHomeAcct();renderPush()}
   if(name==='admin'){if(!isAdmin){location.hash='home';return}loadAccess()}
   if(typeof sbCloseSheet==='function'&&name!=='insp')sbCloseSheet(true);
   if(name!=='fortune'){ftShown=null;$('#ftBirth').value='';$('#ftOut').innerHTML=''}
@@ -1030,6 +1035,7 @@ $('#ntAdd').onclick=async()=>{
   const v=$('#ntAt').value,at=v?new Date(v).getTime():Date.now();
   if(v&&at<Date.now()-6e4)return toast('예약 시간이 이미 지났습니다. 이후 시각을 고르세요.','error');
   try{await put('notices',{title,body:$('#ntBody').value.trim(),level:$('#ntLevel').value,at,by:myId,created:Date.now()});
+    if(!v)pushSend('notice','📌 새 공지',title,'#notice');
     $('#ntTitle').value=$('#ntBody').value=$('#ntAt').value='';nFilter=v?2:0;renderNotices();
     toast(v?`${tstr(at)}에 발송되도록 예약했습니다.`:'공지를 게시했습니다.','ok')}catch(err){toast(errMsg(err),'error')}
 };
@@ -1249,7 +1255,7 @@ document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
   const it_=id=>recSaved().find(x=>x.id===id);
   if(b=e.target.closest('[data-recpub]')){const it=it_(b.dataset.recpub);if(!it||!db)return toast('서버에 연결된 뒤 다시 시도해 주세요.','error');
     const d=new Date(it.at);b.disabled=true;
-    try{await db.doc('settings/main').set({brief:{items:it.brief.slice(0,20),date:`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,by:myId,at:Date.now()}},{merge:true});toast('메인화면에 1시간 동안 표시돼요.','ok')}
+    try{await db.doc('settings/main').set({brief:{items:it.brief.slice(0,20),date:`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,by:myId,at:Date.now()}},{merge:true});toast('메인화면에 1시간 동안 표시돼요.','ok');pushSend('brief','📢 브리핑 전달사항 · '+`${d.getMonth()+1}/${d.getDate()}`,it.brief[0]+(it.brief.length>1?` 외 ${it.brief.length-1}건`:''),'#home')}
     catch(err){toast(errMsg(err),'error')}b.disabled=false;return}
   if(b=e.target.closest('[data-reccopy]')){const it=it_(b.dataset.reccopy);if(!it)return;try{await navigator.clipboard.writeText(recBriefText(it));toast('전달사항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요.','error')}return}
   if(b=e.target.closest('[data-recshare]')){const it=it_(b.dataset.recshare);if(!it)return;const t=recText(it);if(navigator.share){try{await navigator.share({title:it.title,text:t})}catch(err){}}else{try{await navigator.clipboard.writeText(t);toast('공유 기능이 없어 복사했어요. 메신저에 붙여넣어 주세요.','ok')}catch(err){}}return}
@@ -1260,6 +1266,51 @@ document.addEventListener('change',e=>{if(!e.target||e.target.id!=='recFile')ret
   if(!recUrl())return toast('AI 정리 서버 주소가 아직 등록되지 않았어요.','error');
   aiRec.t0=Date.now();const n=f.name||'';const type=(f.type&&f.type!=='application/octet-stream')?f.type:(/\.m4a$/i.test(n)?'audio/mp4':/\.wav$/i.test(n)?'audio/wav':/\.aac$/i.test(n)?'audio/aac':/\.ogg$/i.test(n)?'audio/ogg':/\.webm$/i.test(n)?'audio/webm':'audio/mpeg');
   recSend(new Blob([f],{type}))});
+/* ===== 🔔 푸시 알림 (Firebase 클라우드 메시징 + Cloudflare 서버) =====
+   이 휴대폰의 알림 주소(토큰)를 pushTokens/{내 uid} 에 저장 → 서버가 지사 멤버에게 보냄 */
+const PUSH_KINDS=[['brief','📢 브리핑 전달사항'],['sos','🚨 긴급 SOS'],['notice','📌 새 공지'],['hazard','⚠️ 긴급 위험현장'],['voice','📣 긴급 현장목소리']];
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const pushOK=()=>'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window;
+let pushBusy=false,pushPrefs=null;
+function pushSend(kind,title,body,url){try{const u=recUrl(),fu=firebase.auth().currentUser;if(!u||!fu)return;
+  fu.getIdToken().then(tk=>fetch(u.replace(/\/$/,'')+'/push',{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({kind,title,body,url})})).catch(()=>{})}catch(e){}}
+function loadMessaging(){if(firebase.messaging)return Promise.resolve();return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='vendor/firebase-messaging-compat.js';sc.onload=ok;sc.onerror=()=>no(new Error('알림 라이브러리를 불러오지 못했어요.'));document.head.appendChild(sc)})}
+async function pushToken(){await loadMessaging();const reg=await navigator.serviceWorker.ready;
+  return firebase.messaging().getToken({vapidKey:window.FCM_VAPID,serviceWorkerRegistration:reg})}
+async function pushOn(){if(pushBusy)return;
+  if(!pushOK()){return toast(isIOS&&!isStandalone()?'아이폰은 사파리 공유 버튼 → "홈 화면에 추가"로 설치한 앱에서만 알림을 받을 수 있어요.':'이 브라우저는 알림을 지원하지 않아요.','error')}
+  if(!window.FCM_VAPID)return toast('알림 서버 설정이 아직 끝나지 않았어요.','error');
+  pushBusy=true;renderPush();
+  try{const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('알림이 차단돼 있어요. 휴대폰 설정 → 앱(브라우저) → 알림에서 허용해 주세요.');
+    const t=await pushToken();if(!t)throw new Error('알림 주소를 받지 못했어요.');
+    await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayUnion(t),on:true,at:Date.now()},{merge:true});
+    store.set('koelsa_push_tok',t);toast('알림을 켰어요. 시험 알림을 보내 볼게요.','ok');pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 켜졌어요!','#profile')}
+  catch(e){toast(e.message||'알림을 켜지 못했어요.','error')}
+  pushBusy=false;renderPush()}
+async function pushOff(){const t=store.get('koelsa_push_tok','');pushBusy=true;renderPush();
+  try{if(t)await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayRemove(t),at:Date.now()},{merge:true});try{await loadMessaging();await firebase.messaging().deleteToken()}catch(e){}
+    store.set('koelsa_push_tok','');toast('이 휴대폰의 알림을 껐어요.')}catch(e){toast(errMsg(e),'error')}
+  pushBusy=false;renderPush()}
+async function pushPrefLoad(){if(pushPrefs||!db)return;try{const d=await db.doc('pushTokens/'+myId).get();pushPrefs=(d.exists&&d.data().off)||[]}catch(e){pushPrefs=[]}renderPush()}
+async function pushPrefToggle(k){pushPrefs=pushPrefs||[];pushPrefs=pushPrefs.includes(k)?pushPrefs.filter(x=>x!==k):[...pushPrefs,k];renderPush();
+  try{await db.doc('pushTokens/'+myId).set({off:pushPrefs,at:Date.now()},{merge:true})}catch(e){toast(errMsg(e),'error')}}
+function renderPush(){const B=$('#pushBox');if(!B)return;const on=!!store.get('koelsa_push_tok','')&&pushOK()&&Notification.permission==='granted';
+  let h='';
+  if(isIOS&&!isStandalone())h=`<div class="rounded-xl p-3 text-[12px] sub leading-relaxed">📱 <b>아이폰은 먼저 앱 설치가 필요해요.</b><br>사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b> → 홈 화면의 '안전 허브' 아이콘으로 열고 여기서 알림을 켜 주세요. (iOS 16.4 이상)</div>`;
+  else if(!pushOK())h='<div class="rounded-xl p-3 text-[12px] sub">이 브라우저는 알림을 지원하지 않아요. 크롬(안드로이드)이나 홈 화면에 설치한 앱(아이폰)에서 열어 주세요.</div>';
+  else h=`<div class="flex items-center gap-3 rounded-xl p-3 sub"><span class="text-2xl">${on?'🔔':'🔕'}</span><div class="flex-1 min-w-0 leading-tight"><div class="text-sm font-black">${on?'이 휴대폰 알림 켜짐':'알림 꺼짐'}</div><div class="text-[11px] opacity-70">${on?'잠금 화면에 알림이 와요':Notification.permission==='denied'?'휴대폰 설정에서 알림이 차단돼 있어요':'버튼을 눌러 켜 주세요'}</div></div>
+    <button data-push="${on?'off':'on'}" class="shrink-0 min-h-[44px] px-4 rounded-xl text-xs font-bold ${on?'border border-purple-400/50':'text-white'}" ${on?'':'style="background:#6D28D9"'} ${pushBusy?'disabled':''}>${pushBusy?'처리 중…':on?'끄기':'알림 켜기'}</button></div>`;
+  if(on){if(!pushPrefs)pushPrefLoad();const off=pushPrefs||[];
+    h+=`<div class="text-[11px] font-bold opacity-70 mt-2 mb-1">받을 알림 고르기</div><div class="grid grid-cols-1 gap-1.5">${PUSH_KINDS.map(([k,l])=>`<button data-pushk="${k}" class="flex items-center justify-between rounded-xl px-3 min-h-[42px] text-[13px] font-bold sub"><span>${l}</span><span>${off.includes(k)?'⬜':'✅'}</span></button>`).join('')}</div>
+    <button data-push="test" class="w-full mt-2 min-h-[40px] rounded-xl border border-purple-400/50 text-xs font-bold">🔔 나에게 시험 알림 보내기</button>`}
+  B.innerHTML=h}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-push],[data-pushk]');if(!b||!b.closest('#pushBox'))return;
+  if(b.dataset.pushk){if(b.dataset.pushk==='sos'&&!(pushPrefs||[]).includes('sos')&&!confirm('긴급 SOS 알림을 끄면 동료의 긴급 상황을 놓칠 수 있어요. 그래도 끌까요?'))return;pushPrefToggle(b.dataset.pushk);return}
+  const a=b.dataset.push;if(a==='on')pushOn();else if(a==='off')pushOff();else if(a==='test'){pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 와요!','#profile');toast('시험 알림을 보냈어요. 몇 초 안에 와요.','ok')}});
+/* 알림을 켠 휴대폰은 앱을 열 때마다 알림 주소를 새로 확인 (주소가 바뀌는 경우 대비) */
+async function pushRefresh(){try{const old=store.get('koelsa_push_tok','');if(!old||!pushOK()||Notification.permission!=='granted'||!window.FCM_VAPID||!db)return;
+  const t=await pushToken();if(t&&t!==old){await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayUnion(t),at:Date.now()},{merge:true});
+    await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayRemove(old)},{merge:true});store.set('koelsa_push_tok',t)}}catch(e){}}
 /* ===== 현장목소리 검색 (승강기 안전기준 검색과 같은 방식)
    · 여러 낱말 = 모두 포함(AND) · "따옴표" = 그대로 · -낱말 = 제외 · 초성(ㅇㅈㅂ) · 동의어 · 오타 교정 · 관련도/최신 정렬 ===== */
 let vq='',vSort='rel',vLimit=20;
@@ -1353,7 +1404,7 @@ $('#wSend').onclick=async()=>{
     const ids=[];for(const d of pending)ids.push(await photoPut(d));
     const urgent=$('#wUrgent').checked,place=$('#wPlace').value.trim();
     const id=await put('voices',{text,cat:wcat,place,photos:ids,urgent,by:myId,at:Date.now()});
-    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||'사진 전파').slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()})}catch(e){}
+    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||'사진 전파').slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()});pushSend('voice','📣 긴급 현장목소리',(text||'사진 전파').slice(0,60),'#voice')}catch(e){}
     pending=[];$('#wText').value=$('#wPlace').value='';$('#wUrgent').checked=false;wcat='현장공유';
     toast(urgent?(db?'지사 전체에 긴급 전파했습니다.':'저장했습니다. (공유 연결 시 지사 전체에 팝업 전파)'):'현장목소리를 전파했습니다.','ok');
     navStack.pop();location.replace('#voice');
@@ -1460,7 +1511,7 @@ $('#hAdd').onclick=async()=>{
     const ids=[];for(const d of hPending)ids.push(await photoPut(d));
     const h={title,place:$('#hPlace').value.trim(),level:$('#hLevel').value,desc:$('#hDesc').value.trim(),photos:ids,by:myId,at:Date.now()};
     await put('hazards',h);
-    if(h.level==='긴급')await put('alerts',{kind:'hazard',msg:title+(h.place?' ('+h.place+')':''),photo:ids[0]||'',by:myId,at:Date.now()});
+    if(h.level==='긴급'){await put('alerts',{kind:'hazard',msg:title+(h.place?' ('+h.place+')':''),photo:ids[0]||'',by:myId,at:Date.now()});pushSend('hazard','⚠️ 긴급 위험현장',title+(h.place?' ('+h.place+')':''),'#haz')}
     $('#hTitle').value=$('#hPlace').value=$('#hDesc').value='';hPending=[];renderHPrev();
     toast(h.level==='긴급'?'사진과 함께 긴급 알림을 전송했습니다.':'지사에 공유되었습니다.','ok');
   }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
@@ -1592,7 +1643,7 @@ $('#sosBtn').onclick=async()=>{
   sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치 확인 중… 바로 전화 주세요.`;
   $('#sosLoc').innerHTML=`<div class="text-left p-3 rounded-xl sub space-y-2"><div class="text-xs font-bold">📍 현재 위치를 확인하는 중… (위치 허용을 눌러 주세요)</div>${sosSmsHTML(sosBody)}</div>`;
   toast(`🚨 [${kind}] 앱을 켠 직원에게 알렸어요. 단체 문자도 보내 주세요.`,'error');
-  let id=null;try{id=await put('alerts',{kind:'sos',type:kind,by:myId,at:Date.now()})}catch(e){toast(errMsg(e),'error')}
+  let id=null;try{id=await put('alerts',{kind:'sos',type:kind,by:myId,at:Date.now()});pushSend('sos',`🚨 긴급 SOS · ${kind}`,`${nmFull(myId)}님이 SOS를 보냈어요. 바로 확인해 주세요.`,'#sos')}catch(e){toast(errMsg(e),'error')}
   const p=await posP;
   if(!p){
     sosBody=`[부산동부지사 SOS ${kind}] ${who} ${hm}\n위치 자동 확인 실패. 바로 전화 주세요.`;
@@ -2784,7 +2835,7 @@ async function init(){
   }
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
-  setSync();
+  setSync();setTimeout(pushRefresh,4000);
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});

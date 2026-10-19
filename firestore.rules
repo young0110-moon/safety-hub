@@ -47,6 +47,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ---------- 푸시 알림 주소 (본인 것만 읽고 쓰기, 서버는 서비스 계정으로 읽음) ----------
+    match /pushTokens/{uid} {
+      allow read, write: if isMember() && request.auth.uid == uid;
+    }
+
     // ---------- 멤버 ----------
     match /members/{uid} {
       // 멤버 목록은 지사 멤버와 관리자가 볼 수 있음. 본인 문서는 승인 대기 중에도 볼 수 있음
