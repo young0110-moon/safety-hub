@@ -1508,8 +1508,11 @@ async function sbLoad(book){
 async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json',{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
-  B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
+  B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_hj:sbCho(c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
   B.byId={};B.list.forEach(c=>B.byId[c.id]=c);
+  /* 어휘 사전(오타 교정·자동완성용): 조항 제목의 낱말 + 동의어 사전 */
+  B.vocab=new Map();const addW=(w,n)=>{const k=sbN(w);if(k.length<2||!/[가-힣]/.test(w))return;const o=B.vocab.get(k);if(o)o.n+=n;else B.vocab.set(k,{raw:w,n})};
+  B.list.forEach(c=>String(c.t||'').split(/[\s·,/()\[\]–\-]+/).forEach(w=>addW(w,1)));SYN.forEach(g=>g.forEach(w=>addW(w,1)));(SB_RECS[book]||[]).forEach(w=>addW(w,3));
   B.chap=(meta.toc||[]).filter(t=>!t.id.includes('.')).map(t=>({...t,items:B.list.filter(c=>inSec(c,t.id))}));
   B.state='ready';if(book===sbBook){renderStd(true);renderIhStats();renderBookSwitch()}
   /* 나머지 책도 뒤에서 미리 불러오기 → 버튼 누르면 바로 바뀜 */
@@ -1518,7 +1521,7 @@ function sbIngest(book,meta,cl){
 function sbSetBook(b){
   if(!BOOKS[b]||b===sbBook)return;
   sbCloseSheet();sbBook=b;SB=SBS[b];store.set('koelsa_sb_book',b);sbFav=sbFavAll[b]||(sbFavAll[b]=[]);
-  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
+  sbQ='';sbSec=null;sbOpenCh=null;sbShow=20;sbFilter='all';sbKind=null;sbNoFix=false;sbAppliedOnly=false;sbOpen.clear();sbCmp.clear();sbFoldIds.clear();sbUnfold.clear();
   $('#sbQ').value='';$('#sbClear').classList.add('hidden');$('#sbSuggest').classList.add('hidden');
   sbSig='';renderInsp();renderStd(true);sbLoad();window.scrollTo({top:0});
   /* 자료 전환 알림창은 띄우지 않음 */
@@ -1572,7 +1575,8 @@ function sbRow(c,q){
   const body=(c.cur||(c.hist[0]&&c.hist[0].x)||'').replace(/\s+/g,' ').trim();
   const hq=q&&!sbN(c.cur).includes(sbN(q))&&c.hist.find(h=>sbN(h.x+' '+h.lab).includes(sbN(q)));
   let prev=hq?('종전 · '+hq.x.replace(/\s+/g,' ')):body;
-  if(q&&!hq){const k=q.trim().split(/\s+/)[0],ix=k?prev.indexOf(k):-1;if(ix>60)prev='…'+prev.slice(ix-30)}
+  if(q&&!hq){const terms=q.split(/[\s,]+/).filter(x=>x.length>=2);let ix=-1;for(const t of terms){const i=prev.indexOf(t);if(i>=0&&(ix<0||i<ix))ix=i}
+    if(ix>60){const segs=prev.split(/(?=• )/);let acc=0,done=false;for(let i=0;i<segs.length;i++){if(ix<acc+segs[i].length){prev=(i?'…':'')+segs[i].trim();done=true;break}acc+=segs[i].length}if(!done)prev='…'+prev.slice(ix-30)}}
   const status=d&&!isDoc()?(A[0]==='cm'?'cm':appliedIdx>=0?'ok':'no'):null;
   const sub=isJudg()?`${c.kind?esc(c.kind)+' · ':(ch?esc(ch.t)+' · ':'')}${c.nos&&c.nos.length>1?'검사항목 '+esc(c.nos.join(' · '))+' · ':''}p.${c.p}`:isStd()?`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.ap?` <span class="ap-std">📌 ${esc(c.ap)}</span>`:''}`:d&&appliedIdx>0?`📌 ${esc(V[appliedIdx].lab)}`:`${ch?esc(ch.id+' '+ch.t)+' · ':''}p.${c.p}${c.hist.length?` · 종전 ${c.hist.length}건`:''}`;
   return `<button data-sbopen="${esc(c.id)}" class="sb-row" data-sbcard="${esc(c.id)}">
@@ -1618,23 +1622,86 @@ function sbCard(c,q){
 }
 
 /* 검색: 네이버식(정확 일치 우선, 결과 탭·건수) + 참고 앱식 유사어 대체 */
+/* ===== 검색 엔진 보강 — 포털·검색 서비스 방식 참고
+   · 구글: 오타 교정(“혹시 …를 찾으셨나요?”) · 동의어 확장 · 따옴표/빼기 연산자 · 결과 요약 스니펫
+   · 네이버: 통합검색 섹션 탭(기종별 건수) · 연관 검색어 · 자동완성
+   · 카카오(다음): 초성 검색(ㅂㄹㅇㅋ → 브레이크)
+   · 알골리아/아마존: 조건(facet) 필터 · 오타 허용 순위 · 입력 즉시 결과
+   · 덕덕고: 범위 지정 연산자(기종:에스컬레이터) ===== */
+const CHO=[...'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'],JUNG=[...'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'],JONG=['',...'ㄱㄲ',  'ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const sbCho=s=>[...String(s||'')].map(ch=>{const c=ch.charCodeAt(0)-0xAC00;return c>=0&&c<11172?CHO[Math.floor(c/588)]:ch}).join('').toLowerCase().replace(/\s+/g,'');
+const sbJamo=s=>[...String(s||'')].map(ch=>{const c=ch.charCodeAt(0)-0xAC00;if(c<0||c>=11172)return ch;return CHO[Math.floor(c/588)]+JUNG[Math.floor(c%588/28)]+JONG[c%28]}).join('');
+const isCho=s=>/^[ㄱ-ㅎ]{2,}$/.test(s);
+function sbLev(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;let prev=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){const cur=[i];let mn=i;for(let j=1;j<=b.length;j++){const v=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));cur.push(v);if(v<mn)mn=v}if(mn>max)return max+1;prev=cur}return prev[b.length]}
+/* 동의어·현장 용어 사전 (한 줄이 같은 뜻) */
+const SYN=[['손잡이','핸드레일','핸드 레일'],['과속조절기','조속기','거버너','가버너'],['추락방지안전장치','세이프티','세이프티기어'],['완충기','버퍼'],['승강장문','홀도어','승강장 문','랜딩도어'],['카문','카 도어','카도어'],['잠금장치','인터록'],
+ ['브레이크','제동기','제동장치'],['파이널 리미트 스위치','파이널리미트','리미트스위치','리밋스위치'],['매다는 장치','현수','와이어로프','주로프','메인로프'],['균형추','카운터웨이트','카운터'],['구동기','권상기','머신','트랙션머신'],['전동기','모터'],['제어반','컨트롤러','제어판'],['피트','pit'],['승강로','호이스트웨이','샤프트'],['기계실','머신룸'],
+ ['스텝','디딤판','발판'],['팔레트','팰릿'],['콤','빗살','콤플레이트'],['스커트','스커트가드','스커트 디플렉터'],['데마케이션','경계선','황색선'],['절연저항','메가'],['과부하방지장치','과부하감지장치','오버로드'],['비상통화장치','인터폰','비상통화','비상벨','비상호출'],['문닫힘안전장치','세이프티슈','세이프티 슈','멀티빔','광전장치','도어센서'],
+ ['에이프런','에어프런','토가드','앞치마판'],['개문출발','개문 출발','UCMP','개문출발방지장치'],['상승과속방지장치','상승과속','ACOP'],['가이드슈','가이드 슈'],['가이드레일','레일'],['이완감지','이완 감지','슬랙로프','로프이완'],['비상구출문','비상구출구','탈출구'],['조명','조도','라이트'],['비상운전','수동운전','핸들운전','구출운전'],['주개폐기','주 개폐기','메인스위치','차단기'],['도르래','시브','풀리','쉬브'],
+ ['역행방지','역주행','역회전'],['휠체어리프트','휠체어 리프트','장애인리프트'],['소형화물용','덤웨이터','소화물용','소형화물'],['경사형','인클라인드'],['불합격','탈락','부적합'],['합격','적합'],['조건부합격','조건부 합격'],['현장시정조치','현장시정','즉시조치'],['확인검사','재검사','재검'],['정밀안전검사','정밀검사'],['수검미비','수검 미비','검사불가','검사 불가'],['안전계통','안전 계통'],
+ ['유리','글라스','접합유리'],['누수','침수','물고임'],['틈새','간격','갭','클리어런스'],['정지거리','제동거리'],['속도','스피드','정격속도'],['소선파단','소선','로프 끊어짐'],['문짝','도어패널','패널'],['보호난간','난간'],['정격하중','적재하중'],['비상등','비상조명']];
+const SYNMAP=new Map(),SYNRAW=new Map();SYN.forEach(g=>{const G=g.map(sbN);G.forEach((t,i)=>{SYNMAP.set(t,G);if(!SYNRAW.has(t))SYNRAW.set(t,g[i])})});
+const sbExpand=t=>{const g=SYNMAP.get(t);return g?[t,...g.filter(x=>x!==t)]:[t]};
+const sbRawOf=t=>SYNRAW.get(t)||t;
+/* 판정지침 기종(섹션) */
+const JKINDS=['엘리베이터','경사형 엘리베이터','에스컬레이터','소형화물용 엘리베이터','수직형 휠체어리프트','경사형 휠체어리프트'];
+const JSHORT={'엘리베이터':'엘리베이터','경사형 엘리베이터':'경사형 EL','에스컬레이터':'에스컬레이터','소형화물용 엘리베이터':'소형화물용','수직형 휠체어리프트':'수직형 리프트','경사형 휠체어리프트':'경사형 리프트','':'지침·별표'};
+let sbKind=null,sbNoFix=false,sbTips=false;
+function sbKindResolve(v){const n=sbN(v);if(!n)return undefined;if(/지침|별표|본문|부칙/.test(n))return '';const k=JKINDS.find(k=>sbN(k)===n)||JKINDS.find(k=>sbN(k).includes(n))||JKINDS.find(k=>n.includes(sbN(k)));return k}
+/* 검색어 해석: "따옴표"=그대로, -낱말=제외, 기종:이름=범위, 나머지=낱말(동의어 포함) */
+function sbParseQ(q){
+  const info={must:[],excl:[],kind:null,groups:[],raw:q};
+  const rest=q.replace(/[“”"「」]([^“”"「」]+)[“”"「」]/g,(m,p)=>{const n=sbN(p);if(n)info.must.push({n,raw:p.trim()});return ' '});
+  rest.split(/\s+/).filter(Boolean).forEach(w=>{let m;
+    if((m=w.match(/^(기종|종류|대상|범위)[:：](.+)$/))){info.kind=m[2];return}
+    if(w.startsWith('-')&&w.length>1){const n=sbN(w.slice(1));if(n)info.excl.push(n);return}
+    const n=sbN(w);if(!n)return;info.groups.push({t:n,raw:w,alts:sbExpand(n)})});
+  return info;
+}
+/* 오타 교정 후보: 자모 단위 편집거리 */
+function sbDym(t){if(!SB.vocab||t.length<2)return null;const J=sbJamo(t),max=J.length<=5?1:J.length<=10?2:3;let best=null;
+  SB.vocab.forEach((v,k)=>{if(k===t||Math.abs(k.length-t.length)>2)return;const d=sbLev(J,sbJamo(k),max);if(d<=max&&(!best||d<best.d||(d===best.d&&v.n>best.n)))best={k,d,n:v.n}});
+  return best?best.k:null}
+/* 연관 검색어: 결과 제목에서 자주 나온 낱말 */
+function sbRelated(res,info){const cnt=new Map(),skip=new Set([...info.groups.flatMap(g=>g.alts),...info.must.map(m=>m.n)]);
+  res.slice(0,80).forEach(({c})=>{const seen=new Set();String(c.t||'').split(/[\s·,/()\[\]–\-]+/).forEach(w=>{const n=sbN(w);if(w.length<2||!/[가-힣]/.test(w)||skip.has(n)||seen.has(n))return;seen.add(n);cnt.set(n,{raw:w,n:(cnt.get(n)||{n:0}).n+1})})});
+  return [...cnt.values()].filter(x=>x.n>=2).sort((a,b)=>b.n-a.n).slice(0,8).map(x=>x.raw)}
 function sbSearch(q){
-  const qt=q.trim(),toks=qt.split(/\s+/).map(sbN).filter(Boolean);if(!toks.length)return {res:[],fuzzy:false};
+  const qt=q.trim(),info=sbParseQ(qt),toks=info.groups.map(g=>g.t);
+  info.syn=[];info.corrected=null;info.hl=qt;
+  if(!toks.length&&!info.must.length)return {res:[],fuzzy:false,info};
   const idq=/^([0-9]+(\.[0-9]+)*|[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ](\.[0-9]+)+)\.?$/.test(qt);const qid=qt.replace(/\.$/,'');
-  let res=[];
-  SB.list.forEach(c=>{
-    if(!c.cur&&!c.hist.length)return;
-    const all=c._h+'|'+c._c+'|'+c._o;
-    const inH=toks.every(t=>c._h.includes(t)),inC=toks.every(t=>c._c.includes(t)),inO=toks.every(t=>c._o.includes(t));
-    const IDS=c.nos&&c.nos.length?c.nos:(c.ids||[c.id]);const any=idq?IDS.some(x=>x===qid||x.startsWith(qid+'.')):toks.every(t=>all.includes(t));
-    if(!(inH||inC||inO||any))return;
-    let s=0;if(idq){s+=IDS.includes(qid)?5000:(3000-c.id.length)}
-    toks.forEach(t=>{s+=sbCnt(c._h,t)*40+Math.min(sbCnt(c._c,t),6)*8+Math.min(sbCnt(c._o,t),6)*2;if(c._h.startsWith(t))s+=30});
-    res.push({c,s,inH,inC,inO});
-  });
-  if(res.length)return {res,fuzzy:false};
+  const cho=!idq&&toks.length===1&&!info.must.length&&isCho(toks[0]);
+  const run=groups=>{const res=[],used=new Map();
+    SB.list.forEach(c=>{
+      if(!c.cur&&!c.hist.length)return;
+      const all=c._h+'|'+c._c+'|'+c._o;
+      if(info.excl.some(x=>all.includes(x)))return;
+      if(info.must.some(m=>!all.includes(m.n)))return;
+      if(cho){const i=c._hj.indexOf(toks[0]);if(i<0)return;res.push({c,s:100-i,inH:true,inC:false,inO:false});return}
+      if(idq){const IDS=c.nos&&c.nos.length?c.nos:(c.ids||[c.id]);if(!IDS.some(x=>x===qid||x.startsWith(qid+'.')))return;res.push({c,s:IDS.includes(qid)?5000:3000-c.id.length,inH:true,inC:false,inO:false});return}
+      let s=0,inH=true,inC=true,inO=true;
+      for(const g of groups){const alt=g.alts.find(a=>all.includes(a));if(!alt)return;
+        const w=alt===g.t?1:0.85;if(alt!==g.t)used.set(g.raw,alt);
+        inH=inH&&c._h.includes(alt);inC=inC&&c._c.includes(alt);inO=inO&&c._o.includes(alt);
+        s+=(sbCnt(c._h,alt)*40+Math.min(sbCnt(c._c,alt),6)*8+Math.min(sbCnt(c._o,alt),6)*2)*w;
+        if(c._h.startsWith(alt))s+=30;if(sbN(c.t)===alt)s+=80}
+      info.must.forEach(m=>{s+=c._h.includes(m.n)?50:10});
+      res.push({c,s,inH:groups.length?inH:info.must.every(m=>c._h.includes(m.n)),inC:groups.length?inC:true,inO:groups.length?inO:false})});
+    return {res,used}};
+  const finish=(r,groups)=>{info.syn=[...r.used].map(([raw,alt])=>({raw,alt:sbRawOf(alt)}));
+    info.hl=[...groups.map(g=>g.raw),...info.syn.map(x=>x.alt),...info.must.map(m=>m.raw)].join(' ');return r.res};
+  let res=finish(run(info.groups),info.groups);
+  if(res.length)return {res,fuzzy:false,info};
+  /* 구글식 오타 교정: 결과가 없으면 비슷한 낱말로 다시 찾기 */
+  if(!idq&&!cho&&!sbNoFix&&info.groups.length){
+    const fixed=info.groups.map(g=>{const d=sbDym(g.t);return d?{t:d,raw:sbRawOf(d)||d,alts:sbExpand(d),fixed:true}:g});
+    if(fixed.some(g=>g.fixed)){const r2=run(fixed);if(r2.res.length){const to=fixed.map(g=>g.fixed?(SB.vocab.get(g.t)||{}).raw||g.raw:g.raw).join(' ');res=finish(r2,fixed);info.corrected={from:qt,to};return {res,fuzzy:false,info}}}
+  }
+  /* 두 글자 단위 유사도(기존) */
   res=SB.list.filter(c=>c.cur||c.hist.length).map(c=>({c,s:sbFuzzy(c._h,qt)*3+sbFuzzy(c._c,qt),inH:false,inC:true,inO:false})).filter(x=>x.s>=Math.max(6,sbN(qt).length*2)).sort((a,b)=>b.s-a.s).slice(0,40);
-  return {res,fuzzy:true};
+  return {res,fuzzy:true,info};
 }
 function sbSuggest(){
   const box=$('#sbSuggest'),v=$('#sbQ').value.trim();
@@ -1644,19 +1711,31 @@ function sbSuggest(){
       <div><div class="flex items-center justify-between text-[11px] font-black mb-1.5"><span>🕒 최근 검색어</span>${sbRecent.length?'<button type="button" data-sbrclr class="opacity-70 min-h-[28px] px-1">전체 삭제</button>':''}</div>
         ${sbRecent.length?`<div class="flex flex-wrap gap-1.5">${sbRecent.map(r=>`<span class="chip !min-h-[34px] inline-flex items-center gap-1 !pr-1.5"><button type="button" data-sbq="${esc(r)}">${esc(r)}</button><button type="button" data-sbrdel="${esc(r)}" aria-label="${esc(r)} 삭제" class="w-6 h-6 opacity-60">×</button></span>`).join('')}</div>`:`<p class="text-xs opacity-60">${sbAutoSave?'최근 검색어가 없어요.':'검색어 저장이 꺼져 있어요.'}</p>`}</div>
       <div><div class="text-[11px] font-black mb-1.5">🔥 추천 검색어</div><div class="flex flex-wrap gap-1.5">${(SB_RECS[sbBook]||[]).map(r=>`<button type="button" data-sbq="${esc(r)}" class="chip !min-h-[34px]">${esc(r)}</button>`).join('')}</div></div>
-      <div class="flex justify-end"><button type="button" data-sbauto class="text-[11px] opacity-70 min-h-[28px]">검색어 저장 ${sbAutoSave?'끄기':'켜기'}</button></div></div>`;
+      <div class="flex justify-between items-center"><button type="button" data-sbtips class="text-[11px] font-black min-h-[28px] text-purple-700 dark:text-purple-300">💡 검색 팁 ${sbTips?'접기':'보기'}</button><button type="button" data-sbauto class="text-[11px] opacity-70 min-h-[28px]">검색어 저장 ${sbAutoSave?'끄기':'켜기'}</button></div>
+      ${sbTips?`<ul class="text-[11px] leading-relaxed space-y-1 sub rounded-xl p-3 list-disc pl-6"><li><b>여러 낱말</b>: 브레이크 정지거리 → 둘 다 들어간 항목</li><li><b>“따옴표”</b>: 그 말 그대로 들어간 항목만</li><li><b>-빼기</b>: 브레이크 -에스컬레이터 → 에스컬레이터 항목 제외</li>${isJudg()?'<li><b>기종:</b> 기종:에스컬레이터 브레이크 → 그 기종에서만</li>':''}<li><b>번호</b>: 6.1.8 → 그 번호로 시작하는 항목 전부</li><li><b>초성</b>: ㅂㄹㅇㅋ → 브레이크</li><li><b>비슷한 말</b>도 같이 찾아요: 핸드레일=손잡이, 조속기=과속조절기, 버퍼=완충기</li><li>오타가 있으면 비슷한 낱말로 다시 찾아 드려요</li></ul>`:''}</div>`;
     box.classList.remove('hidden');return;
   }
-  const n=sbN(v),idq=/^[0-9ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ][0-9.]*$/.test(v);
-  const hits=SB.list.filter(c=>c.cur||c.hist.length).map(c=>{let s=0;if(idq&&(c.nos&&c.nos.length?c.nos:(c.ids||[c.id])).some(x=>x.startsWith(v)))s=100-c.id.length;else if(c._h.includes(n))s=50-(c._h.indexOf(n));return {c,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,7);
-  const nBody=SB.list.filter(c=>c._c.includes(n)||c._o.includes(n)).length;
-  box.innerHTML=`<button type="button" data-sbq="${esc(v)}" class="w-full text-left px-4 min-h-[46px] flex items-center gap-2 border-b border-purple-400/20"><span>🔍</span><span class="flex-1 min-w-0 truncate"><b>‘${esc(v)}’</b> 전체 검색</span><span class="text-[11px] opacity-70 shrink-0">본문 ${nBody}건</span></button>`+
-    (hits.length?hits.map(({c})=>`<button type="button" data-sbsec="${esc(c.id)}" class="w-full text-left px-4 min-h-[44px] flex items-center gap-2 hover:bg-purple-500/10"><span class="text-[11px] font-black text-purple-700 dark:text-purple-300 shrink-0 tabular-nums">${esc(sbIdLabel(c))}</span><span class="flex-1 min-w-0 truncate text-sm">${c.kind?`<span class="text-[10px] opacity-70">${esc(c.kind)} · </span>`:''}${sbHL(c.t,v)}</span><span class="text-[10px] opacity-60 shrink-0">p.${c.p}</span></button>`).join(''):'<p class="px-4 py-3 text-xs opacity-70">조항 제목에서 찾지 못했어요. ‘전체 검색’으로 본문까지 찾아보세요.</p>');
+  const pq=sbParseQ(v),n=sbN(v),idq=/^[0-9ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ][0-9.]*$/.test(v),cho=isCho(n);
+  const toks=pq.groups.map(g=>g.alts);
+  const hits=SB.list.filter(c=>c.cur||c.hist.length).map(c=>{let s=0;
+    if(idq&&(c.nos&&c.nos.length?c.nos:(c.ids||[c.id])).some(x=>x.startsWith(v)))s=100-c.id.length;
+    else if(cho){const i=c._hj.indexOf(n);if(i>=0)s=100-i}
+    else if(toks.length&&toks.every(alts=>alts.some(a=>c._h.includes(a)))){s=50-c._h.indexOf(toks[0].find(a=>c._h.includes(a)));if(toks.some(alts=>alts.slice(1).some(a=>c._h.includes(a))))s-=5}
+    return {c,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,7);
+  const nBody=cho||idq?0:SB.list.filter(c=>toks.length&&toks.every(alts=>alts.some(a=>(c._c+'|'+c._o).includes(a)))).length;
+  const last=pq.groups.length?pq.groups[pq.groups.length-1]:null,comp=[];
+  if(last&&!cho&&!idq&&SB.vocab){SB.vocab.forEach((o,k)=>{if(k!==last.t&&k.startsWith(last.t))comp.push(o)});comp.sort((a,b)=>b.n-a.n)}
+  const compHTML=comp.length?`<div class="px-4 py-2 flex flex-wrap gap-1.5 border-b border-purple-400/20">${comp.slice(0,6).map(o=>`<button type="button" data-sbq="${esc((pq.groups.slice(0,-1).map(g=>g.raw).join(' ')+' '+o.raw).trim())}" class="chip !min-h-[32px] !text-[12px]">${esc(o.raw)}</button>`).join('')}</div>`:'';
+  const synHint=pq.groups.filter(g=>g.alts.length>1).map(g=>`<b>${esc(g.raw)}</b> = ${g.alts.slice(1,4).map(a=>esc(sbRawOf(a))).join(', ')}`);
+  box.innerHTML=`<button type="button" data-sbq="${esc(v)}" class="w-full text-left px-4 min-h-[46px] flex items-center gap-2 border-b border-purple-400/20"><span>🔍</span><span class="flex-1 min-w-0 truncate"><b>‘${esc(v)}’</b> ${cho?'초성으로 ':''}전체 검색</span><span class="text-[11px] opacity-70 shrink-0">${cho?'':`본문 ${nBody}건`}</span></button>`+
+    compHTML+(synHint.length?`<div class="px-4 py-1.5 text-[11px] opacity-80 border-b border-purple-400/20">🔁 비슷한 말도 함께 찾아요 · ${synHint.join(' · ')}</div>`:'')+
+    (hits.length?hits.map(({c})=>`<button type="button" data-sbsec="${esc(c.id)}" class="w-full text-left px-4 min-h-[44px] flex items-center gap-2 hover:bg-purple-500/10"><span class="text-[11px] font-black text-purple-700 dark:text-purple-300 shrink-0 tabular-nums">${esc(sbIdLabel(c))}</span><span class="flex-1 min-w-0 truncate text-sm">${c.kind?`<span class="text-[10px] opacity-70">${esc(c.kind)} · </span>`:''}${cho?esc(c.t):sbHL(c.t,[...pq.groups.map(g=>g.raw),...pq.groups.flatMap(g=>g.alts.slice(1).map(sbRawOf))].join(' '))}</span><span class="text-[10px] opacity-60 shrink-0">p.${c.p}</span></button>`).join(''):(()=>{const d=!cho&&!idq&&pq.groups.length===1?sbDym(pq.groups[0].t):null;return d?`<button type="button" data-sbq="${esc((SB.vocab.get(d)||{}).raw||d)}" class="w-full text-left px-4 min-h-[44px] flex items-center gap-2"><span>✏️</span><span class="text-sm">혹시 <b>‘${esc((SB.vocab.get(d)||{}).raw||d)}’</b>를 찾으셨나요?</span></button>`:'<p class="px-4 py-3 text-xs opacity-70">조항 제목에서 찾지 못했어요. ‘전체 검색’으로 본문까지 찾아보세요.</p>'})());
   box.classList.remove('hidden');
 }
-function sbSubmit(q){
-  q=(q||'').trim();$('#sbQ').value=q;$('#sbSuggest').classList.add('hidden');$('#sbQ').blur();
+function sbSubmit(q,noFix){
+  sbNoFix=!!noFix;q=(q||'').trim();$('#sbQ').value=q;$('#sbSuggest').classList.add('hidden');$('#sbQ').blur();
   sbQ=q;sbSec=null;sbFilter='all';sbShow=20;
+  const pi=sbParseQ(q);if(pi.kind&&isJudg()){const kk=sbKindResolve(pi.kind);if(kk!==undefined)sbKind=kk}
   if(q&&sbAutoSave){sbRecent=[q,...sbRecent.filter(x=>x!==q)].slice(0,10);store.set('koelsa_sb_recent',sbRecent)}
   renderStd(true);$('#sbClear').classList.toggle('hidden',!q);
 }
@@ -1703,7 +1782,7 @@ function sbListHTML(list,q,more){
 }
 function renderStd(force){
   if(ihTab!=='std'&&ihTab!=='fav')return;
-  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbQ,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
+  const sig=JSON.stringify([sbBook,SB.state,ihTab,sbQ,sbKind,sbNoFix,sbFilter,sbSort,sbSec,sbOpenCh,sbShow,sbAppliedOnly,sbFold,sbDate,sbFs,sbFav,sbChAll,[...sbChClosed],[...sbOpen],[...sbCmp],[...sbFoldIds],[...sbUnfold]]);
   if(!force&&sig===sbSig)return;sbSig=sig;
   $('#ihStd').style.setProperty('--sbfs',sbFs+'px');$('#ihFav').style.setProperty('--sbfs',sbFs+'px');
   if(ihTab==='fav')return renderSbFav();
@@ -1717,15 +1796,23 @@ function renderStd(force){
   }
   $('#sbBook').innerHTML=sbBookCard();
   if(sbQ){
-    const {res,fuzzy}=sbSearch(sbQ);
-    const cnt={all:res.length,h:res.filter(x=>x.inH).length,c:res.filter(x=>x.inC).length,o:res.filter(x=>x.inO).length};
-    let R=res.filter(x=>sbFilter==='all'||(sbFilter==='h'&&x.inH)||(sbFilter==='c'&&x.inC)||(sbFilter==='o'&&x.inO));
+    const {res,fuzzy,info}=sbSearch(sbQ);
+    /* 네이버 통합검색식 섹션 탭: 판정지침은 기종별 건수 */
+    const kc={};res.forEach(x=>{const k=x.c.kind||'';kc[k]=(kc[k]||0)+1});
+    const Rk=isJudg()&&sbKind!==null?res.filter(x=>(x.c.kind||'')===sbKind):res;
+    const cnt={all:Rk.length,h:Rk.filter(x=>x.inH).length,c:Rk.filter(x=>x.inC).length,o:Rk.filter(x=>x.inO).length};
+    let R=Rk.filter(x=>sbFilter==='all'||(sbFilter==='h'&&x.inH)||(sbFilter==='c'&&x.inC)||(sbFilter==='o'&&x.inO));
+    const related=fuzzy?[]:sbRelated(res,info),hlq=info.hl||sbQ;
     R=R.sort((a,b)=>sbSort==='rel'?(b.s-a.s)||(a.c.n-b.c.n):a.c.n-b.c.n);
     const tabs=isDoc()?[['all','전체'],['h',isJudg()?'검사항목·대상':'조항명'],['c',isJudg()?'판정 내용':'본문']]:[['all','전체'],['h','조항명'],['c','현행 기준'],['o','종전 기준']];
-    main.innerHTML=`<div class="flex items-end justify-between gap-2 px-1"><div class="min-w-0"><div class="text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span><b>‘${esc(sbQ)}’</b> 검색 결과 <b class="text-purple-700 dark:text-purple-300 tabular-nums">${res.length}</b>건</div>${fuzzy?'<div class="text-[11px] opacity-75 mt-0.5">정확히 일치하는 결과가 없어 비슷한 조항을 보여드려요.</div>':''}</div>
+    main.innerHTML=`<div class="flex items-end justify-between gap-2 px-1"><div class="min-w-0"><div class="text-sm"><span class="bk-tag ${sbBook} mr-1">${BOOKS[sbBook].icon} ${BOOKS[sbBook].name}</span><b>‘${esc(info.corrected?info.corrected.to:sbQ)}’</b> 검색 결과 <b class="text-purple-700 dark:text-purple-300 tabular-nums">${res.length}</b>건${isJudg()&&sbKind!==null?` <span class="text-[11px] opacity-75">· ${esc(JSHORT[sbKind])} ${Rk.length}건</span>`:''}</div>${fuzzy?'<div class="text-[11px] opacity-75 mt-0.5">정확히 일치하는 결과가 없어 비슷한 조항을 보여드려요.</div>':''}</div>
       <button data-sbsort class="chip !min-h-[32px] !text-[11px] shrink-0">${sbSort==='rel'?'정확도순 ▾':'조항순 ▾'}</button></div>
+      ${info.corrected?`<div class="text-xs px-3 py-2 rounded-xl sub leading-snug">✏️ 입력하신 ‘${esc(info.corrected.from)}’ 대신 <b>‘${esc(info.corrected.to)}’</b>로 찾은 결과예요. <button data-sbqx="${esc(info.corrected.from)}" class="underline font-bold min-h-[28px]">‘${esc(info.corrected.from)}’ 그대로 검색</button></div>`:''}
+      ${info.syn&&info.syn.length?`<div class="text-[11px] px-3 py-1.5 rounded-xl sub opacity-90">🔁 ${info.syn.map(x=>`‘${esc(x.raw)}’ 외에 <b>‘${esc(x.alt)}’</b>도 함께 찾았어요`).join(' · ')}</div>`:''}
+      ${isJudg()&&!fuzzy&&res.length?`<div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max"><button data-sbkind="all" class="chip !min-h-[34px] !text-[11px] ${sbKind===null?'sel':''}">전체 기종 <span class="tabular-nums opacity-80">${res.length}</span></button>${[...JKINDS,''].filter(k=>kc[k]).map(k=>`<button data-sbkind="${k===''?'none':esc(k)}" class="chip !min-h-[34px] !text-[11px] ${sbKind===k?'sel':''}">${esc(JSHORT[k])} <span class="tabular-nums opacity-80">${kc[k]}</span></button>`).join('')}</div></div>`:''}
       ${fuzzy?'':`<div class="hscroll -mx-3 px-3"><div class="flex gap-1.5 w-max">${tabs.map(([k,l])=>`<button data-sbf="${k}" class="chip !min-h-[36px] ${sbFilter===k?'sel':''}">${l} <span class="tabular-nums opacity-80">${cnt[k]}</span></button>`).join('')}</div></div>`}
-      ${R.length?sbListHTML(R.map(x=>x.c),sbQ,'결과 더 보기'):`<div class="card text-center text-sm py-8">‘${esc(sbQ)}’에 대한 결과가 없어요.<br><span class="text-xs opacity-75">띄어쓰기 없이, 또는 다른 용어(예: 핸드레일 → 손잡이)로 찾아보세요.</span></div>`}`;
+      ${R.length?sbListHTML(R.map(x=>x.c),hlq,'결과 더 보기'):`<div class="card text-center text-sm py-8 leading-relaxed">‘${esc(sbQ)}’에 대한 결과가 없어요.<br><span class="text-xs opacity-75">${isJudg()&&sbKind!==null?'다른 기종 탭을 눌러 보거나 ':''}띄어쓰기 없이, 또는 다른 용어(예: 핸드레일 → 손잡이)로 찾아보세요.</span></div>`}
+      ${related.length?`<div class="px-1"><div class="text-[11px] font-black opacity-80 mb-1.5">🔎 연관 검색어</div><div class="flex flex-wrap gap-1.5">${related.map(w=>`<button data-sbq="${esc(((info.groups[0]||{}).raw||'')+' '+w).trim()}" class="chip !min-h-[32px] !text-[11px]">${esc(w)}</button>`).join('')}</div></div>`:''}`;
     return;
   }
   if(sbSec){
@@ -1870,6 +1957,9 @@ document.addEventListener('click',async e=>{
     try{await navigator.clipboard.writeText(t);toast('조항을 복사했어요.','ok')}catch(err){toast('복사하지 못했어요. 본문을 길게 눌러 복사해 주세요.','error')}return}
   if(g('data-sbmore')){sbShow+=20;renderStd(true);return}
   if(b=g('data-sbf')){sbFilter=b.dataset.sbf;sbShow=20;renderStd(true);return}
+  if(b=g('data-sbkind')){const v=b.dataset.sbkind;sbKind=v==='all'?null:v==='none'?'':v;sbShow=20;renderStd(true);return}
+  if(b=g('data-sbqx')){sbSubmit(b.dataset.sbqx,true);return}
+  if(g('data-sbtips')){sbTips=!sbTips;sbSuggest();return}
   if(g('data-sbsort')){sbSort=sbSort==='rel'?'ord':'rel';renderStd(true);return}
   if(b=g('data-sbtool')){const t=b.dataset.sbtool;
     if(t==='toc'){const back=sbSec;sbQ='';sbSec=null;$('#sbQ').value='';$('#sbClear').classList.add('hidden');
