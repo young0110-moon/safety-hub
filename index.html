@@ -104,6 +104,33 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .mem-pill:active{transform:scale(.95)}
 .mem-ic{width:16px;height:16px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#4ADE80,#16A34A)}
 .dark .mem-pill{color:#BBF7D0;background:rgba(34,197,94,.18);border-color:rgba(134,239,172,.45)}
+
+/* ===== 하단 메뉴: 동그란 버튼을 누르면 부채꼴로 쫘악 펼침, 다시 누르면 숨김 ===== */
+.fab-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:55;width:0;height:0}
+.fab-btn{position:absolute;left:-30px;bottom:0;width:60px;height:60px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);box-shadow:0 8px 22px rgba(109,40,217,.45),inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .3s}
+.fab-btn:active{transform:scale(.92)}
+.fab-bars{position:relative;width:22px;height:16px;display:block}
+.fab-bars i{position:absolute;left:0;width:22px;height:2.6px;border-radius:2px;background:#fff;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .2s,top .3s}
+.fab-bars i:nth-child(1){top:0}.fab-bars i:nth-child(2){top:6.7px}.fab-bars i:nth-child(3){top:13.4px}
+.fab-nav.open .fab-bars i:nth-child(1){top:6.7px;transform:rotate(45deg)}
+.fab-nav.open .fab-bars i:nth-child(2){opacity:0;transform:scaleX(.2)}
+.fab-nav.open .fab-bars i:nth-child(3){top:6.7px;transform:rotate(-45deg)}
+.fab-nav.open .fab-btn{transform:rotate(180deg);background:linear-gradient(135deg,#6D28D9,#4C1D95)}
+.fab-menu{position:absolute;left:0;bottom:30px;width:0;height:0}
+.fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((5 - var(--i)) * 18ms)}
+.fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
+.fab-it .fab-lb{font-size:10px;font-weight:800;line-height:1.1;text-align:center;color:#1E1B4B;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:8px;white-space:nowrap}
+.fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(var(--i) * 35ms);transform:translate(var(--x),var(--y)) scale(1)}
+.fab-it.on .ic{background:linear-gradient(135deg,#A78BFA,#6D28D9);border-color:transparent;transform:scale(1.06)}
+.fab-it.on .fab-lb{color:#6D28D9}
+.fab-sos .ic{background:linear-gradient(135deg,#EF4444,#BE123C);border-color:transparent;box-shadow:0 0 16px rgba(255,59,48,.55)}
+.fab-sos .fab-lb{color:#DC2626}
+.fab-dim{position:fixed;inset:0;z-index:54;background:rgba(15,10,40,.38);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
+.fab-dim.on{opacity:1;pointer-events:auto}
+.dark .fab-it .ic{background:#2E1065;border-color:#6D28D9}.dark .fab-it .fab-lb{color:#EDE9FE;background:rgba(30,27,75,.92)}
+html.sunset .fab-btn{background:linear-gradient(135deg,#FFC27A,#ED8A17);box-shadow:0 8px 22px rgba(237,138,23,.45)}html.sunset .fab-it.on .ic{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
+html.mint .fab-btn{background:linear-gradient(135deg,#5EEAD4,#0F9D8A);box-shadow:0 8px 22px rgba(15,157,138,.45)}html.mint .fab-it.on .ic{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
+@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-bars i{transition-duration:.01s!important}}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -319,7 +346,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   </div>
 </header>
 
-<main class="max-w-xl mx-auto px-3 pb-6">
+<main class="max-w-xl mx-auto px-3 pb-24">
 
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
@@ -553,7 +580,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="ihFav" class="hidden space-y-3"></div>
   <div id="ihFig" class="hidden space-y-3"></div>
 </section>
-<button id="sbTop" type="button" class="hidden fixed right-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(72px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
+<button id="sbTop" type="button" class="hidden fixed right-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(86px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
 
 <!-- FOOD -->
 <section id="p-food" class="page pt-4 space-y-4" data-title="맛집 공유">
@@ -644,7 +671,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
 
-<button id="updBar" onclick="hardUpdate()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(76px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
+<button id="updBar" onclick="hardUpdate()" class="hidden fixed left-3 right-3 z-[70] items-center justify-center gap-2 min-h-[48px] rounded-2xl bg-[#6D28D9] text-white text-sm font-bold shadow-lg" style="bottom:calc(86px + env(safe-area-inset-bottom,0px))">✨ 새 버전이 있어요 · 눌러서 업데이트</button>
 <div id="nPanel" class="hidden fixed inset-0 z-[90]" role="dialog" aria-label="알림">
   <div id="nDim" class="absolute inset-0 bg-black/25"></div>
   <div class="absolute left-2 right-2 max-w-xl mx-auto rounded-2xl bg-white dark:bg-[#1E1B4B] text-slate-800 dark:text-white shadow-2xl overflow-hidden" style="top:calc(64px + env(safe-area-inset-top,0px))">
@@ -738,15 +765,10 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <footer class="text-center text-[11px] opacity-75 px-4 pb-28 leading-relaxed">한국승강기안전공단 (KoELSA) 부산동부지사<br>부산시 해운대구 센텀중앙로90 | 대표전화: 051-784-8502<br>© 2026 KoELSA All Rights Reserved.</footer>
 
-<nav class="fixed bottom-0 inset-x-0 z-50 backdrop-blur-md bg-white/80 dark:bg-indigo-950/80 border-t border-purple-400/30" style="padding-bottom:env(safe-area-inset-bottom,0px)">
-  <div class="max-w-xl mx-auto grid grid-cols-6">
-    <button data-go="home" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">🏠</span>홈</button>
-    <button data-go="cal" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">📅</span>일정</button>
-    <button data-go="brief" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">☀️</span>브리핑</button>
-    <button data-go="voice" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">📣</span><span class="leading-none text-center">현장<br>Information</span></button>
-    <button data-go="haz" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">⚠️</span>위험현장</button>
-    <button data-go="sos" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center text-red-500"><span class="ic text-lg">🚨</span>SOS</button>
-  </div>
+<div id="fabDim" class="fab-dim" aria-hidden="true"></div>
+<nav id="fabNav" class="fab-nav" aria-label="메뉴">
+  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="home" class="tab fab-it" style="--i:0;--x:-147px;--y:-30px"><span class="ic">🏠</span><span class="fab-lb">홈</span></button><button data-go="cal" class="tab fab-it" style="--i:1;--x:-114px;--y:-110px"><span class="ic">📅</span><span class="fab-lb">일정</span></button><button data-go="brief" class="tab fab-it" style="--i:2;--x:-43px;--y:-158px"><span class="ic">☀️</span><span class="fab-lb">브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:3;--x:43px;--y:-158px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="haz" class="tab fab-it" style="--i:4;--x:114px;--y:-110px"><span class="ic">⚠️</span><span class="fab-lb">위험현장</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:5;--x:147px;--y:-30px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
+  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
 </nav>
 
 <!-- LOGIN / 가입 -->
@@ -940,6 +962,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b
 /* 메인 버튼: 이전 화면이 아니라 언제나 첫 메인 화면으로 */
 function goHome(){navStack.length=0;navStack.push('home');if(cur==='home'){window.scrollTo({top:0,behavior:'smooth'});return}location.hash='home';window.scrollTo({top:0})}
 $('#backBtn').onclick=goHome;
+/* 하단 펼침 메뉴 */
+function fabSet(o){const n=$('#fabNav');n.classList.toggle('open',o);$('#fabDim').classList.toggle('on',o);$('#fabBtn').setAttribute('aria-expanded',o);$('#fabBtn').setAttribute('aria-label',o?'메뉴 접기':'메뉴 펼치기');try{navigator.vibrate&&navigator.vibrate(o?12:0)}catch(e){}}
+$('#fabBtn').onclick=()=>fabSet(!$('#fabNav').classList.contains('open'));
+$('#fabDim').onclick=()=>fabSet(false);
+$('#fabMenu').addEventListener('click',()=>setTimeout(()=>fabSet(false),120));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#fabNav').classList.contains('open'))fabSet(false)});
+
 function openPost(id){if(id!==curPost&&typeof setReply==='function')setReply(null);curPost=id;if(cur==='post')render();else go('post')}
 
 /* 화면 갱신 */
