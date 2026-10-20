@@ -229,17 +229,6 @@ body.fab-open header{z-index:56}
 @keyframes sosPulse{0%,100%{box-shadow:0 10px 22px -8px var(--c2),0 0 0 0 rgba(239,68,68,.45),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.12)}60%{box-shadow:0 10px 22px -8px var(--c2),0 0 0 12px rgba(239,68,68,0),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.12)}}
 .dark .nd{box-shadow:0 10px 24px -8px var(--c2),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.25)}
 @media (prefers-reduced-motion:reduce){.nd-sos{animation:none}}
-
-/* 자료공유 */
-.dk-pick{display:flex;align-items:center;justify-content:center;min-height:56px;border:2px dashed #C4B5FD;border-radius:14px;font-size:13px;font-weight:800;color:#6D28D9;background:#FAF8FF;cursor:pointer;padding:8px 12px;text-align:center;word-break:break-all}
-.dk-pick.on{border-style:solid;border-color:#6D28D9;background:#F5F3FF}
-.dk-chip{flex-shrink:0;min-height:34px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid #DDD6FE;background:#fff;color:#4C1D95;white-space:nowrap}
-.dk-chip.on{background:#6D28D9;border-color:#6D28D9;color:#fff}
-.dk-ext{flex-shrink:0;width:44px;height:52px;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;font-size:10px;font-weight:900;color:#fff;letter-spacing:.02em;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 75%,#fff),var(--c));box-shadow:0 6px 14px -6px var(--c);clip-path:polygon(0 0,70% 0,100% 22%,100% 100%,0 100%)}
-.dk-btn{min-height:36px;padding:0 14px;border-radius:10px;font-size:12px;font-weight:800;background:#6D28D9;color:#fff}
-.dk-btn.dk-del{background:transparent;color:#DC2626;border:1px solid rgba(220,38,38,.4)}
-html.sunset .dk-btn:not(.dk-del),html.sunset .dk-chip.on{background:#ED8A17;border-color:#ED8A17}html.mint .dk-btn:not(.dk-del),html.mint .dk-chip.on{background:#0F9D8A;border-color:#0F9D8A}
-.dark .dk-pick{background:#1A1230;border-color:#5B3FA0;color:#C4B5FD}.dark .dk-chip:not(.on){background:#241A40;border-color:#3B2A66;color:#E9E3FB}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -487,7 +476,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   </div>
   <div id="hubLinks" class="grid grid-cols-2 gap-2.5 mt-5">
     <button data-go="notice" class="hub-t relative"><span class="hub-ic" style="--c1:#A78BFA;--c2:#6D28D9">📌</span><span class="hub-tx"><span class="hub-tt">스케쥴공유</span><span class="hub-st">일정·공지</span></span><span class="hub-go" aria-hidden="true">›</span><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
-    <button data-go="docs" class="hub-t relative"><span class="hub-ic" style="--c1:#5EEAD4;--c2:#0E7490">📂</span><span class="hub-tx"><span class="hub-tt">자료공유</span><span class="hub-st">자료 주고받기</span></span><span class="hub-go" aria-hidden="true">›</span></button>
+    <button data-go="haz" class="hub-t"><span class="hub-ic" style="--c1:#FBBF24;--c2:#EA580C">⚠️</span><span class="hub-tx"><span class="hub-tt">위험현장</span><span class="hub-st">현장 사진 공유</span></span><span class="hub-go" aria-hidden="true">›</span></button>
   </div>
   <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장 Information <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
@@ -765,24 +754,6 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 
 <!-- HAZARD -->
-<section id="p-docs" class="page pt-4 space-y-4" data-title="자료공유">
-  <div class="card">
-    <div class="flex items-center justify-between gap-2"><h2 class="font-black text-sm">📂 자료 올리기</h2><span class="text-[10px] font-bold opacity-70">한 파일 최대 10MB</span></div>
-    <p class="text-xs opacity-75 mt-1">교육자료·양식·참고자료처럼 지사 직원끼리 함께 보면 좋은 자료를 올려 주세요.</p>
-    <label id="dkPick" class="dk-pick mt-3"><input id="dkFile" type="file" class="sr-only"><span id="dkPickTx">📎 파일 고르기</span></label>
-    <div class="grid grid-cols-[1fr_auto] gap-2 mt-2"><input id="dkTitle" class="inp" maxlength="50" placeholder="자료 제목 (비우면 파일 이름)"><select id="dkCat" class="inp"><option>교육자료</option><option>법규·기준</option><option>양식·서식</option><option>업무참고</option><option>기타</option></select></div>
-    <input id="dkDesc" class="inp mt-2" maxlength="100" placeholder="한 줄 설명 (선택)">
-    <label class="flex items-start gap-2 mt-3 text-[12px] leading-snug"><input id="dkOk" type="checkbox" class="mt-0.5 w-4 h-4 shrink-0 accent-[#6D28D9]"><span><b>개인정보(고객 이름·연락처·주소 등)</b>나 <b>외부 공개가 금지된 내부 문서</b>가 들어 있지 않은 자료예요.</span></label>
-    <div id="dkProg" class="hidden mt-3 h-2 rounded-full bg-purple-200/50 overflow-hidden"><div class="h-full bg-[#6D28D9] transition-all" style="width:0"></div></div>
-    <button id="dkUp" class="mt-3 w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">⬆️ 지사에 공유</button>
-  </div>
-  <div class="card !p-3 space-y-2">
-    <input id="dkQ" class="inp" type="search" placeholder="🔍 자료 제목·설명 검색">
-    <div id="dkCats" class="flex gap-1.5 overflow-x-auto -mx-1 px-1 hscroll"></div>
-  </div>
-  <div id="dkList" class="space-y-2.5"></div>
-</section>
-
 <section id="p-haz" class="page pt-4 space-y-4" data-title="지사 위험현장 공유">
   <div class="card">
     <h2 class="font-black text-sm mb-2">⚠️ 위험현장 등록</h2>
@@ -1022,7 +993,7 @@ $('#themeBtn').onclick=()=>setTheme(!document.documentElement.classList.contains
 
 /* ===== 데이터 계층: 공유(db) 또는 이 기기(localStorage) ===== */
 let db=null,myId=null,isAdmin=false,ready=false;
-const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts','docs'];
+const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts'];
 const D={};COLS.forEach(c=>D[c]=[]);
 const LK=c=>'kb_'+c;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -1060,7 +1031,7 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',docs:'docs',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
@@ -1111,7 +1082,7 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({docs:renderDocs,home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -1751,66 +1722,6 @@ $('#hAdd').onclick=async()=>{
     toast(h.level==='긴급'?'사진과 함께 긴급 알림을 전송했습니다.':'지사에 공유되었습니다.','ok');
   }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
   finally{hSending=false;$('#hAdd').textContent='+ 지사에 공유'}
-};
-
-
-/* ===== 자료공유: 파일을 잘게 나눠 Firestore(docChunks)에 저장, 받을 때 다시 합침 ===== */
-const DK_MAX=10*1024*1024,DK_CH=700*1024,DK_BLOCK=/\.(exe|msi|bat|cmd|com|scr|ps1|vbs|js|jar|apk|ipa|sh|dll|lnk|html?|svg)$/i;
-const dkIcon=n=>{const e=(n.split('.').pop()||'').toLowerCase();return /pdf/.test(e)?['PDF','#DC2626']:/hwp|hwpx/.test(e)?['HWP','#2563EB']:/docx?/.test(e)?['DOC','#1D4ED8']:/xlsx?|csv/.test(e)?['XLS','#15803D']:/pptx?/.test(e)?['PPT','#EA580C']:/png|jpe?g|gif|webp|heic/.test(e)?['IMG','#9333EA']:/mp4|mov|avi/.test(e)?['VID','#DB2777']:/zip|7z|rar/.test(e)?['ZIP','#78716C']:[(e||'FILE').slice(0,4).toUpperCase(),'#64748B']};
-const dkSize=b=>b<1024?b+'B':b<1048576?(b/1024).toFixed(0)+'KB':(b/1048576).toFixed(1)+'MB';
-let dkCat='전체',dkFileSel=null,dkBusy=false;
-function renderDocs(){
-  const cats=['전체','교육자료','법규·기준','양식·서식','업무참고','기타'];
-  $('#dkCats').innerHTML=cats.map(c=>`<button type="button" data-dkc="${c}" class="dk-chip${c===dkCat?' on':''}">${c}${c==='전체'?'':' '+D.docs.filter(d=>d.cat===c).length}</button>`).join('');
-  const q=($('#dkQ').value||'').trim().toLowerCase();
-  const list=D.docs.filter(d=>(dkCat==='전체'||d.cat===dkCat)&&(!q||(d.title+' '+(d.desc||'')+' '+d.name).toLowerCase().includes(q))).sort((a,b)=>b.at-a.at);
-  $('#dkList').innerHTML=list.length?list.map(d=>{const [t,c]=dkIcon(d.name);const mine=d.by===myId||isAdmin;return `<div class="card !p-3 flex gap-3 items-start">
-    <span class="dk-ext" style="--c:${c}">${t}</span>
-    <div class="flex-1 min-w-0"><div class="text-sm font-black leading-snug break-words">${esc(d.title)}</div>
-      ${d.desc?`<div class="text-xs opacity-80 mt-0.5 break-words">${esc(d.desc)}</div>`:''}
-      <div class="text-[11px] opacity-65 mt-1">${esc(d.cat)} · ${dkSize(d.size)} · ${esc(nmFull(d.by))} · ${ago(d.at)}</div>
-      <div class="flex gap-2 mt-2"><button type="button" data-dkd="${d.id}" class="dk-btn">⬇️ 내려받기</button>${mine?`<button type="button" data-dkx="${d.id}" class="dk-btn dk-del">삭제</button>`:''}</div></div></div>`}).join('')
-    :`<div class="card text-center text-sm opacity-75 py-8">${q||dkCat!=='전체'?'찾는 자료가 없어요.':'아직 공유된 자료가 없어요.<br>첫 자료를 올려 보세요!'}</div>`;
-}
-$('#dkFile').onchange=e=>{const f=e.target.files[0];dkFileSel=null;if(!f)return;
-  if(DK_BLOCK.test(f.name)){e.target.value='';$('#dkPickTx').textContent='📎 파일 고르기';return toast('실행 파일·웹 파일은 보안상 올릴 수 없어요.','error')}
-  if(f.size>DK_MAX){e.target.value='';$('#dkPickTx').textContent='📎 파일 고르기';return toast('10MB 이하 파일만 올릴 수 있어요. ('+dkSize(f.size)+')','error')}
-  dkFileSel=f;$('#dkPickTx').textContent='📄 '+f.name+' · '+dkSize(f.size);$('#dkPick').classList.add('on')};
-$('#dkQ').oninput=renderDocs;
-$('#dkCats').onclick=e=>{const b=e.target.closest('[data-dkc]');if(b){dkCat=b.dataset.dkc;renderDocs()}};
-const b64=buf=>{let s='';const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)};
-$('#dkUp').onclick=async()=>{
-  if(dkBusy)return;const f=dkFileSel;
-  if(!f)return toast('올릴 파일을 먼저 골라 주세요.','error');
-  if(!$('#dkOk').checked)return toast('개인정보·내부 문서가 없는지 확인하고 체크해 주세요.','error');
-  if(!db)return toast('로그인한 뒤에 올릴 수 있어요.','error');
-  dkBusy=true;const bar=$('#dkProg'),fill=bar.firstElementChild;bar.classList.remove('hidden');fill.style.width='3%';$('#dkUp').textContent='올리는 중…';
-  const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),n=Math.max(1,Math.ceil(f.size/DK_CH)),done=[];
-  try{
-    const buf=await f.arrayBuffer();
-    for(let i=0;i<n;i++){await put('docChunks',{data:b64(buf.slice(i*DK_CH,(i+1)*DK_CH)),by:myId,at:Date.now()},fid+'_'+i);done.push(i);fill.style.width=Math.round((i+1)/n*95)+'%'}
-    await put('docs',{title:($('#dkTitle').value.trim()||f.name.replace(/\.[^.]+$/,'')).slice(0,50),desc:$('#dkDesc').value.trim(),cat:$('#dkCat').value,name:f.name,type:f.type||'application/octet-stream',size:f.size,chunks:n,by:myId,at:Date.now()},fid);
-    fill.style.width='100%';toast('자료를 지사에 공유했어요.','ok');
-    $('#dkTitle').value=$('#dkDesc').value='';$('#dkFile').value='';$('#dkOk').checked=false;dkFileSel=null;$('#dkPickTx').textContent='📎 파일 고르기';$('#dkPick').classList.remove('on');
-  }catch(err){done.forEach(i=>del('docChunks',fid+'_'+i).catch(()=>{}));toast(errMsg(err),'error')}
-  finally{dkBusy=false;$('#dkUp').textContent='⬆️ 지사에 공유';setTimeout(()=>{bar.classList.add('hidden');fill.style.width='0'},800)}
-};
-$('#dkList').onclick=async e=>{
-  const dl=e.target.closest('[data-dkd]'),x=e.target.closest('[data-dkx]');
-  if(dl){if(dl.dataset.busy)return;const d=D.docs.find(v=>v.id===dl.dataset.dkd);if(!d)return;
-    dl.dataset.busy=1;const tx=dl.textContent;
-    try{const parts=[];for(let i=0;i<d.chunks;i++){dl.textContent=`받는 중… ${Math.round(i/d.chunks*100)}%`;
-        const sn=await db.doc('docChunks/'+d.id+'_'+i).get();if(!sn.exists)throw {code:'missing'};
-        const bin=atob(sn.data().data),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);parts.push(u)}
-      const blob=new Blob(parts,{type:d.type||'application/octet-stream'}),file=new File([blob],d.name,{type:blob.type});
-      if(isIOS&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:d.title})}catch(_){}}
-      else{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=d.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}
-    }catch(err){toast(err&&err.code==='missing'?'파일 일부가 지워져 받을 수 없어요.':'내려받지 못했어요. 잠시 후 다시 시도해 주세요.','error')}
-    finally{delete dl.dataset.busy;dl.textContent=tx}
-    return}
-  if(x){if(!x.dataset.arm){x.dataset.arm=1;x.textContent='한 번 더 누르면 삭제';setTimeout(()=>{if(x.isConnected){delete x.dataset.arm;x.textContent='삭제'}},3000);return}
-    const d=D.docs.find(v=>v.id===x.dataset.dkx);if(!d)return;
-    try{await del('docs',d.id);for(let i=0;i<d.chunks;i++)del('docChunks',d.id+'_'+i).catch(()=>{});toast('삭제했어요.')}catch(err){toast(errMsg(err),'error')}}
 };
 
 /* ===== 모닝 브리핑: 녹음 → AI 정리 카드만 ===== */
@@ -3214,7 +3125,7 @@ async function init(){
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
   setSync();setTimeout(pushRefresh,4000);setTimeout(()=>touchSeen(true),2500);setTimeout(permAsk,3500);
-  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30,docs:300},got=new Set();
+  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
   COLS.filter(c=>c!=='settings').forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{
