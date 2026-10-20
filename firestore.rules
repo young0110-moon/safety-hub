@@ -88,17 +88,18 @@ service cloud.firestore {
     // notices 공지 / noticeReads 공지 읽음 / events 공용 일정 / voices 현장목소리
     // comments 댓글 / reacts 좋아요 / hazards 위험현장 / alerts SOS·긴급 알림
     // foods 맛집 / foodLikes 맛집 추천 / photos 사진
+    // docs 자료공유 목록 / docChunks 자료 파일 조각(10MB 파일을 700KB씩 나눠 저장)
     match /{col}/{doc} {
       // 읽기: 지사 멤버만
-      allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos'];
+      allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','docs','docChunks'];
 
       // 쓰기: 지사 멤버만, 작성자(by)는 반드시 본인으로 기록
-      allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos']
+      allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','docs','docChunks']
                     && request.resource.data.by == request.auth.uid;
 
       // 수정: 작성자 본인 또는 관리자
       //   현장목소리·위험현장·공지·일정은 다른 멤버도 수정 가능(좋아요 수, 위치 추가 등)
-      allow update: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos']
+      allow update: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','docs','docChunks']
                     && (resource.data.by == request.auth.uid || isAdmin() || col in ['voices','hazards','notices','events']);
 
       // 삭제: 작성자 본인 또는 관리자
