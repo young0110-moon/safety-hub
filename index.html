@@ -319,7 +319,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
-  <div class="text-[10px] mb-3 px-1"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
+  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span><button data-go="members" class="shrink-0 font-bold underline decoration-dotted underline-offset-2 opacity-90 min-h-[24px]">👥 <span id="memCnt">멤버</span></button></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -343,11 +343,10 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <button data-go="sos" class="node absolute bottom-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-rose-700 border border-red-300/60 flex items-center justify-center text-2xl transition" style="box-shadow:0 0 18px rgba(255,59,48,.6)">🚨</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">긴급 SOS<br>비상연락망</span></button>
     <button data-go="vital" class="node absolute bottom-0 right-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-blue-600 to-purple-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">🩺</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">AI 컨디션<br>진단기</span></button>
   </div>
-  <div id="hubLinks" class="grid grid-cols-4 gap-2 mt-5 text-center">
-    <button data-go="notice" class="card !p-2 !rounded-xl relative min-h-[60px]"><div class="text-xl">📌</div><div class="text-[11px] font-bold whitespace-nowrap">공지</div><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
+  <div id="hubLinks" class="grid grid-cols-3 gap-2 mt-5 text-center">
+    <button data-go="notice" class="card !p-2 !rounded-xl relative min-h-[60px]"><div class="text-xl">📌</div><div class="text-[11px] font-bold whitespace-nowrap">스케쥴공유</div><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
     <button data-go="haz" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl hl-warn">⚠️</div><div class="text-[11px] font-bold whitespace-nowrap tracking-tighter">위험현장</div></button>
     <button data-go="food" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">🍽️</div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap">맛집공유</div></button>
-    <button data-go="members" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">👥</div><div id="memCnt" class="text-[11px] font-bold whitespace-nowrap">멤버</div></button>
   </div>
   <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리 <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
