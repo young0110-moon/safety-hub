@@ -99,6 +99,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* iOS 잔상 방지: 위치(left/right) 대신 GPU 이동(transform) */
 .ptr-elv.open .ptr-d.l{transform:translate3d(-110%,0,0)}.ptr-elv.open .ptr-d.r{transform:translate3d(110%,0,0)}
 /* 새로고침 버튼: 누르면 엘리베이터 문이 열렸다 닫힘 */
+/* 상단 멤버 표시 */
+.mem-pill{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;height:20px;padding:0 8px 0 2px;border-radius:999px;font-size:10px;font-weight:800;color:#166534;background:#DCFCE7;border:1px solid #86EFAC;line-height:1}
+.mem-pill:active{transform:scale(.95)}
+.mem-ic{width:16px;height:16px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#4ADE80,#16A34A)}
+.dark .mem-pill{color:#BBF7D0;background:rgba(34,197,94,.18);border-color:rgba(134,239,172,.45)}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -319,7 +324,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
-  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span><button data-go="members" class="shrink-0 font-bold underline decoration-dotted underline-offset-2 opacity-90 min-h-[24px]">👥 <span id="memCnt">멤버</span></button></div>
+  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span><button data-go="members" class="mem-pill" aria-label="지사 멤버 보기"><span class="mem-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 19.5c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6z"/><circle cx="16.8" cy="9" r="2.6" opacity=".75"/><path d="M15.6 13.7c3.2-.4 6 1.7 6 5.8h-4.4c0-2.3-.6-4.3-1.6-5.8z" opacity=".75"/></svg></span><span id="memCnt">멤버</span></button></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -354,7 +359,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 
 <!-- NOTICE -->
-<section id="p-notice" class="page pt-4 space-y-4" data-title="공지사항">
+<section id="p-notice" class="page pt-4 space-y-4" data-title="스케쥴공유">
   <div class="card">
     <h2 class="font-black text-sm mb-2">✍️ 공지 작성 <span class="text-[11px] font-bold opacity-60">· 멤버 누구나 작성 가능</span></h2>
     <input id="ntTitle" class="inp" maxlength="50" placeholder="공지 제목 (예: 10월 정기 안전교육 일정 변경)">
