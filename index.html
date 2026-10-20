@@ -179,6 +179,27 @@ html.sunset .hub-t{border-color:rgba(255,166,61,.4)}html.mint .hub-t{border-colo
 .fab-c .fab-lb{font-size:11px;margin-top:3px}
 .tab.fab-it.fab-c.on .ic{transform:scale(1.06);background:linear-gradient(145deg,var(--c1),var(--c2))}
 .dark .fab-c .ic{background:linear-gradient(145deg,var(--c1),var(--c2));border:none}
+
+/* 운세 생년월일 단계 선택 */
+.ftp{border:1px solid #E9E3FB;border-radius:16px;padding:10px;background:#FAF8FF}
+.ftp-crumb{display:flex;align-items:center;gap:6px;font-size:13px;color:#A78BFA}
+.ftp-crumb button{flex:1;min-height:38px;border-radius:12px;font-weight:800;background:#fff;border:1px solid #E9E3FB;color:#6B7280}
+.ftp-crumb button.done{color:#4C1D95}
+.ftp-crumb button.on{background:#6D28D9;border-color:#6D28D9;color:#fff}
+.ftp-crumb button:disabled{opacity:.45}
+.ftp-hint{font-size:12px;font-weight:700;margin:10px 2px 6px;opacity:.8}
+.ftp-grid{display:grid;gap:6px;max-height:232px;overflow-y:auto;overscroll-behavior:contain;position:relative}
+.ftp-grid.y{grid-template-columns:repeat(4,1fr)}.ftp-grid.m{grid-template-columns:repeat(4,1fr)}.ftp-grid.d{grid-template-columns:repeat(7,1fr)}
+.ftp-c{min-height:42px;border-radius:12px;background:#fff;border:1px solid #EEE9FB;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;color:#1F1638}
+.ftp-grid.d .ftp-c{min-height:38px;font-size:13px;padding:0}
+.ftp-c:active{transform:scale(.95)}
+.ftp-c.on{background:#6D28D9;border-color:#6D28D9;color:#fff}
+html.sunset .ftp-crumb button.on,html.sunset .ftp-c.on{background:#ED8A17;border-color:#ED8A17}
+html.mint .ftp-crumb button.on,html.mint .ftp-c.on{background:#0F9D8A;border-color:#0F9D8A}
+.dark .ftp{background:#1A1230;border-color:#3B2A66}
+.dark .ftp-crumb button,.dark .ftp-c{background:#241A40;border-color:#3B2A66;color:#E9E3FB}
+.dark .ftp-crumb button.done{color:#C4B5FD}
+.dark .ftp-crumb button.on,.dark .ftp-c.on{color:#fff}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -676,8 +697,9 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <section id="p-fortune" class="page pt-4 space-y-4" data-title="오늘의 운세">
   <form id="ftForm" class="card space-y-3" autocomplete="off">
     <div><h2 class="font-black text-base">🔮 오늘의 운세</h2><p class="text-xs opacity-75 mt-1">생년월일을 넣으면 오늘의 운세를 보여 드려요. 입력한 생년월일은 저장하지 않고, 결과를 보여 준 뒤 바로 지웁니다.</p></div>
-    <label class="block text-xs font-bold" for="ftBirth">생년월일 (양력)</label>
-    <input id="ftBirth" type="date" class="inp" min="1940-01-01" autocomplete="off" required>
+    <p class="block text-xs font-bold">생년월일 (양력)</p>
+    <input id="ftBirth" type="hidden">
+    <div id="ftPick" class="ftp"><div class="ftp-crumb"><button type="button" data-ftstep="y">년</button><span>›</span><button type="button" data-ftstep="m">월</button><span>›</span><button type="button" data-ftstep="d">일</button></div><p id="ftHint" class="ftp-hint"></p><div id="ftGrid" class="ftp-grid"></div></div>
     <button class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">✨ 운세 보기</button>
   </form>
   <div id="ftOut"></div>
@@ -1001,7 +1023,7 @@ function show(name,back){
   if(name==='profile'){fillProfile();renderHomeAcct();renderPush()}
   if(name==='admin'){if(!isAdmin){location.hash='home';return}loadAccess()}
   if(typeof sbCloseSheet==='function'&&name!=='insp')sbCloseSheet(true);
-  if(name!=='fortune'){ftShown=null;$('#ftBirth').value='';$('#ftOut').innerHTML=''}
+  if(name!=='fortune'){ftShown=null;ftReset();$('#ftOut').innerHTML=''}
   render();
 }
 function go(n){if(n===cur){render();return}location.hash=H[n]}
@@ -1029,7 +1051,7 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:renderFortune,cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -2688,17 +2710,48 @@ function renderFortune(){
     <button id="ftAgain" type="button" class="w-full min-h-[44px] rounded-xl border border-purple-400/50 text-xs font-bold">다시 보기 (생년월일 다시 입력)</button>
   </div>`:'';
 }
+
+/* 생년월일: 년 → 월 → 일 차례로 고르기 */
+const ftP={y:0,m:0,d:0,step:'y'};
+function ftReset(){ftP.y=ftP.m=ftP.d=0;ftP.step='y';$('#ftBirth').value='';ftDraw()}
+function ftDraw(){
+  const g=$('#ftGrid');if(!g)return;
+  const now=new Date(),Y=now.getFullYear(),M=now.getMonth()+1,D=now.getDate();
+  document.querySelectorAll('[data-ftstep]').forEach(b=>{const k=b.dataset.ftstep;
+    b.textContent=k==='y'?(ftP.y?ftP.y+'년':'년'):k==='m'?(ftP.m?ftP.m+'월':'월'):(ftP.d?ftP.d+'일':'일');
+    b.classList.toggle('on',k===ftP.step);b.classList.toggle('done',!!ftP[k]);
+    b.disabled=(k==='m'&&!ftP.y)||(k==='d'&&!ftP.m)});
+  let cells=[],cls='';
+  if(ftP.step==='y'){for(let y=Y;y>=1940;y--)cells.push([y,y+'']);cls='y';$('#ftHint').textContent='태어난 해를 골라 주세요'}
+  else if(ftP.step==='m'){const mx=ftP.y===Y?M:12;for(let m=1;m<=mx;m++)cells.push([m,m+'월']);cls='m';$('#ftHint').textContent=ftP.y+'년 · 몇 월인가요?'}
+  else{let mx=new Date(ftP.y,ftP.m,0).getDate();if(ftP.y===Y&&ftP.m===M)mx=D;for(let d=1;d<=mx;d++)cells.push([d,d+'']);cls='d';$('#ftHint').textContent=ftP.y+'년 '+ftP.m+'월 · 며칠인가요?'}
+  g.className='ftp-grid '+cls;
+  g.innerHTML=cells.map(([v,t])=>`<button type="button" data-ftv="${v}" class="ftp-c${ftP[ftP.step]===v?' on':''}">${t}</button>`).join('');
+  if(ftP.step==='y'){const t=g.querySelector('.on')||g.querySelector('[data-ftv="1985"]');if(t)g.scrollTop=t.offsetTop-g.clientHeight/2+t.offsetHeight/2}
+  else g.scrollTop=0;
+  $('#ftBirth').value=ftP.y&&ftP.m&&ftP.d?`${ftP.y}-${String(ftP.m).padStart(2,'0')}-${String(ftP.d).padStart(2,'0')}`:'';
+}
+document.addEventListener('click',e=>{
+  const st=e.target.closest('[data-ftstep]');if(st&&!st.disabled){ftP.step=st.dataset.ftstep;ftDraw();return}
+  const c=e.target.closest('[data-ftv]');if(!c||!c.closest('#ftPick'))return;
+  const v=+c.dataset.ftv;
+  if(ftP.step==='y'){ftP.y=v;ftP.m=ftP.d=0;ftP.step='m'}
+  else if(ftP.step==='m'){ftP.m=v;ftP.d=0;ftP.step='d'}
+  else ftP.d=v;
+  ftDraw();
+});
+ftDraw();
 $('#ftForm').onsubmit=e=>{
   e.preventDefault();
   const inp=$('#ftBirth'),b=inp.value;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return toast('생년월일을 골라 주세요.','error');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(b))return toast(ftP.y?(ftP.m?'일을 골라 주세요.':'월을 골라 주세요.'):'태어난 해부터 골라 주세요.','error');
   if(b>key(new Date()))return toast('오늘 이후 날짜는 고를 수 없어요.','error');
   ftShown=makeFortune(b);
-  inp.value='';inp.blur();
+  ftReset();
   renderFortune();$('#ftOut').scrollIntoView({behavior:'smooth',block:'start'});
 };
-document.addEventListener('click',e=>{if(e.target.closest('#ftAgain')){ftShown=null;renderFortune();$('#ftBirth').focus()}});
-window.addEventListener('pagehide',()=>{ftShown=null;try{$('#ftBirth').value=''}catch(e){}});
+document.addEventListener('click',e=>{if(e.target.closest('#ftAgain')){ftShown=null;renderFortune();ftReset();$('#ftForm').scrollIntoView({behavior:'smooth',block:'start'})}});
+window.addEventListener('pagehide',()=>{ftShown=null;try{ftReset()}catch(e){}});
 
 /* ===== 오늘의 날씨 · 작업 권고 (지사 공유 저장소의 weather/today, 매일 아침 자동 갱신) ===== */
 let W=null;
