@@ -202,27 +202,16 @@ html.mint .ftp-crumb button.on,html.mint .ftp-c.on{background:#0F9D8A;border-col
 .dark .ftp-crumb button.on,.dark .ftp-c.on{color:#fff}
 
 /* 메뉴: 아래 가운데 버튼 대신 오른쪽 가장자리에서 왼쪽으로 밀어 펼치기 */
-.fab-nav{left:auto!important;right:0;top:60%;bottom:auto!important;transform:none!important}
-.fab-menu{left:-44px!important;top:0!important;bottom:auto!important}
-/* 가로로 넘치는 장식 때문에 화면이 옆으로 밀리지 않게 */
-main{overflow-x:clip}
-.fab-hdl{left:auto!important;right:3px;bottom:auto!important;top:-30px;width:6px!important;height:60px!important;border-radius:99px!important;
-  background:linear-gradient(180deg,#A78BFA,#6D28D9)!important;box-shadow:0 2px 8px rgba(76,29,149,.35);opacity:.85;
-  transition:width .3s cubic-bezier(.34,1.56,.64,1),opacity .25s,transform .3s!important;touch-action:none;animation:hdlHint 2.4s 1.2s ease-in-out 2}
-.fab-hdl::after{content:"";position:absolute;right:-3px;top:-16px;bottom:-16px;width:18px}
-.fab-hdl:active{width:10px!important;opacity:1}
-.fab-grip{display:none}
-@keyframes hdlHint{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:none}}
-.fab-nav.open .fab-hdl{opacity:0;transform:translateX(100%);pointer-events:none}
-.fab-nav.drag .fab-hdl{transition:none!important}
-html.sunset .fab-hdl{background:linear-gradient(180deg,#FFC27A,#ED8A17)!important}html.sunset .fab-grip i:nth-child(2){background:#FDE68A}
-html.mint .fab-hdl{background:linear-gradient(180deg,#5EEAD4,#0F9D8A)!important}html.mint .fab-grip i:nth-child(2){background:#A7F3D0}
-/* 당겨서 새로고침: 화면이 따라 내려왔다가 통통 튀며 제자리 */
-@keyframes ptrBounce{0%{transform:translate3d(0,var(--ptr-from,60px),0)}45%{transform:translate3d(0,-10px,0)}68%{transform:translate3d(0,6px,0)}85%{transform:translate3d(0,-3px,0)}100%{transform:none}}
-@keyframes ptrNudge{0%,100%{transform:none}30%{transform:translate3d(0,7px,0)}60%{transform:translate3d(0,-4px,0)}80%{transform:translate3d(0,2px,0)}}
-main.ptr-bounce,footer.ptr-bounce{animation:ptrBounce .75s cubic-bezier(.3,.7,.4,1)}
-main.ptr-nudge,footer.ptr-nudge{animation:ptrNudge .5s ease-out}
-@media (prefers-reduced-motion:reduce){main.ptr-bounce,main.ptr-nudge,footer.ptr-bounce,footer.ptr-nudge{animation:none}}
+
+/* 메뉴: 상단 엘리베이터를 누르면 그 아래로 펼쳐짐 */
+.fab-nav{left:50%!important;right:auto;top:0;bottom:auto!important;transform:translateX(-50%)!important}
+.fab-menu{left:0!important;top:0!important;bottom:auto!important}
+#fabBtn{display:none}
+#hRef{pointer-events:auto;cursor:pointer}
+body.fab-open header{z-index:56}
+#hRef::before{content:"";position:absolute;inset:-12px -14px}
+#hElv.menu .ptr-d.l{transform:translate3d(-110%,0,0)}#hElv.menu .ptr-d.r{transform:translate3d(110%,0,0)}
+#hElv.menu .ptr-d{transition-duration:.5s}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -429,7 +418,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <button id="backBtn" aria-label="메인 화면으로" class="home-pill"><span class="home-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 3.8l8.5 6.7"/><path d="M5.8 9v10.2h12.4V9"/><path d="M10 19.2v-5.4h4v5.4"/></svg></span><span>메인</span></button>
       <h1 id="pageTitle" class="text-sm font-black truncate"></h1>
     </div>
-    <div id="hRef" class="flex justify-center items-center pointer-events-none" style="position:absolute;left:50%;top:50%;transform:translate3d(-50%,-50%,0)" aria-hidden="true"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
+    <div id="hRef" role="button" tabindex="0" aria-label="메뉴 펼치기" aria-expanded="false" class="flex justify-center items-center" style="position:absolute;left:50%;top:50%;transform:translate3d(-50%,-50%,0)"><span id="hElv" class="ptr-elv hdr"><span class="ptr-car"><span class="ptr-d l"></span><span class="ptr-d r"></span></span></span></div>
     <div id="hRight" class="flex items-center gap-1.5 shrink-0">
       <div id="clock" class="hidden text-[10px] font-mono text-right leading-tight tabular-nums"></div>
       <button id="bellBtn" aria-label="알림" aria-haspopup="dialog" class="relative w-11 h-11 rounded-full bg-white/80 dark:bg-white/10 border border-purple-400/40 flex items-center justify-center text-lg">🔔<span id="bellBadge" class="hidden absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] font-black leading-[16px] text-center border-2 border-white dark:border-indigo-950 tabular-nums">0</span></button>
@@ -865,8 +854,8 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
-  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="members" class="tab fab-it fab-c" style="--i:0;--x:-35px;--y:-127px;--c1:#4ADE80;--c2:#059669"><span class="ic"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><circle cx="9" cy="8.2" r="3.6" fill="#fff"/><path d="M2.6 19.6c0-3.7 2.9-6.2 6.4-6.2s6.4 2.5 6.4 6.2z" fill="#fff"/><circle cx="16.8" cy="9.2" r="2.8" fill="#fff" opacity=".8"/><path d="M15.4 13.8c3.3-.5 6.1 1.7 6.1 5.8h-4.6c0-2.4-.5-4.3-1.5-5.8z" fill="#fff" opacity=".8"/></svg></span><span class="fab-lb"><span id="memCnt">멤버</span></span></button><button data-go="vital" data-scroll="lunchCard" class="tab fab-it fab-c" style="--i:1;--x:-98px;--y:-49px;--c1:#FDBA74;--c2:#F43F5E"><span class="ic">🍜</span><span class="fab-lb">오늘<br>뭐 먹지?</span></button><button data-go="fortune" class="tab fab-it fab-c" style="--i:2;--x:-98px;--y:49px;--c1:#C4B5FD;--c2:#7C3AED"><span class="ic">🔮</span><span class="fab-lb">오늘의<br>운세</span></button><button data-go="profile" data-scroll="pfTheme" class="tab fab-it fab-c" style="--i:3;--x:-35px;--y:127px;--c1:#F9A8D4;--c2:#DB2777"><span class="ic">🎨</span><span class="fab-lb">화면<br>테마</span></button></div>
-  <button id="fabBtn" class="fab-btn fab-hdl" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-grip" aria-hidden="true"><i></i><i></i><i></i></span></button>
+  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="members" class="tab fab-it fab-c" style="--i:0;--x:-126px;--y:70px;--c1:#4ADE80;--c2:#059669"><span class="ic"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><circle cx="9" cy="8.2" r="3.6" fill="#fff"/><path d="M2.6 19.6c0-3.7 2.9-6.2 6.4-6.2s6.4 2.5 6.4 6.2z" fill="#fff"/><circle cx="16.8" cy="9.2" r="2.8" fill="#fff" opacity=".8"/><path d="M15.4 13.8c3.3-.5 6.1 1.7 6.1 5.8h-4.6c0-2.4-.5-4.3-1.5-5.8z" fill="#fff" opacity=".8"/></svg></span><span class="fab-lb"><span id="memCnt">멤버</span></span></button><button data-go="vital" data-scroll="lunchCard" class="tab fab-it fab-c" style="--i:1;--x:-42px;--y:84px;--c1:#FDBA74;--c2:#F43F5E"><span class="ic">🍜</span><span class="fab-lb">오늘<br>뭐 먹지?</span></button><button data-go="fortune" class="tab fab-it fab-c" style="--i:2;--x:42px;--y:84px;--c1:#C4B5FD;--c2:#7C3AED"><span class="ic">🔮</span><span class="fab-lb">오늘의<br>운세</span></button><button data-go="profile" data-scroll="pfTheme" class="tab fab-it fab-c" style="--i:3;--x:126px;--y:70px;--c1:#F9A8D4;--c2:#DB2777"><span class="ic">🎨</span><span class="fab-lb">화면<br>테마</span></button></div>
+  <button id="fabBtn" class="fab-btn" hidden aria-hidden="true"></button>
 </nav>
 
 <!-- LOGIN / 가입 -->
@@ -1061,23 +1050,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b
 function goHome(){navStack.length=0;navStack.push('home');if(cur==='home'){window.scrollTo({top:0,behavior:'smooth'});return}location.hash='home';window.scrollTo({top:0})}
 $('#backBtn').onclick=goHome;
 /* 하단 펼침 메뉴 */
-function fabSet(o){const n=$('#fabNav');n.classList.toggle('open',o);$('#fabDim').classList.toggle('on',o);$('#fabBtn').setAttribute('aria-expanded',o);$('#fabBtn').setAttribute('aria-label',o?'메뉴 접기':'메뉴 펼치기');try{navigator.vibrate&&navigator.vibrate(o?12:0)}catch(e){}}
+function fabSet(o){const n=$('#fabNav');const hd=document.querySelector('header');if(o&&hd)n.style.top=Math.round(hd.getBoundingClientRect().bottom)+'px';$('#hElv').classList.toggle('menu',o);document.body.classList.toggle('fab-open',o);n.classList.toggle('open',o);$('#fabDim').classList.toggle('on',o);$('#hRef').setAttribute('aria-expanded',o);$('#hRef').setAttribute('aria-label',o?'메뉴 접기':'메뉴 펼치기');$('#fabBtn').setAttribute('aria-label',o?'메뉴 접기':'메뉴 펼치기');try{navigator.vibrate&&navigator.vibrate(o?12:0)}catch(e){}}
 $('#fabBtn').onclick=()=>fabSet(!$('#fabNav').classList.contains('open'));
-/* 오른쪽 가장자리에서 왼쪽으로 밀면 펼침, 펼친 상태에서 오른쪽으로 밀면 닫힘 */
-(()=>{let x0=null,y0=0,mode='',H=$('#fabBtn'),N=$('#fabNav');
-  document.addEventListener('touchstart',e=>{if(e.touches.length>1)return;
-    const t=e.touches[0],open=N.classList.contains('open');
-    if(!open&&t.clientX>innerWidth-30){x0=t.clientX;y0=t.clientY;mode='o'}
-    else if(open){x0=t.clientX;y0=t.clientY;mode='c'}else x0=null},{passive:true});
-  document.addEventListener('touchmove',e=>{if(x0==null)return;const t=e.touches[0],dx=t.clientX-x0,dy=t.clientY-y0;
-    if(Math.abs(dy)>Math.abs(dx)*1.2&&Math.abs(dy)>14){x0=null;N.classList.remove('drag');H.style.width='';return}
-    if(mode==='o'&&dx<0){N.classList.add('drag');H.style.width=Math.min(6-dx*.25,22)+'px';if(e.cancelable)e.preventDefault()}},{passive:false});
-  document.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;N.classList.remove('drag');H.style.width='';
-    if(mode==='o'&&dx<-36){fabSet(true);try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}}
-    else if(mode==='c'&&dx>50)fabSet(false);
-    x0=null});
-  document.addEventListener('touchcancel',()=>{x0=null;N.classList.remove('drag');H.style.width=''});
-})();
+/* 상단 엘리베이터(새로고침 아이콘)를 누르면 메뉴 펼침/접힘 */
+$('#hRef').addEventListener('click',()=>fabSet(!$('#fabNav').classList.contains('open')));
 $('#fabDim').onclick=()=>fabSet(false);
 $('#fabMenu').addEventListener('click',()=>setTimeout(()=>fabSet(false),120));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#fabNav').classList.contains('open'))fabSet(false)});
@@ -2957,25 +2933,18 @@ function ptrDoor(k){const E=$('#hElv');if(!E)return;const o=k>=0.3;if(o&&!E.clas
 (()=>{let y0=null,dy=0,act=false;
   /* 안드로이드 크롬은 당기는 동작을 브라우저가 가져가면 손가락 움직임 신호를 끊어 버림
      → 맨 위에서 아래로 당길 때는 브라우저 기본 동작을 막고(preventDefault) 앱이 직접 처리 */
-  const M=document.querySelector('main'),F=document.querySelector('footer');let buzz=false;
-  /* 아래 바닥글도 본문과 같이 움직이도록 transform/클래스를 그대로 따라 하게 함 */
-  new MutationObserver(()=>{F.style.transition=M.style.transition;F.style.transform=M.style.transform;F.style.setProperty('--ptr-from',M.style.getPropertyValue('--ptr-from'));
-    F.classList.toggle('ptr-bounce',M.classList.contains('ptr-bounce'));F.classList.toggle('ptr-nudge',M.classList.contains('ptr-nudge'))}).observe(M,{attributes:true,attributeFilter:['style','class']});
-  const mv=y=>{M.classList.remove('ptr-bounce','ptr-nudge');M.style.transition='none';M.style.transform=y?`translate3d(0,${y}px,0)`:''};
-  const back=(big)=>{const y=parseFloat((M.style.transform.match(/,\s*([\d.]+)px/)||[])[1])||0;M.style.transition='';M.style.transform='';
-    if(!y)return;if(big){M.style.setProperty('--ptr-from',y+'px');void M.offsetWidth;M.classList.add('ptr-bounce');setTimeout(()=>M.classList.remove('ptr-bounce'),800)}
-    else{M.style.transition='transform .3s cubic-bezier(.3,.7,.4,1)';M.style.transform=`translate3d(0,${y}px,0)`;requestAnimationFrame(()=>{M.style.transform='';setTimeout(()=>M.style.transition='',320)})}};
-  const reset=()=>{back(false);ptrDoor(0);y0=null;dy=0;act=false;buzz=false};
+  const M=document.querySelector('main'),F=document.querySelector('footer');
+  const mv=y=>{[M,F].forEach(el=>{el.style.transition='none';el.style.transform=y?`translate3d(0,${y}px,0)`:''})};
+  const back=()=>{[M,F].forEach(el=>{if(!el.style.transform)return;el.style.transition='transform .45s cubic-bezier(.22,.8,.3,1)';requestAnimationFrame(()=>{el.style.transform='';setTimeout(()=>el.style.transition='',480)})})};
+  const reset=()=>{back();ptrDoor(0);y0=null;dy=0;act=false};
   document.addEventListener('touchstart',e=>{if(e.touches.length>1||window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0;act=false},{passive:true});
   document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
     if(dy<=0||window.scrollY>0){if(act)reset();else y0=null;return}
     act=true;if(e.cancelable)e.preventDefault();
-    ptrDoor(Math.min(dy/90,1));mv(Math.round(dy<90?dy*.5:45+(dy-90)*.2));
-    if(dy>90&&!buzz){buzz=true;try{navigator.vibrate&&navigator.vibrate(10)}catch(_){}}},{passive:false});
-  document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);y0=null;back(true);buzz=false;
+    ptrDoor(Math.min(dy/90,1));mv(Math.round(dy<90?dy*.5:45+(dy-90)*.2))},{passive:false});
+  document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);y0=null;back();
       /* 화면 전환 없이 제자리 새로고침: 날씨·최신 버전 확인 후 현재 화면만 다시 그림 */
-      Promise.allSettled([loadWeather(true),checkUpdate(false)]).then(()=>{try{render();sbSig=''}catch(e){}
-        setTimeout(()=>{if(y0!=null)return;M.classList.remove('ptr-bounce');void M.offsetWidth;M.classList.add('ptr-nudge');setTimeout(()=>M.classList.remove('ptr-nudge'),550)},500)});
+      Promise.allSettled([loadWeather(true),checkUpdate(false)]).then(()=>{try{render();sbSig=''}catch(e){}});
       setTimeout(()=>{ptrDoor(0);setTimeout(()=>{if(y0==null)reset()},700)},Math.max(600,2500-(Date.now()-ptrOpenAt)))}else reset()});
   document.addEventListener('touchcancel',()=>{if(y0!=null)reset()});
 })();
