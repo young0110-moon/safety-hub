@@ -125,7 +125,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 html.sunset .fab-orb{background:radial-gradient(120% 120% at 30% 20%,#7C2D12 0%,#431407 60%,#1C0A02 100%)}html.sunset .fab-orb::before{background:conic-gradient(from 210deg,#FFA63D,#FDE68A,#FB7185,#FFA63D)}html.sunset .fab-dots i:nth-child(5){background:#FFC27A}
 html.mint .fab-orb{background:radial-gradient(120% 120% at 30% 20%,#115E59 0%,#042F2E 60%,#01140F 100%)}html.mint .fab-orb::before{background:conic-gradient(from 210deg,#5EEAD4,#A7F3D0,#38BDF8,#5EEAD4)}html.mint .fab-dots i:nth-child(5){background:#99F6E4}
 .fab-menu{position:absolute;left:0;bottom:26px;width:0;height:0}
-.fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((4 - var(--i)) * 18ms)}
+.fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((3 - var(--i)) * 18ms)}
 .fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
 .fab-it .fab-lb{font-size:10px;font-weight:800;line-height:1.1;text-align:center;color:#1E1B4B;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:8px;white-space:nowrap}
 .fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(60ms + var(--i) * 35ms);transform:translate(var(--x),var(--y)) scale(1)}
@@ -389,7 +389,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
-  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span><button data-go="members" class="mem-pill" aria-label="지사 멤버 보기"><span class="mem-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 19.5c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6z"/><circle cx="16.8" cy="9" r="2.6" opacity=".75"/><path d="M15.6 13.7c3.2-.4 6 1.7 6 5.8h-4.4c0-2.3-.6-4.3-1.6-5.8z" opacity=".75"/></svg></span><span id="memCnt">멤버</span></button><button data-go="vital" data-scroll="lunchCard" class="eat-pill" aria-label="오늘 뭐 먹지? 점심 추천 보기"><span class="eat-pic" aria-hidden="true">🍙</span>오늘 뭐 먹지?</button></div>
+  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -754,7 +754,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <input id="pfTel" class="inp" maxlength="16" inputmode="tel" placeholder="연락처 (SOS 단체 문자를 받으려면 입력)">
     <button id="pfSave" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">프로필 저장</button>
   </div>
-  <div class="card space-y-2" id="pfTheme">
+  <div class="card space-y-2" id="pfTheme" style="scroll-margin-top:76px">
     <h2 class="font-black text-sm">🎨 화면 테마</h2>
     <p class="text-[11px] opacity-75">기본 보라 테마는 그대로 두고, 원하는 테마를 골라 쓸 수 있어요. 이 휴대폰에만 적용되고, 낮/밤 전환은 위쪽 ☀️🌙 버튼으로.</p>
     <div id="pfThemeList" class="grid grid-cols-1 gap-2"></div>
@@ -809,7 +809,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
-  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="brief" class="tab fab-it" style="--i:0;--x:-138px;--y:-36px"><span class="ic">☀️</span><span class="fab-lb">모닝<br>브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:1;--x:-90px;--y:-119px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="cs" class="tab fab-it" style="--i:2;--x:0px;--y:-152px"><span class="ic">💬</span><span class="fab-lb">CS<br>판정가이드</span></button><button data-go="insp" class="tab fab-it" style="--i:3;--x:90px;--y:-119px"><span class="ic">📘</span><span class="fab-lb">승강기<br>안전기준</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:4;--x:138px;--y:-36px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
+  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="members" class="tab fab-it" style="--i:0;--x:-122px;--y:-52px"><span class="ic">👥</span><span class="fab-lb" id="memCnt">멤버</span></button><button data-go="vital" data-scroll="lunchCard" class="tab fab-it" style="--i:1;--x:-52px;--y:-129px"><span class="ic">🍙</span><span class="fab-lb">오늘<br>뭐 먹지?</span></button><button data-go="fortune" class="tab fab-it" style="--i:2;--x:52px;--y:-129px"><span class="ic">🔮</span><span class="fab-lb">오늘의<br>운세</span></button><button data-go="profile" data-scroll="pfTheme" class="tab fab-it" style="--i:3;--x:122px;--y:-52px"><span class="ic">🎨</span><span class="fab-lb">화면<br>테마</span></button></div>
   <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-orb" aria-hidden="true"><span class="fab-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="fab-x2"><i></i><i></i></span></span></button>
 </nav>
 
