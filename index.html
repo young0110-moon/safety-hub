@@ -151,12 +151,18 @@ html.mint .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(13
 .dark .mem-av{color:#475569;background:#1E293B}.dark .mem-live{border-color:#1E1B4B}.dark .mem-st.on{color:#4ADE80}
 html.sunset .mem-av.on{background:linear-gradient(135deg,#FFC27A,#ED8A17);box-shadow:0 4px 12px rgba(237,138,23,.35)}html.sunset .mem-me{background:#ED8A17}
 html.mint .mem-av.on{background:linear-gradient(135deg,#5EEAD4,#0F9D8A);box-shadow:0 4px 12px rgba(15,157,138,.35)}html.mint .mem-me{background:#0F9D8A}
+/* 메인 하단 바로가기 3칸: 궤도 아이콘과 같은 그라데이션 원 + 유리 카드 */
+.hub-t{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px 10px;border-radius:20px;background:rgba(255,255,255,.72);border:1px solid rgba(167,139,250,.35);box-shadow:0 6px 18px -8px rgba(76,29,149,.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:transform .15s}
+.hub-t:active{transform:scale(.96)}
+.hub-ic{position:relative;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:21px;line-height:1;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 6px 14px -4px var(--c2),inset 0 -2px 0 rgba(0,0,0,.12),inset 0 2px 0 rgba(255,255,255,.35);margin-bottom:3px}
+.hub-tt{font-size:12px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;color:#1E1B4B}
+.hub-st{font-size:10px;font-weight:600;opacity:.6;white-space:nowrap;color:#1E1B4B}
+.dark .hub-t{background:rgba(255,255,255,.07);border-color:rgba(167,139,250,.35);box-shadow:0 8px 20px -10px rgba(0,0,0,.6)}
+.dark .hub-tt,.dark .hub-st{color:#fff}
+html.sunset .hub-t{border-color:rgba(255,166,61,.4)}html.mint .hub-t{border-color:rgba(20,184,166,.4)}
 /* 오늘 뭐 먹지? */
-.eat-ic{position:relative;width:34px;height:34px;margin:0 auto 2px;border-radius:999px;display:flex!important;align-items:center;justify-content:center;font-size:19px!important;line-height:1!important;background:linear-gradient(135deg,#FFEDD5,#FECDD3)!important;box-shadow:0 3px 8px rgba(244,63,94,.18),inset 0 -2px 0 rgba(244,63,94,.12)}
 .eat-steam{position:absolute;top:-6px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:999px;background:radial-gradient(circle,rgba(251,146,60,.35),transparent 70%);animation:eatSteam 2.4s ease-in-out infinite}
 @keyframes eatSteam{0%{transform:translateY(4px) scale(.6);opacity:0}40%{opacity:1}100%{transform:translateY(-6px) scale(1.3);opacity:0}}
-.eat-tile #foodCnt{color:#E11D48}
-.dark #hubLinks .eat-tile #foodCnt{color:#E11D48}
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
 @keyframes eatFlash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 4px rgba(251,146,60,.55)}}
@@ -187,10 +193,6 @@ html.sunset .ptr-elv.hdr{border-color:#ED8A17}html.sunset .ptr-elv.hdr:before{bo
 .dark #nBanner .bg-white\/20{background:#EADDFF!important;color:#4F378B!important}
 /* 밤 모드: 메인 바로가기·최근 현장목소리는 글쓰기·댓글 화면과 같은 남색 카드 + 하늘색 */
 .dark #homeFeed .border-purple-400\/30{border-color:#1F3A60!important}
-.dark #hubLinks .card{background:#FFFFFF;border:3px solid #F9A8D4;color:#222222}
-#hubLinks .text-xl{font-size:1.1rem;line-height:1.6rem}
-.dark #hubLinks .text-xl{width:30px;height:30px;margin:0 auto 2px;border-radius:50%;background:#FFF0F2;display:flex;align-items:center;justify-content:center;font-size:17px}
-.dark #hubLinks .text-xl.hl-warn{background:#FFE4E1}
 /* 토스 스타일 글씨: 기기 기본 서체 + 촘촘한 자간 + 굵기 3단계 */
 body{letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;word-break:keep-all}
 .font-black{font-weight:700!important}
@@ -216,7 +218,7 @@ html.sunset #wxChip{background:rgba(255,255,255,.6)!important}
 html.sunset .bk-tag.elv{background:#EA580C}
 html.sunset mark.sbm{background:#FFD9A8}
 html.sunset .sel,html.sunset .sb-act.sel{background:#ED8A17!important}
-html.sunset #hubLinks .card{border-color:rgba(255,166,61,.4)}
+
 html.sunset .from-purple-600,html.sunset .from-indigo-600,html.sunset .from-pink-500{--tw-gradient-from:#FFA63D var(--tw-gradient-from-position)!important}
 html.sunset .to-indigo-700,html.sunset .to-purple-700,html.sunset .to-blue-700{--tw-gradient-to:#C2410C var(--tw-gradient-to-position)!important}
 /* ===== 테마 추가: 민트 그린 — 기본 보라 테마는 그대로, html.mint 일 때만 덧씌움 ===== */
@@ -237,7 +239,7 @@ html.mint #wxChip{background:rgba(255,255,255,.6)!important}
 html.mint .bk-tag.elv{background:#0E7490}
 html.mint mark.sbm{background:#99F6E4}
 html.mint .sel,html.mint .sb-act.sel{background:#0F9D8A!important}
-html.mint #hubLinks .card{border-color:rgba(20,184,166,.4)}
+
 html.mint .from-purple-600,html.mint .from-indigo-600,html.mint .from-pink-500{--tw-gradient-from:#2DD4BF var(--tw-gradient-from-position)!important}
 html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gradient-to:#0F766E var(--tw-gradient-to-position)!important}
 /* 검사연혁집: 밴드형 탭 · 네이버식 검색 · 법령 연혁식 신·구 비교 */
@@ -405,10 +407,10 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <button data-go="sos" class="node absolute bottom-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-rose-700 border border-red-300/60 flex items-center justify-center text-2xl transition" style="box-shadow:0 0 18px rgba(255,59,48,.6)">🚨</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">긴급알리미<br>SOS</span></button>
     <button data-go="vital" class="node absolute bottom-0 right-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-blue-600 to-purple-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">🩺</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">AI 컨디션<br>진단기</span></button>
   </div>
-  <div id="hubLinks" class="grid grid-cols-3 gap-2 mt-5 text-center">
-    <button data-go="notice" class="card !p-2 !rounded-xl relative min-h-[60px]"><div class="text-xl">📌</div><div class="text-[11px] font-bold whitespace-nowrap">스케쥴공유</div><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
-    <button data-go="haz" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl hl-warn">⚠️</div><div class="text-[11px] font-bold whitespace-nowrap tracking-tighter">위험현장</div></button>
-    <button data-go="vital" data-scroll="lunchCard" class="card !p-2 !rounded-xl min-h-[60px] eat-tile"><div class="text-xl eat-ic" aria-hidden="true">🍜<i class="eat-steam"></i></div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap tracking-tighter">오늘 뭐 먹지?</div></button>
+  <div id="hubLinks" class="grid grid-cols-3 gap-2.5 mt-5">
+    <button data-go="notice" class="hub-t relative"><span class="hub-ic" style="--c1:#A78BFA;--c2:#6D28D9">📌</span><span class="hub-tt">스케쥴공유</span><span class="hub-st">일정·공지</span><span id="qNoticeBadge" class="hidden absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
+    <button data-go="haz" class="hub-t"><span class="hub-ic" style="--c1:#FBBF24;--c2:#EA580C">⚠️</span><span class="hub-tt">위험현장</span><span class="hub-st">사진으로 공유</span></button>
+    <button data-go="vital" data-scroll="lunchCard" class="hub-t eat-tile"><span class="hub-ic" style="--c1:#FDA4AF;--c2:#F43F5E">🍜<i class="eat-steam"></i></span><span class="hub-tt">오늘 뭐 먹지?</span><span class="hub-st">점심 추천·맛집</span></button>
   </div>
   <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장 Information <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
