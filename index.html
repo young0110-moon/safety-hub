@@ -151,6 +151,16 @@ html.mint .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(13
 .dark .mem-av{color:#475569;background:#1E293B}.dark .mem-live{border-color:#1E1B4B}.dark .mem-st.on{color:#4ADE80}
 html.sunset .mem-av.on{background:linear-gradient(135deg,#FFC27A,#ED8A17);box-shadow:0 4px 12px rgba(237,138,23,.35)}html.sunset .mem-me{background:#ED8A17}
 html.mint .mem-av.on{background:linear-gradient(135deg,#5EEAD4,#0F9D8A);box-shadow:0 4px 12px rgba(15,157,138,.35)}html.mint .mem-me{background:#0F9D8A}
+/* 오늘 뭐 먹지? */
+.eat-ic{position:relative;width:34px;height:34px;margin:0 auto 2px;border-radius:999px;display:flex!important;align-items:center;justify-content:center;font-size:19px!important;line-height:1!important;background:linear-gradient(135deg,#FFEDD5,#FECDD3)!important;box-shadow:0 3px 8px rgba(244,63,94,.18),inset 0 -2px 0 rgba(244,63,94,.12)}
+.eat-steam{position:absolute;top:-6px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:999px;background:radial-gradient(circle,rgba(251,146,60,.35),transparent 70%);animation:eatSteam 2.4s ease-in-out infinite}
+@keyframes eatSteam{0%{transform:translateY(4px) scale(.6);opacity:0}40%{opacity:1}100%{transform:translateY(-6px) scale(1.3);opacity:0}}
+.eat-tile #foodCnt{color:#E11D48}
+.dark #hubLinks .eat-tile #foodCnt{color:#E11D48}
+.eat-card{border-color:rgba(251,146,60,.45)!important}
+.eat-flash{animation:eatFlash 1.5s ease}
+@keyframes eatFlash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 4px rgba(251,146,60,.55)}}
+@media (prefers-reduced-motion:reduce){.eat-steam,.eat-flash{animation:none}}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -398,7 +408,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="hubLinks" class="grid grid-cols-3 gap-2 mt-5 text-center">
     <button data-go="notice" class="card !p-2 !rounded-xl relative min-h-[60px]"><div class="text-xl">📌</div><div class="text-[11px] font-bold whitespace-nowrap">스케쥴공유</div><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
     <button data-go="haz" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl hl-warn">⚠️</div><div class="text-[11px] font-bold whitespace-nowrap tracking-tighter">위험현장</div></button>
-    <button data-go="food" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">🍽️</div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap">맛집공유</div></button>
+    <button data-go="vital" data-scroll="lunchCard" class="card !p-2 !rounded-xl min-h-[60px] eat-tile"><div class="text-xl eat-ic" aria-hidden="true">🍜<i class="eat-steam"></i></div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap tracking-tighter">오늘 뭐 먹지?</div></button>
   </div>
   <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장 Information <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
@@ -544,11 +554,15 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <p class="text-[11px] opacity-75 mt-1 mb-2 leading-relaxed">일반의약품 종류 안내입니다. 복용량은 제품 설명서를 따르고, 복용 중인 약이나 지병이 있으면 약사와 먼저 상담하세요.</p>
     <div id="medList" class="space-y-2"></div>
   </div>
-  <div class="card">
+  <div class="card" id="lunchCard" style="scroll-margin-top:76px">
     <div class="flex justify-between items-center mb-2 gap-2"><h2 class="font-black text-sm">🍱 오늘의 점심 추천</h2><button id="lunchMore" class="shrink-0 min-h-[40px] px-3 rounded-full bg-purple-600/30 border border-purple-400/50 text-xs font-bold">🔄 다른 메뉴</button></div>
     <div id="lunchList" class="space-y-2"></div>
-    <div id="lunchFood" class="hidden mt-3"></div>
     <p id="lunchTip" class="text-[11px] opacity-75 mt-2"></p>
+  </div>
+  <div class="card eat-card" id="foodShare">
+    <div class="flex justify-between items-center mb-1 gap-2"><h2 class="font-black text-sm">🍽️ 지사 맛집공유 <span id="foodShareCnt" class="text-[11px] font-bold opacity-60"></span></h2><button data-go="food" class="shrink-0 min-h-[36px] px-3 rounded-full text-xs font-bold text-white" style="background:linear-gradient(135deg,#FB923C,#F43F5E)">전체 보기 ›</button></div>
+    <p class="text-[11px] opacity-70 mb-2">위 추천 메뉴와 맞는, 동료가 올린 지사 근처 맛집이에요.</p>
+    <div id="lunchFood"></div>
   </div>
   <div class="card">
     <div class="flex justify-between items-center mb-2"><h2 class="font-black text-sm">📈 최근 7일 컨디션</h2><span id="vAvg" class="text-[11px] font-bold opacity-80"></span></div>
@@ -979,7 +993,7 @@ window.addEventListener('hashchange',()=>{
   if(back)navStack.pop();else navStack.push(n);
   if(n!==cur)show(n,back||n==='home');
 });
-document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){e.preventDefault();go(b.dataset.go)}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){e.preventDefault();go(b.dataset.go);const sc=b.dataset.scroll;if(sc)setTimeout(()=>{const t=document.getElementById(sc);if(t){t.scrollIntoView({behavior:'smooth',block:'start'});t.classList.add('eat-flash');setTimeout(()=>t.classList.remove('eat-flash'),1600)}},380)}});
 /* 메인 버튼: 이전 화면이 아니라 언제나 첫 메인 화면으로 */
 function goHome(){navStack.length=0;navStack.push('home');if(cur==='home'){window.scrollTo({top:0,behavior:'smooth'});return}location.hash='home';window.scrollTo({top:0})}
 $('#backBtn').onclick=goHome;
@@ -1003,7 +1017,7 @@ function render(){
 }
 function renderHeader(){
   $('#meBtn').innerHTML=avatar(myId,36);$('#wAv').innerHTML=avatar(myId,36);
-  $('#foodCnt').textContent=D.foods.length?`맛집공유 ${D.foods.length}`:'맛집공유';
+  
   $('#memCnt').textContent=D.members.length?`멤버 ${D.members.length}`:'멤버';
 }
 function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전')+(()=>{try{return BUILD!=='__BUILD__'?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})()}
@@ -1707,8 +1721,8 @@ function renderLunch(){
   const pool=ranked.filter(m=>m.sc>0).length>=3?ranked.filter(m=>m.sc>0):ranked;
   const pick=[0,1,2].map(k=>pool[(lunchOff*3+k)%pool.length]).filter((m,i,a)=>a.indexOf(m)===i);
   $('#lunchList').innerHTML=pick.map((m,k)=>`<div class="flex items-center gap-3 p-3 rounded-xl sub"><span class="w-8 h-8 shrink-0 rounded-full bg-[#6D28D9] text-white text-xs font-black flex items-center justify-center">${k+1}</span><div class="min-w-0"><div class="text-sm font-black">${m.n}</div><div class="text-xs opacity-80">${m.w}</div></div></div>`).join('');
-  const lf=foodsForMenus(pick);$('#lunchFood').classList.toggle('hidden',!D.foods.length);
-  $('#lunchFood').innerHTML=`<div class="flex items-center justify-between mb-2"><div class="text-xs font-bold">🍽️ 동료가 추천한 맛집</div><button data-go="food" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[32px]">맛집 더보기 ›</button></div>`+(lf.length?`<div class="space-y-2">${lf.map(x=>`<div class="text-[10px] font-bold opacity-70 -mb-1">‘${esc(x.m)}’ 추천</div>`+foodCard(x.f,true)).join('')}</div>`:'<p class="text-xs opacity-70">추천 메뉴와 맞는 등록 맛집이 아직 없어요. ‘다른 메뉴’를 눌러 보거나 맛집을 등록해 주세요.</p>');
+  const lf=foodsForMenus(pick);$('#foodShareCnt').textContent=D.foods.length?`${D.foods.length}곳`:'';
+  $('#lunchFood').innerHTML=!D.foods.length?'<div class="text-center py-3"><p class="text-xs opacity-70">아직 등록된 맛집이 없어요.</p><button data-go="food" class="mt-2 min-h-[40px] px-4 rounded-full text-xs font-bold text-white" style="background:linear-gradient(135deg,#FB923C,#F43F5E)">＋ 첫 맛집 올리기</button></div>':(lf.length?`<div class="space-y-2">${lf.map(x=>`<div class="text-[10px] font-bold opacity-70 -mb-1">‘${esc(x.m)}’ 추천</div>`+foodCard(x.f,true)).join('')}</div>`:'<p class="text-xs opacity-70">추천 메뉴와 맞는 등록 맛집이 아직 없어요. ‘다른 메뉴’를 눌러 보거나 맛집을 등록해 주세요.</p>');
   $('#lunchTip').textContent=s>=4?'컨디션이 나쁠 땐 과식을 피하고 천천히 드세요.':tg.has('focus')?'밥은 평소의 3분의 2만, 식후 10분 걷기로 오후 졸음을 줄이세요.':'식후 바로 승강로 작업에 들어가기 전 10분 정도 쉬어 주세요.';
 }
 $('#lunchMore').onclick=()=>{lunchOff++;renderLunch()};
