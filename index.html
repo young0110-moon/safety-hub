@@ -107,36 +107,39 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ===== 하단 메뉴: 동그란 버튼을 누르면 부채꼴로 쫘악 펼침, 다시 누르면 숨김 ===== */
 .fab-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:55;width:0;height:0}
-.fab-btn{position:absolute;left:-24px;bottom:0;width:48px;height:48px;border-radius:999px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(255,255,255,.38));backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
-  border:1px solid rgba(255,255,255,.85);box-shadow:0 10px 26px -6px rgba(76,29,149,.38),0 2px 6px rgba(76,29,149,.12),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -6px 12px rgba(139,92,246,.12);
-  transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
-.fab-btn:active{transform:scale(.9)}
-.fab-plus{position:relative;width:18px;height:18px;display:block;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
-.fab-plus i{position:absolute;left:0;top:7.5px;width:18px;height:3px;border-radius:3px;background:linear-gradient(90deg,#8B5CF6,#6D28D9)}
-.fab-plus i:nth-child(2){transform:rotate(90deg)}
-.fab-nav.open .fab-plus{transform:rotate(135deg)}
-.fab-nav.open .fab-btn{box-shadow:0 14px 30px -6px rgba(76,29,149,.55),inset 0 1px 0 rgba(255,255,255,.95)}
-.dark .fab-btn{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08));border-color:rgba(255,255,255,.3)}
-.dark .fab-plus i{background:linear-gradient(90deg,#DDD6FE,#A78BFA)}
-html.sunset .fab-plus i{background:linear-gradient(90deg,#FFA63D,#ED8A17)}html.sunset .fab-btn{box-shadow:0 10px 26px -6px rgba(237,138,23,.4),inset 0 1px 0 rgba(255,255,255,.95)}
-html.mint .fab-plus i{background:linear-gradient(90deg,#2DD4BF,#0F9D8A)}html.mint .fab-btn{box-shadow:0 10px 26px -6px rgba(15,157,138,.4),inset 0 1px 0 rgba(255,255,255,.95)}
-.fab-menu{position:absolute;left:0;bottom:24px;width:0;height:0}
+.fab-btn{position:absolute;left:-26px;bottom:0;width:52px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:16px;background:transparent;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.fab-btn:active{transform:scale(.92)}
+/* 엘리베이터 문 버튼 */
+.fab-elv{position:relative;width:46px;height:52px;border-radius:12px;padding:12px 5px 5px;box-sizing:border-box;display:block;
+  background:linear-gradient(180deg,#fff,#F3E8FF);border:2.5px solid #6D28D9;box-shadow:0 10px 24px -6px rgba(76,29,149,.45),0 2px 6px rgba(76,29,149,.15)}
+.fab-lamp{position:absolute;top:3px;left:50%;width:14px;height:5px;margin-left:-7px;border-radius:3px;background:#C4B5FD;transition:background .3s,box-shadow .3s}
+.fab-lamp::after{content:"";position:absolute;left:50%;top:-1px;margin-left:-3px;border:3px solid transparent;border-bottom:4px solid #fff;border-top:0}
+.fab-car{position:relative;display:block;width:100%;height:100%;border-radius:3px;overflow:hidden;background:#FEF3C7;isolation:isolate}
+.fab-light{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#FFFBEB,#FCD34D 70%);opacity:.6;transition:opacity .4s}
+.fab-d{transition-delay:.18s;position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#A78BFA,#7C3AED);transition:transform .55s cubic-bezier(.65,0,.35,1);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.fab-d.l{left:0;border-right:1px solid #5B21B6}.fab-d.r{right:0;background:linear-gradient(270deg,#A78BFA,#7C3AED);border-left:1px solid #5B21B6}
+.fab-nav.open .fab-d{transition-delay:0s}.fab-nav.open .fab-d.l{transform:translate3d(-102%,0,0)}.fab-nav.open .fab-d.r{transform:translate3d(102%,0,0)}
+.fab-nav.open .fab-light{opacity:1}
+.fab-nav.open .fab-lamp{background:#FBBF24;box-shadow:0 0 8px #FBBF24}
+.dark .fab-elv{background:linear-gradient(180deg,#2E1065,#1E1B4B);border-color:#A78BFA}
+html.sunset .fab-elv{border-color:#ED8A17;background:linear-gradient(180deg,#fff,#FFEDD5);box-shadow:0 10px 24px -6px rgba(237,138,23,.45)}html.sunset .fab-d{background:linear-gradient(90deg,#FFC27A,#ED8A17)}html.sunset .fab-d.r{background:linear-gradient(270deg,#FFC27A,#ED8A17)}html.sunset .fab-lamp{background:#FED7AA}
+html.mint .fab-elv{border-color:#0F9D8A;background:linear-gradient(180deg,#fff,#CCFBF1);box-shadow:0 10px 24px -6px rgba(15,157,138,.45)}html.mint .fab-d{background:linear-gradient(90deg,#5EEAD4,#0F9D8A)}html.mint .fab-d.r{background:linear-gradient(270deg,#5EEAD4,#0F9D8A)}html.mint .fab-lamp{background:#99F6E4}
+.fab-menu{position:absolute;left:0;bottom:28px;width:0;height:0}
 .fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((5 - var(--i)) * 18ms)}
 .fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
 .fab-it .fab-lb{font-size:10px;font-weight:800;line-height:1.1;text-align:center;color:#1E1B4B;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:8px;white-space:nowrap}
-.fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(var(--i) * 35ms);transform:translate(var(--x),var(--y)) scale(1)}
-.tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#A78BFA,#6D28D9);border-color:transparent;transform:scale(1.06)}
+.fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(220ms + var(--i) * 40ms);transform:translate(var(--x),var(--y)) scale(1)}
+.tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(135deg,#A78BFA,#6D28D9);border-color:transparent}
 .fab-it.on .fab-lb{color:#6D28D9}
 .fab-sos .ic{background:linear-gradient(135deg,#EF4444,#BE123C);border-color:transparent;box-shadow:0 0 16px rgba(255,59,48,.55)}
 .fab-sos .fab-lb{color:#DC2626}
 .fab-dim{position:fixed;inset:0;z-index:54;background:rgba(15,10,40,.38);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab-dim.on{opacity:1;pointer-events:auto}
 .dark .fab-it .ic{background:#2E1065;border-color:#6D28D9}.dark .fab-it .fab-lb{color:#EDE9FE;background:rgba(30,27,75,.92)}
-html.sunset .tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
-html.mint .tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
+html.sunset .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
+html.mint .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
 
-@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-plus{transition-duration:.01s!important}}
+@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-d{transition-duration:.01s!important}}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -774,7 +777,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
   <div id="fabMenu" class="fab-menu" role="menu"><button data-go="home" class="tab fab-it" style="--i:0;--x:-147px;--y:-30px"><span class="ic">🏠</span><span class="fab-lb">홈</span></button><button data-go="cal" class="tab fab-it" style="--i:1;--x:-114px;--y:-110px"><span class="ic">📅</span><span class="fab-lb">일정</span></button><button data-go="brief" class="tab fab-it" style="--i:2;--x:-43px;--y:-158px"><span class="ic">☀️</span><span class="fab-lb">브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:3;--x:43px;--y:-158px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="haz" class="tab fab-it" style="--i:4;--x:114px;--y:-110px"><span class="ic">⚠️</span><span class="fab-lb">위험현장</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:5;--x:147px;--y:-30px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
-  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-plus" aria-hidden="true"><i></i><i></i></span></button>
+  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-elv" aria-hidden="true"><span class="fab-lamp"></span><span class="fab-car"><span class="fab-light"></span><span class="fab-d l"></span><span class="fab-d r"></span></span></span></button>
 </nav>
 
 <!-- LOGIN / 가입 -->
