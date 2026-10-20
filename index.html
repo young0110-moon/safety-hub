@@ -140,6 +140,17 @@ html.sunset .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(
 html.mint .tab.fab-it.on .ic{transform:scale(1.04);background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
 
 @media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-dots,.fab-x2{transition-duration:.01s!important}}
+/* 멤버 접속 표시: 접속 중 = 테마 색, 미접속 = 어두운 회색 */
+.mem-av{position:relative;width:42px;height:42px;flex-shrink:0;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#94A3B8;background:#E2E8F0;transition:all .3s}
+.mem-av.on{color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);box-shadow:0 4px 12px rgba(109,40,217,.35)}
+.mem-live{position:absolute;right:0;bottom:0;width:12px;height:12px;border-radius:999px;background:#22C55E;border:2px solid #fff}
+.mem-off .text-sm{opacity:.7}
+.mem-st{font-weight:700}.mem-st.on{color:#16A34A}
+.mem-me{font-size:10px;font-weight:900;padding:1px 6px;border-radius:999px;color:#fff;background:#6D28D9}
+.mem-on-dot{width:8px;height:8px;border-radius:999px;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.dark .mem-av{color:#475569;background:#1E293B}.dark .mem-live{border-color:#1E1B4B}.dark .mem-st.on{color:#4ADE80}
+html.sunset .mem-av.on{background:linear-gradient(135deg,#FFC27A,#ED8A17);box-shadow:0 4px 12px rgba(237,138,23,.35)}html.sunset .mem-me{background:#ED8A17}
+html.mint .mem-av.on{background:linear-gradient(135deg,#5EEAD4,#0F9D8A);box-shadow:0 4px 12px rgba(15,157,138,.35)}html.mint .mem-me{background:#0F9D8A}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -676,6 +687,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- MEMBERS -->
 <section id="p-members" class="page pt-4 space-y-3" data-title="멤버">
+  <div id="mOnline" class="text-xs font-bold px-1 flex items-center gap-1.5"></div>
   <input id="mSearch" class="inp" placeholder="🔍 이름·직급·팀 검색">
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
@@ -1568,10 +1580,22 @@ $('#vwClose').onclick=closeViewer;$('#vwPost').onclick=()=>{closeViewer();if(vwP
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeViewer()}});
 
 /* ===== 멤버 ===== */
+/* 접속 상태: 앱을 켜 둔 동안 3분마다 내 멤버 문서에 seen(마지막 접속 시각) 기록 → 7분 안이면 '접속 중' */
+const ONLINE_MS=7*60*1000;
+const isOnline=m=>m&&(m.id===myId&&document.visibilityState==='visible'||(m.seen&&Date.now()-m.seen<ONLINE_MS));
+let seenAt=0;
+function touchSeen(force){try{if(!db||!myId||!me()||document.visibilityState!=='visible')return;if(!force&&Date.now()-seenAt<170e3)return;seenAt=Date.now();db.doc('members/'+myId).update({seen:Date.now()}).catch(()=>{})}catch(e){}}
+setInterval(()=>touchSeen(),60e3);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')touchSeen(true)});
+setInterval(()=>{if(cur==='members')renderMembers()},60e3);
+const PERSON='<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.5c0-4.4 3.7-7.3 8.2-7.3s8.2 2.9 8.2 7.3z"/></svg>';
+const agoShort=t=>{if(!t)return '접속 기록 없음';const m=Math.floor((Date.now()-t)/6e4);return m<60?`${Math.max(1,m)}분 전 접속`:m<1440?`${Math.floor(m/60)}시간 전 접속`:`${Math.floor(m/1440)}일 전 접속`};
 function renderMembers(){
   const q=$('#mSearch').value.trim(),ord=r=>{const i=RANKS.indexOf(r);return i<0?99:i};
-  const list=D.members.filter(m=>!q||[m.name,m.rank,m.team].join(' ').includes(q)).sort((a,b)=>ord(a.rank)-ord(b.rank)||a.name.localeCompare(b.name,'ko'));
-  $('#mList').innerHTML=list.length?list.map(m=>`<div class="flex items-center gap-3 p-3">${avatar(m.id,42)}<div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#6D28D9] text-white">나</span>':''}</div><div class="text-[11px] opacity-70 truncate">${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="w-11 h-11 shrink-0 rounded-full bg-purple-600/30 flex items-center justify-center">📞</a>`:''}</div>`).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
+  const list=D.members.filter(m=>!q||[m.name,m.rank,m.team].join(' ').includes(q)).sort((a,b)=>(isOnline(b)?1:0)-(isOnline(a)?1:0)||ord(a.rank)-ord(b.rank)||a.name.localeCompare(b.name,'ko'));
+  const on=D.members.filter(isOnline).length;
+  $('#mOnline').innerHTML=`<span class="mem-on-dot"></span> 지금 접속 중 <b>${on}명</b><span class="opacity-60">/ 전체 ${D.members.length}명</span>`;
+  $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="w-11 h-11 shrink-0 rounded-full bg-purple-600/30 flex items-center justify-center">📞</a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
 }
 $('#mSearch').oninput=renderMembers;
 
@@ -2981,7 +3005,7 @@ async function init(){
   }
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
-  setSync();setTimeout(pushRefresh,4000);setTimeout(permAsk,3500);
+  setSync();setTimeout(pushRefresh,4000);setTimeout(()=>touchSeen(true),2500);setTimeout(permAsk,3500);
   const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
