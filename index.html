@@ -342,7 +342,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <div id="miniGrid" class="grid grid-cols-7 gap-[2px] text-[9px]"></div>
     </button>
     <button data-go="brief" class="node absolute top-0 left-0 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-purple-600 to-indigo-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">☀️</span><span class="text-[10px] font-bold mt-1 leading-tight text-center">모닝<br>브리핑</span></button>
-    <button data-go="voice" class="node absolute top-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-indigo-600 to-blue-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">📣</span><span class="text-[10px] font-bold mt-1 leading-tight text-center">현장<br>information</span></button>
+    <button data-go="voice" class="node absolute top-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow bg-gradient-to-br from-indigo-600 to-blue-700 border border-purple-300/60 flex items-center justify-center text-2xl transition">📣</span><span class="text-[10px] font-bold mt-1 leading-tight text-center">현장<br>Information</span></button>
     <button data-go="cs" class="node absolute top-0 right-0 w-[76px] flex flex-col items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow border border-teal-200/70 flex items-center justify-center transition" style="background:linear-gradient(135deg,#0D9488,#0E7490 55%,#134E4A)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 15 14.5H9l-3.5 3v-3H4A1.5 1.5 0 0 1 2.5 13V7A1.5 1.5 0 0 1 4 5.5z"/><path d="m6.3 10 1.5 1.5 3-3"/><path d="M18.5 9h1A1.5 1.5 0 0 1 21 10.5v5A1.5 1.5 0 0 1 19.5 17H19v2.5L16 17h-3"/></svg></span><span class="text-[10px] font-bold mt-1 leading-tight text-center whitespace-nowrap">CS 판정가이드</span></button>
     <button data-go="insp" class="node absolute bottom-0 left-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full glow flex items-center justify-center transition" style="padding:3px;background:conic-gradient(#6D28D9 0 120deg,#0D9488 120deg 240deg,#D97706 240deg 360deg)"><span class="w-full h-full rounded-full bg-[#F5F3FF] flex items-center justify-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4C1D95" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9.5 12h5M9.5 15.5h5M9.5 19h3"/></svg></span></span><span class="text-[10px] font-bold mb-1 leading-tight text-center">승강기<br>안전기준</span></button>
     <button data-go="sos" class="node absolute bottom-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-rose-700 border border-red-300/60 flex items-center justify-center text-2xl transition" style="box-shadow:0 0 18px rgba(255,59,48,.6)">🚨</span><span class="text-[10px] font-bold mb-1 leading-tight text-center">긴급알리미<br>SOS</span></button>
@@ -353,7 +353,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <button data-go="haz" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl hl-warn">⚠️</div><div class="text-[11px] font-bold whitespace-nowrap tracking-tighter">위험현장</div></button>
     <button data-go="food" class="card !p-2 !rounded-xl min-h-[60px]"><div class="text-xl">🍽️</div><div id="foodCnt" class="text-[11px] font-bold whitespace-nowrap">맛집공유</div></button>
   </div>
-  <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장목소리 <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
+  <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장 Information <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
   </div>
 </section>
@@ -376,7 +376,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 
 <!-- VOICE FEED -->
-<section id="p-voice" class="page pt-4 space-y-3" data-title="현장목소리">
+<section id="p-voice" class="page pt-4 space-y-3" data-title="현장 Information">
   <button data-go="write" class="card w-full !p-3 flex items-center gap-3 text-left">
     <span id="wAv"></span>
     <span class="flex-1 min-w-0 text-sm opacity-70">현장 소식과 사진을 지사에 전파해 보세요</span>
@@ -384,7 +384,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   </button>
   <div style="position:relative">
     <span class="text-sm opacity-60" style="position:absolute;left:12px;top:50%;transform:translateY(-50%)" aria-hidden="true">🔍</span>
-    <input id="vQ" type="search" enterkeyhint="search" autocomplete="off" class="inp" style="padding-left:2.4rem;padding-right:2.6rem" placeholder="내용·장소·작성자·댓글 검색 (초성 OK)" aria-label="현장목소리 검색">
+    <input id="vQ" type="search" enterkeyhint="search" autocomplete="off" class="inp" style="padding-left:2.4rem;padding-right:2.6rem" placeholder="내용·장소·작성자·댓글 검색 (초성 OK)" aria-label="현장 Information 검색">
     <button id="vQx" class="hidden text-sm opacity-60" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px" aria-label="검색어 지우기">✕</button>
   </div>
   <div id="vQInfo" class="space-y-2"></div>
@@ -393,7 +393,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 
 <!-- WRITE -->
-<section id="p-write" class="page pt-4 space-y-3" data-title="현장목소리 전파하기">
+<section id="p-write" class="page pt-4 space-y-3" data-title="현장 Information 전파하기">
   <div class="card space-y-3">
     <div>
       <div class="text-xs font-bold mb-1.5">분류</div>
@@ -428,7 +428,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- PHOTOS -->
 <section id="p-photos" class="page pt-4" data-title="사진첩">
-  <p class="text-xs opacity-70 mb-3">현장목소리와 위험현장에 올라온 사진이 모입니다. 사진을 누르면 크게 보고, 원글로 이동할 수 있어요.</p>
+  <p class="text-xs opacity-70 mb-3">현장 Information과 위험현장에 올라온 사진이 모입니다. 사진을 누르면 크게 보고, 원글로 이동할 수 있어요.</p>
   <div id="phGrid" class="grid grid-cols-3 gap-1.5"></div>
 </section>
 
@@ -743,7 +743,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <button data-go="home" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">🏠</span>홈</button>
     <button data-go="cal" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">📅</span>일정</button>
     <button data-go="brief" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">☀️</span>브리핑</button>
-    <button data-go="voice" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">📣</span>현장목소리</button>
+    <button data-go="voice" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">📣</span><span class="leading-none text-center">현장<br>Information</span></button>
     <button data-go="haz" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center"><span class="ic text-lg">⚠️</span>위험현장</button>
     <button data-go="sos" class="tab min-h-[56px] text-[10px] flex flex-col items-center justify-center text-red-500"><span class="ic text-lg">🚨</span>SOS</button>
   </div>
@@ -1167,7 +1167,7 @@ let vf='전체',wcat='현장공유',pending=[];
 const voicesSorted=()=>D.voices.slice().sort((a,b)=>b.at-a.at);
 const likes=id=>D.reacts.filter(r=>r.post===id);
 const cmts=id=>D.comments.filter(c=>c.post===id).sort((a,b)=>a.at-b.at);
-const emptyVoice=()=>`<div class="card text-center text-sm opacity-80 py-6">아직 올라온 현장목소리가 없습니다.<br><button data-go="write" class="mt-3 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold">📷 첫 소식 전파하기</button></div>`;
+const emptyVoice=()=>`<div class="card text-center text-sm opacity-80 py-6">아직 올라온 현장 Information이 없습니다.<br><button data-go="write" class="mt-3 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold">📷 첫 소식 전파하기</button></div>`;
 function photoGrid(ids,postId){
   if(!ids||!ids.length)return '';
   const n=ids.length,cls=n===1?'grid-cols-1':'grid-cols-2';
@@ -1296,7 +1296,7 @@ document.addEventListener('change',e=>{if(!e.target||e.target.id!=='recFile')ret
   recSend(new Blob([f],{type}))});
 /* ===== 🔔 푸시 알림 (Firebase 클라우드 메시징 + Cloudflare 서버) =====
    이 휴대폰의 알림 주소(토큰)를 pushTokens/{내 uid} 에 저장 → 서버가 지사 멤버에게 보냄 */
-const PUSH_KINDS=[['brief','📢 브리핑 전달사항'],['sos','🚨 긴급 SOS'],['notice','📌 새 공지'],['hazard','⚠️ 긴급 위험현장'],['voice','📣 긴급 현장목소리']];
+const PUSH_KINDS=[['brief','📢 브리핑 전달사항'],['sos','🚨 긴급 SOS'],['notice','📌 새 공지'],['hazard','⚠️ 긴급 위험현장'],['voice','📣 긴급 현장 Information']];
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const pushOK=()=>'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window;
 let pushBusy=false,pushPrefs=null;
@@ -1463,9 +1463,9 @@ $('#wSend').onclick=async()=>{
     const ids=[];for(const d of pending)ids.push(await photoPut(d));
     const urgent=$('#wUrgent').checked,place=$('#wPlace').value.trim();
     const id=await put('voices',{text,cat:wcat,place,photos:ids,urgent,by:myId,at:Date.now()});
-    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||'사진 전파').slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()});pushSend('voice','📣 긴급 현장목소리',(text||'사진 전파').slice(0,60),'#voice')}catch(e){}
+    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||'사진 전파').slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()});pushSend('voice','📣 긴급 현장 Information',(text||'사진 전파').slice(0,60),'#voice')}catch(e){}
     pending=[];$('#wText').value=$('#wPlace').value='';$('#wUrgent').checked=false;wcat='현장공유';
-    toast(urgent?(db?'지사 전체에 긴급 전파했습니다.':'저장했습니다. (공유 연결 시 지사 전체에 팝업 전파)'):'현장목소리를 전파했습니다.','ok');
+    toast(urgent?(db?'지사 전체에 긴급 전파했습니다.':'저장했습니다. (공유 연결 시 지사 전체에 팝업 전파)'):'현장 Information을 전파했습니다.','ok');
     navStack.pop();location.replace('#voice');
   }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
   finally{sending=false;$('#wSend').textContent='📣 지사에 전파하기'}
@@ -1520,7 +1520,7 @@ $('#cmtList').onclick=async e=>{
 /* 사진첩 · 뷰어 */
 function renderPhotos(){
   const items=[];voicesSorted().forEach(v=>(v.photos||[]).forEach(p=>items.push({p,post:v.id,at:v.at})));D.hazards.forEach(h=>(h.photos||[]).forEach(p=>items.push({p,post:'',at:h.at})));items.sort((a,b)=>b.at-a.at);
-  $('#phGrid').innerHTML=items.length?items.slice(0,90).map(x=>`<button data-view="${x.p}" data-post="${x.post}" class="block"><img data-ph="${x.p}" alt="현장 사진" class="ph w-full aspect-square rounded-md"></button>`).join(''):'<p class="col-span-3 text-sm opacity-70 text-center py-8">아직 사진이 없습니다. 현장목소리에 사진을 올리면 여기에 모입니다.</p>';
+  $('#phGrid').innerHTML=items.length?items.slice(0,90).map(x=>`<button data-view="${x.p}" data-post="${x.post}" class="block"><img data-ph="${x.p}" alt="현장 사진" class="ph w-full aspect-square rounded-md"></button>`).join(''):'<p class="col-span-3 text-sm opacity-70 text-center py-8">아직 사진이 없습니다. 현장 Information에 사진을 올리면 여기에 모입니다.</p>';
   hydrate($('#phGrid'));
 }
 let vwPost=null;
@@ -2794,7 +2794,7 @@ function notifItems(){
   D.alerts.forEach(a=>{if(a.by===myId||a.at<wk)return;
     if(a.kind==='sos')L.push({id:'a_'+a.id,cat:'urgent',ic:a.resolved?'✅':'🚨',tone:a.resolved?'bg-green-100 dark:bg-green-500/20':'bg-red-100 dark:bg-red-500/20',k:a.resolved?'긴급 SOS (상황 종료)':'긴급 SOS',d:`${nmFull(a.by)} · ${a.type||''}${a.addr?' · '+a.addr:''}`,at:a.at,go:()=>go('sos')});
     else if(a.kind==='hazard')L.push({id:'a_'+a.id,cat:'field',ic:'⚠️',tone:'bg-orange-100 dark:bg-orange-500/20',k:'위험현장 (긴급)',d:a.msg||'',at:a.at,go:()=>go('haz')});
-    else L.push({id:'a_'+a.id,cat:'field',ic:'📣',tone:'bg-green-100 dark:bg-green-500/20',k:'현장목소리 긴급 전파',d:`${nm(a.by)}: ${a.msg||''}`,at:a.at,go:()=>a.post?openPost(a.post):go('voice')});
+    else L.push({id:'a_'+a.id,cat:'field',ic:'📣',tone:'bg-green-100 dark:bg-green-500/20',k:'현장 Information 긴급 전파',d:`${nm(a.by)}: ${a.msg||''}`,at:a.at,go:()=>a.post?openPost(a.post):go('voice')});
   });
   D.notices.forEach(n=>{if(!pubd(n)||n.by===myId||n.at<wk-23*864e5)return;const urg=n.level==='urgent';
     L.push({id:'n_'+n.id,cat:urg?'urgent':'notice',ic:'📌',tone:'bg-purple-100 dark:bg-purple-500/20',k:urg?'긴급 공지':'공지',d:n.title||'',at:n.at,nread:isRead(n),go:()=>{markRead(n);go('notice')}})});
