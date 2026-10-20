@@ -107,38 +107,36 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* ===== 하단 메뉴: 동그란 버튼을 누르면 부채꼴로 쫘악 펼침, 다시 누르면 숨김 ===== */
 .fab-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:55;width:0;height:0}
-.fab-btn{position:absolute;left:-30px;bottom:0;width:60px;height:60px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);box-shadow:0 8px 22px rgba(109,40,217,.45),inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .3s}
-.fab-btn:active{transform:scale(.92)}
-.fab-btn{overflow:visible;background:linear-gradient(145deg,#C4B5FD 0%,#8B5CF6 45%,#5B21B6 100%);border:2px solid rgba(255,255,255,.75)}
-.fab-btn::after{content:"";position:absolute;inset:5px 13px auto 13px;height:32%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0));pointer-events:none}
-.fab-ring{position:absolute;inset:-6px;border-radius:999px;border:2px solid rgba(139,92,246,.35);animation:fabPulse 2.6s ease-out infinite;pointer-events:none}
-@keyframes fabPulse{0%{transform:scale(.9);opacity:.9}70%{transform:scale(1.25);opacity:0}100%{opacity:0}}
-.fab-grid{position:relative;width:22px;height:22px;display:block;transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .2s}
-.fab-grid i{position:absolute;width:9px;height:9px;border-radius:3px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:border-radius .3s,transform .3s}
-.fab-grid i:nth-child(1){left:0;top:0}.fab-grid i:nth-child(2){right:0;top:0;border-radius:50%}.fab-grid i:nth-child(3){left:0;bottom:0;border-radius:50%}.fab-grid i:nth-child(4){right:0;bottom:0;opacity:.85}
-.fab-x{position:absolute;width:22px;height:22px;opacity:0;transform:rotate(-90deg) scale(.4);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .2s}
-.fab-x i{position:absolute;left:0;top:9.5px;width:22px;height:3px;border-radius:2px;background:#fff}
-.fab-x i:nth-child(1){transform:rotate(45deg)}.fab-x i:nth-child(2){transform:rotate(-45deg)}
-.fab-nav.open .fab-grid{opacity:0;transform:rotate(90deg) scale(.4)}
-.fab-nav.open .fab-x{opacity:1;transform:rotate(0) scale(1)}
-.fab-nav.open .fab-ring{animation:none;opacity:0}
-.fab-nav.open .fab-btn{background:linear-gradient(145deg,#8B5CF6,#4C1D95)}
-.fab-menu{position:absolute;left:0;bottom:30px;width:0;height:0}
+.fab-btn{position:absolute;left:-24px;bottom:0;width:48px;height:48px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(255,255,255,.38));backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
+  border:1px solid rgba(255,255,255,.85);box-shadow:0 10px 26px -6px rgba(76,29,149,.38),0 2px 6px rgba(76,29,149,.12),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -6px 12px rgba(139,92,246,.12);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.fab-btn:active{transform:scale(.9)}
+.fab-plus{position:relative;width:18px;height:18px;display:block;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.fab-plus i{position:absolute;left:0;top:7.5px;width:18px;height:3px;border-radius:3px;background:linear-gradient(90deg,#8B5CF6,#6D28D9)}
+.fab-plus i:nth-child(2){transform:rotate(90deg)}
+.fab-nav.open .fab-plus{transform:rotate(135deg)}
+.fab-nav.open .fab-btn{box-shadow:0 14px 30px -6px rgba(76,29,149,.55),inset 0 1px 0 rgba(255,255,255,.95)}
+.dark .fab-btn{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08));border-color:rgba(255,255,255,.3)}
+.dark .fab-plus i{background:linear-gradient(90deg,#DDD6FE,#A78BFA)}
+html.sunset .fab-plus i{background:linear-gradient(90deg,#FFA63D,#ED8A17)}html.sunset .fab-btn{box-shadow:0 10px 26px -6px rgba(237,138,23,.4),inset 0 1px 0 rgba(255,255,255,.95)}
+html.mint .fab-plus i{background:linear-gradient(90deg,#2DD4BF,#0F9D8A)}html.mint .fab-btn{box-shadow:0 10px 26px -6px rgba(15,157,138,.4),inset 0 1px 0 rgba(255,255,255,.95)}
+.fab-menu{position:absolute;left:0;bottom:24px;width:0;height:0}
 .fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((5 - var(--i)) * 18ms)}
 .fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
 .fab-it .fab-lb{font-size:10px;font-weight:800;line-height:1.1;text-align:center;color:#1E1B4B;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:8px;white-space:nowrap}
 .fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(var(--i) * 35ms);transform:translate(var(--x),var(--y)) scale(1)}
-.fab-it.on .ic{background:linear-gradient(135deg,#A78BFA,#6D28D9);border-color:transparent;transform:scale(1.06)}
+.tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#A78BFA,#6D28D9);border-color:transparent;transform:scale(1.06)}
 .fab-it.on .fab-lb{color:#6D28D9}
 .fab-sos .ic{background:linear-gradient(135deg,#EF4444,#BE123C);border-color:transparent;box-shadow:0 0 16px rgba(255,59,48,.55)}
 .fab-sos .fab-lb{color:#DC2626}
 .fab-dim{position:fixed;inset:0;z-index:54;background:rgba(15,10,40,.38);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab-dim.on{opacity:1;pointer-events:auto}
 .dark .fab-it .ic{background:#2E1065;border-color:#6D28D9}.dark .fab-it .fab-lb{color:#EDE9FE;background:rgba(30,27,75,.92)}
-html.sunset .fab-btn{background:linear-gradient(145deg,#FFE0B2,#FFA63D 45%,#C2410C);box-shadow:0 8px 22px rgba(237,138,23,.45)}html.sunset .fab-it.on .ic{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
-html.mint .fab-btn{background:linear-gradient(145deg,#CCFBF1,#2DD4BF 45%,#0F766E);box-shadow:0 8px 22px rgba(15,157,138,.45)}html.mint .fab-it.on .ic{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
-html.sunset .fab-ring{border-color:rgba(237,138,23,.4)}html.mint .fab-ring{border-color:rgba(15,157,138,.4)}
-@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-grid,.fab-x{transition-duration:.01s!important}.fab-ring{animation:none}}
+html.sunset .tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
+html.mint .tab.fab-it.on .ic{transform:scale(1.04);linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
+
+@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-plus{transition-duration:.01s!important}}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -776,7 +774,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
   <div id="fabMenu" class="fab-menu" role="menu"><button data-go="home" class="tab fab-it" style="--i:0;--x:-147px;--y:-30px"><span class="ic">🏠</span><span class="fab-lb">홈</span></button><button data-go="cal" class="tab fab-it" style="--i:1;--x:-114px;--y:-110px"><span class="ic">📅</span><span class="fab-lb">일정</span></button><button data-go="brief" class="tab fab-it" style="--i:2;--x:-43px;--y:-158px"><span class="ic">☀️</span><span class="fab-lb">브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:3;--x:43px;--y:-158px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="haz" class="tab fab-it" style="--i:4;--x:114px;--y:-110px"><span class="ic">⚠️</span><span class="fab-lb">위험현장</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:5;--x:147px;--y:-30px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
-  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-ring" aria-hidden="true"></span><span class="fab-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="fab-x" aria-hidden="true"><i></i><i></i></span></button>
+  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-plus" aria-hidden="true"><i></i><i></i></span></button>
 </nav>
 
 <!-- LOGIN / 가입 -->
