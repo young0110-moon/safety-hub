@@ -109,13 +109,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .fab-nav{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:55;width:0;height:0}
 .fab-btn{position:absolute;left:-30px;bottom:0;width:60px;height:60px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);box-shadow:0 8px 22px rgba(109,40,217,.45),inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .3s}
 .fab-btn:active{transform:scale(.92)}
-.fab-bars{position:relative;width:22px;height:16px;display:block}
-.fab-bars i{position:absolute;left:0;width:22px;height:2.6px;border-radius:2px;background:#fff;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .2s,top .3s}
-.fab-bars i:nth-child(1){top:0}.fab-bars i:nth-child(2){top:6.7px}.fab-bars i:nth-child(3){top:13.4px}
-.fab-nav.open .fab-bars i:nth-child(1){top:6.7px;transform:rotate(45deg)}
-.fab-nav.open .fab-bars i:nth-child(2){opacity:0;transform:scaleX(.2)}
-.fab-nav.open .fab-bars i:nth-child(3){top:6.7px;transform:rotate(-45deg)}
-.fab-nav.open .fab-btn{transform:rotate(180deg);background:linear-gradient(135deg,#6D28D9,#4C1D95)}
+.fab-btn{overflow:visible;background:linear-gradient(145deg,#C4B5FD 0%,#8B5CF6 45%,#5B21B6 100%);border:2px solid rgba(255,255,255,.75)}
+.fab-btn::after{content:"";position:absolute;inset:5px 13px auto 13px;height:32%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0));pointer-events:none}
+.fab-ring{position:absolute;inset:-6px;border-radius:999px;border:2px solid rgba(139,92,246,.35);animation:fabPulse 2.6s ease-out infinite;pointer-events:none}
+@keyframes fabPulse{0%{transform:scale(.9);opacity:.9}70%{transform:scale(1.25);opacity:0}100%{opacity:0}}
+.fab-grid{position:relative;width:22px;height:22px;display:block;transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+.fab-grid i{position:absolute;width:9px;height:9px;border-radius:3px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:border-radius .3s,transform .3s}
+.fab-grid i:nth-child(1){left:0;top:0}.fab-grid i:nth-child(2){right:0;top:0;border-radius:50%}.fab-grid i:nth-child(3){left:0;bottom:0;border-radius:50%}.fab-grid i:nth-child(4){right:0;bottom:0;opacity:.85}
+.fab-x{position:absolute;width:22px;height:22px;opacity:0;transform:rotate(-90deg) scale(.4);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+.fab-x i{position:absolute;left:0;top:9.5px;width:22px;height:3px;border-radius:2px;background:#fff}
+.fab-x i:nth-child(1){transform:rotate(45deg)}.fab-x i:nth-child(2){transform:rotate(-45deg)}
+.fab-nav.open .fab-grid{opacity:0;transform:rotate(90deg) scale(.4)}
+.fab-nav.open .fab-x{opacity:1;transform:rotate(0) scale(1)}
+.fab-nav.open .fab-ring{animation:none;opacity:0}
+.fab-nav.open .fab-btn{background:linear-gradient(145deg,#8B5CF6,#4C1D95)}
 .fab-menu{position:absolute;left:0;bottom:30px;width:0;height:0}
 .fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((5 - var(--i)) * 18ms)}
 .fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
@@ -128,9 +135,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .fab-dim{position:fixed;inset:0;z-index:54;background:rgba(15,10,40,.38);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab-dim.on{opacity:1;pointer-events:auto}
 .dark .fab-it .ic{background:#2E1065;border-color:#6D28D9}.dark .fab-it .fab-lb{color:#EDE9FE;background:rgba(30,27,75,.92)}
-html.sunset .fab-btn{background:linear-gradient(135deg,#FFC27A,#ED8A17);box-shadow:0 8px 22px rgba(237,138,23,.45)}html.sunset .fab-it.on .ic{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
-html.mint .fab-btn{background:linear-gradient(135deg,#5EEAD4,#0F9D8A);box-shadow:0 8px 22px rgba(15,157,138,.45)}html.mint .fab-it.on .ic{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
-@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-bars i{transition-duration:.01s!important}}
+html.sunset .fab-btn{background:linear-gradient(145deg,#FFE0B2,#FFA63D 45%,#C2410C);box-shadow:0 8px 22px rgba(237,138,23,.45)}html.sunset .fab-it.on .ic{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .fab-it.on .fab-lb{color:#C2410C}
+html.mint .fab-btn{background:linear-gradient(145deg,#CCFBF1,#2DD4BF 45%,#0F766E);box-shadow:0 8px 22px rgba(15,157,138,.45)}html.mint .fab-it.on .ic{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .fab-it.on .fab-lb{color:#0F766E}
+html.sunset .fab-ring{border-color:rgba(237,138,23,.4)}html.mint .fab-ring{border-color:rgba(15,157,138,.4)}
+@media (prefers-reduced-motion:reduce){.fab-it,.fab-btn,.fab-grid,.fab-x{transition-duration:.01s!important}.fab-ring{animation:none}}
 /* 메인(홈) 버튼 */
 .home-pill{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px 0 5px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:#5B21B6;background:linear-gradient(135deg,#fff,#F3E8FF);border:1px solid #DDD6FE;box-shadow:0 2px 8px rgba(109,40,217,.15);transition:transform .15s}
 .home-pill:active{transform:scale(.94)}
@@ -768,7 +776,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
   <div id="fabMenu" class="fab-menu" role="menu"><button data-go="home" class="tab fab-it" style="--i:0;--x:-147px;--y:-30px"><span class="ic">🏠</span><span class="fab-lb">홈</span></button><button data-go="cal" class="tab fab-it" style="--i:1;--x:-114px;--y:-110px"><span class="ic">📅</span><span class="fab-lb">일정</span></button><button data-go="brief" class="tab fab-it" style="--i:2;--x:-43px;--y:-158px"><span class="ic">☀️</span><span class="fab-lb">브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:3;--x:43px;--y:-158px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="haz" class="tab fab-it" style="--i:4;--x:114px;--y:-110px"><span class="ic">⚠️</span><span class="fab-lb">위험현장</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:5;--x:147px;--y:-30px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
-  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
+  <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-ring" aria-hidden="true"></span><span class="fab-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="fab-x" aria-hidden="true"><i></i><i></i></span></button>
 </nav>
 
 <!-- LOGIN / 가입 -->
