@@ -125,7 +125,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 html.sunset .fab-orb{background:radial-gradient(120% 120% at 30% 20%,#7C2D12 0%,#431407 60%,#1C0A02 100%)}html.sunset .fab-orb::before{background:conic-gradient(from 210deg,#FFA63D,#FDE68A,#FB7185,#FFA63D)}html.sunset .fab-dots i:nth-child(5){background:#FFC27A}
 html.mint .fab-orb{background:radial-gradient(120% 120% at 30% 20%,#115E59 0%,#042F2E 60%,#01140F 100%)}html.mint .fab-orb::before{background:conic-gradient(from 210deg,#5EEAD4,#A7F3D0,#38BDF8,#5EEAD4)}html.mint .fab-dots i:nth-child(5){background:#99F6E4}
 .fab-menu{position:absolute;left:0;bottom:26px;width:0;height:0}
-.fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((5 - var(--i)) * 18ms)}
+.fab-it{position:absolute;left:-28px;top:-28px;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;pointer-events:none;transform:translate(0,0) scale(.3);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .25s;transition-delay:calc((4 - var(--i)) * 18ms)}
 .fab-it .ic{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#fff;border:1px solid #DDD6FE;box-shadow:0 6px 16px rgba(76,29,149,.22);transition:transform .2s}
 .fab-it .fab-lb{font-size:10px;font-weight:800;line-height:1.1;text-align:center;color:#1E1B4B;background:rgba(255,255,255,.92);padding:2px 6px;border-radius:8px;white-space:nowrap}
 .fab-nav.open .fab-it{opacity:1;pointer-events:auto;transition-delay:calc(60ms + var(--i) * 35ms);transform:translate(var(--x),var(--y)) scale(1)}
@@ -776,7 +776,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
-  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="home" class="tab fab-it" style="--i:0;--x:-147px;--y:-30px"><span class="ic">🏠</span><span class="fab-lb">홈</span></button><button data-go="cal" class="tab fab-it" style="--i:1;--x:-114px;--y:-110px"><span class="ic">📅</span><span class="fab-lb">일정</span></button><button data-go="brief" class="tab fab-it" style="--i:2;--x:-43px;--y:-158px"><span class="ic">☀️</span><span class="fab-lb">브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:3;--x:43px;--y:-158px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="haz" class="tab fab-it" style="--i:4;--x:114px;--y:-110px"><span class="ic">⚠️</span><span class="fab-lb">위험현장</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:5;--x:147px;--y:-30px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
+  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="brief" class="tab fab-it" style="--i:0;--x:-138px;--y:-36px"><span class="ic">☀️</span><span class="fab-lb">모닝<br>브리핑</span></button><button data-go="voice" class="tab fab-it" style="--i:1;--x:-90px;--y:-119px"><span class="ic">📣</span><span class="fab-lb">현장<br>Information</span></button><button data-go="cs" class="tab fab-it" style="--i:2;--x:0px;--y:-152px"><span class="ic">💬</span><span class="fab-lb">CS<br>판정가이드</span></button><button data-go="insp" class="tab fab-it" style="--i:3;--x:90px;--y:-119px"><span class="ic">📘</span><span class="fab-lb">승강기<br>안전기준</span></button><button data-go="sos" class="tab fab-it fab-sos" style="--i:4;--x:138px;--y:-36px"><span class="ic">🚨</span><span class="fab-lb">SOS</span></button></div>
   <button id="fabBtn" class="fab-btn" aria-label="메뉴 펼치기" aria-expanded="false"><span class="fab-orb" aria-hidden="true"><span class="fab-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="fab-x2"><i></i><i></i></span></span></button>
 </nav>
 
@@ -2995,7 +2995,7 @@ async function init(){
   setTimeout(()=>{if(!ready){ready=true;changed()}},8000);
 }
 renderHeader();vitals();checkLogin();
-{const n0=fromHash();navStack.push(n0);if(n0!=='home')show(n0);else document.querySelector('.tab[data-go=home]').classList.add('on')}
+{const n0=fromHash();navStack.push(n0);if(n0!=='home')show(n0);}
 init();
 </script>
 </body>
