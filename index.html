@@ -1732,7 +1732,13 @@ function renderBrief(){try{renderRec()}catch(e){}
   box.innerHTML=`<div class="rounded-2xl p-4 shadow-sm" style="background:linear-gradient(135deg,#EDE9FE,#F0FDFA);border:1px solid #C4B5FD;color:#1E1B4B">
     <div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 공유된 브리핑 전달사항</div>${fresh?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:#DC2626">NEW</span>':''}</div>
     <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))} · ${ago(bf.at)}</div>
-    <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`}
+    <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol>
+    ${bf.by===myId||isAdmin?`<button type="button" id="bfDel" class="mt-3 w-full min-h-[44px] rounded-xl text-sm font-bold" style="color:#DC2626;border:1px solid rgba(220,38,38,.4);background:rgba(255,255,255,.7)">🗑️ 공유한 전달사항 내리기</button>`:''}</div>`}
+/* 공유한 전달사항 내리기: 올린 사람·관리자만, 두 번 눌러 확인 */
+document.addEventListener('click',async e=>{const b=e.target.closest('#bfDel');if(!b)return;
+  if(!b.dataset.arm){b.dataset.arm=1;b.textContent='한 번 더 누르면 모든 직원 화면에서 내려가요';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='🗑️ 공유한 전달사항 내리기'}},3500);return}
+  try{if(db)await db.doc('settings/main').set({brief:null},{merge:true});else{const m=D.settings.find(x=>x.id==='main');if(m)m.brief=null}
+    store.set('koelsa_brief_seen',0);toast('전달사항을 내렸어요.','ok');renderBrief()}catch(err){toast(errMsg(err),'error')}});
 
 /* ===== 컨디션 진단 · 상비약 · 점심 추천 (개인 기록, 이 기기 저장) ===== */
 const Q=[{id:'sleep',q:'😴 수면시간',o:['7시간 이상','5~7시간','5시간 미만']},{id:'pain',q:'🤕 신체통증',o:['없음','가벼움','심함']},{id:'focus',q:'🎯 업무집중도',o:['높음','보통','낮음']}];
