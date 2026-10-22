@@ -1031,6 +1031,10 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const nowStr=()=>{const n=new Date();return `${key(n)} ${pad(n.getHours())}:${pad(n.getMinutes())}`};
 const tstr=t=>{const d=new Date(t);return `${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
 const ago=t=>{const s=(Date.now()-t)/1e3;return s<60?'방금 전':s<3600?Math.floor(s/60)+'분 전':s<86400?Math.floor(s/3600)+'시간 전':tstr(t)};
+const BUILD='__BUILD__';/* 배포할 때 이 줄만 실제 버전으로 바뀜 */
+const DEV=BUILD.indexOf('_'+'_')===0;
+/* 연혁집 등 데이터 파일 버전: 데이터가 바뀔 때만 바뀜 (배포 때 자동 기록) → 쓸데없이 다시 받지 않음 */
+const DATAV=(v=>v.indexOf('_'+'_')===0?'dev':v)('__DATAV__');
 const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
 const RANKS=['지사장','부장','차장','과장','대리','주임','사원','기타'];
 
@@ -1165,7 +1169,7 @@ function renderHeader(){
   
   $('#memCnt').textContent=D.members.length?`멤버 ${D.members.length}`:'멤버';
 }
-function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전')+(()=>{try{return BUILD!=='__BUILD__'?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})()}
+function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전')+(()=>{try{return !DEV?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})()}
 
 /* ===== 로그인 · 가입 ===== */
 ['#lgRank','#pfRank'].forEach(s=>$(s).innerHTML=RANKS.map(r=>`<option>${r}</option>`).join(''));
@@ -1201,7 +1205,7 @@ let outArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
   if(!$('#pfAcName'))return;$('#pfAdm').classList.toggle('hidden',!isAdmin);$('#pfAcName').textContent=(m.name?m.name+' '+(m.rank||''):'로그인됨').trim();$('#pfAcMail').textContent=fu&&fu.email?fu.email+' · 구글 자동 로그인':'자동 로그인 중';
-  const v=$('#pfVer');if(v){let b='';try{b=BUILD!=='__BUILD__'?'v'+BUILD.slice(0,7):'개발 버전'}catch(e){b='-'}v.textContent='현재 버전 '+b}}
+  const v=$('#pfVer');if(v){let b='';try{b=!DEV?'v'+BUILD.slice(0,7):'개발 버전'}catch(e){b='-'}v.textContent='현재 버전 '+b}}
 $('#pfUpdBtn').onclick=()=>{const b=$('#pfUpdBtn');b.disabled=true;b.textContent='확인 중…';toast('새 버전 확인 중…');checkUpdate(true).finally(()=>{b.disabled=false;b.textContent='지금 확인'})};
 $('#pfOut').onclick=async()=>{
   if(Date.now()-outArm>4000){outArm=Date.now();$('#pfOut').textContent='한 번 더 누르면 로그아웃됩니다';setTimeout(()=>$('#pfOut').textContent='로그아웃',4000);return}
@@ -2160,11 +2164,11 @@ async function sbLoad(book){
   if(B.state==='loading'||B.state==='ready')return;
   B.state='loading';renderStd(true);
   try{
-    const r=await fetch('data/'+book+'.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7)),{cache:'force-cache'});if(!r.ok)throw new Error(r.status);
+    const r=await fetch('data/'+book+'.json?v='+DATAV,{cache:'force-cache'});if(!r.ok)throw new Error(r.status);
     const j=await r.json();sbIngest(book,j.meta,j.clauses);
   }catch(e){B.state='error';renderStd(true)}
 }
-async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7)),{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
+async function sbPrefetch(book){const B=SBS[book];if(B.state!=='idle')return;B.state='loading';try{const r=await fetch('data/'+book+'.json?v='+DATAV,{cache:'force-cache'});if(!r.ok)throw 0;const j=await r.json();sbIngest(book,j.meta,j.clauses)}catch(e){B.state=book===sbBook?'error':'idle';if(book===sbBook)renderStd(true)}}
 function sbIngest(book,meta,cl){
   const B=SBS[book];B.meta=meta;
   B.list=cl.map((c,i)=>({...c,n:i,cur:c.cur||'',hist:c.hist||[],_h:sbN((c.ids||[c.id]).join(' ')+' '+(c.nos||[]).join(' ')+' '+c.t),_hj:sbCho(c.t),_c:sbN((c.cur||'')+' '+(c.ap||'')+' '+(c.tag||'')),_o:sbN((c.hist||[]).map(h=>(h.x||'')+' '+h.lab).join(' '))}));
@@ -2493,7 +2497,7 @@ let sbFigCh='all',sbFigKind='all';
    {책:{쪽:[{k:'그림'|'표', n:번호(원문 그대로), t:제목, cur:현행 여부, sec:조항}]}} */
 let FIGMAP=null,figmapBusy=false;
 function figmapLoad(){if(FIGMAP||figmapBusy)return;figmapBusy=true;
-  fetch('data/figmap.json?v='+(BUILD==='__BUILD__'?'dev':BUILD.slice(0,7))).then(r=>r.ok?r.json():{}).then(j=>{FIGMAP=j||{};figmapBusy=false;try{if(cur==='insp')renderStd(true)}catch(e){}}).catch(()=>{figmapBusy=false})}
+  fetch('data/figmap.json?v='+DATAV).then(r=>r.ok?r.json():{}).then(j=>{FIGMAP=j||{};figmapBusy=false;try{if(cur==='insp')renderStd(true)}catch(e){}}).catch(()=>{figmapBusy=false})}
 function sbFigCaps(){figmapLoad();const B=(FIGMAP&&FIGMAP[sbBook])||{},M={};
   for(const p in B)M[+p]=B[p].map(x=>({kind:x.k,no:x.n,t:x.t,cur:x.cur,sec:x.sec,o:x.o||''}));return M}
 /* 같은 쪽에 현행이 있으면 현행 번호만, 없으면 종전 번호 */
@@ -3107,7 +3111,7 @@ if($('#geoBtn'))$('#geoBtn').onclick=async()=>{
 };
 
 /* ===== 새 버전 자동 반영 (아이폰 홈 화면 앱은 새로고침 버튼이 없어서) ===== */
-const BUILD='__BUILD__';
+/* BUILD 는 위쪽에서 선언 */
 let updBusy=false;
 /* 최신 버전으로 바로 바꾸기: 서비스워커 갱신 → 앱 파일 캐시 비우기 → 버전 붙은 주소로 다시 열기(CDN 옛 파일 회피) */
 async function hardUpdate(v){
@@ -3122,7 +3126,7 @@ async function hardUpdate(v){
 const fetchT=(u,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms||8000);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
 async function checkUpdate(mode){
   const loud=!!mode;
-  if(!location.protocol.startsWith('http')||BUILD==='__BUILD__')return;
+  if(!location.protocol.startsWith('http')||DEV)return;
   if(updBusy&&Date.now()-updBusy<15000)return;updBusy=Date.now();
   try{
     const j=await (await fetchT('version.json?t='+Date.now())).json();
