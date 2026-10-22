@@ -229,6 +229,24 @@ body.fab-open header{z-index:56}
 @keyframes sosPulse{0%,100%{box-shadow:0 10px 22px -8px var(--c2),0 0 0 0 rgba(239,68,68,.45),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.12)}60%{box-shadow:0 10px 22px -8px var(--c2),0 0 0 12px rgba(239,68,68,0),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.12)}}
 .dark .nd{box-shadow:0 10px 24px -8px var(--c2),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.25)}
 @media (prefers-reduced-motion:reduce){.nd-sos{animation:none}}
+
+/* 익명 토론방 */
+.tk-hero{border-radius:20px;padding:16px;color:#fff;background:radial-gradient(120% 120% at 0% 0%,#60A5FA 0%,#2563EB 45%,#4C1D95 100%);box-shadow:0 14px 30px -14px rgba(37,99,235,.6)}
+.tk-write{margin-top:12px;width:100%;min-height:48px;border-radius:14px;background:#fff;color:#1D4ED8;font-weight:900;font-size:14px;box-shadow:0 6px 16px -6px rgba(0,0,0,.25)}
+.tk-chip{flex-shrink:0;min-height:36px;padding:0 13px;border-radius:999px;font-size:12.5px;font-weight:800;border:1px solid #BFDBFE;background:#fff;color:#1E3A8A;white-space:nowrap}
+.tk-chip.on{background:#2563EB;border-color:#2563EB;color:#fff}
+.tk-badge{padding:2px 8px;border-radius:999px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.tk-me{padding:1px 7px;border-radius:999px;background:#2563EB;color:#fff;font-size:10px}
+.tk-new{width:16px;height:16px;border-radius:999px;background:#FF3B30;color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:900}
+.tk-clip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tk-ph{min-height:46px;border-radius:12px;border:1px solid #BFDBFE;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#1E3A8A;background:#F8FAFF}
+.tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid #FBCFE8;background:#FFF5F9;color:#BE185D}
+.tk-like.on{background:#FCE7F3}
+.tk-del{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;font-weight:800;color:#DC2626;border:1px solid rgba(220,38,38,.35)}
+.tk-cmt{padding:9px 11px;border-radius:12px;background:rgba(239,246,255,.75);border:1px solid #DBEAFE}
+.tk-cmt.op{background:#EEF2FF;border-color:#C7D2FE}.tk-cmt.op>div:first-child>span:first-child{color:#2563EB}
+.dark .tk-chip:not(.on),.dark .tk-ph{background:#1E2A4A;border-color:#334E8A;color:#DBEAFE}.dark .tk-badge{background:#1E2A4A;border-color:#334E8A;color:#BFDBFE}
+.dark .tk-cmt{background:#1E2A4A;border-color:#334E8A}.dark .tk-cmt.op{background:#26305A}.dark .tk-like{background:#3B1730;border-color:#9D174D;color:#FBCFE8}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -476,7 +494,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   </div>
   <div id="hubLinks" class="grid grid-cols-2 gap-2.5 mt-5">
     <button data-go="notice" class="hub-t relative"><span class="hub-ic" style="--c1:#A78BFA;--c2:#6D28D9">📌</span><span class="hub-tx"><span class="hub-tt">스케쥴공유</span><span class="hub-st">일정·공지</span></span><span class="hub-go" aria-hidden="true">›</span><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
-    <button data-go="haz" class="hub-t"><span class="hub-ic" style="--c1:#FBBF24;--c2:#EA580C">⚠️</span><span class="hub-tx"><span class="hub-tt">위험현장</span><span class="hub-st">현장 사진 공유</span></span><span class="hub-go" aria-hidden="true">›</span></button>
+    <button data-go="talk" class="hub-t relative"><span class="hub-ic" style="--c1:#7DD3FC;--c2:#2563EB">💬</span><span class="hub-tx"><span class="hub-tt">토론방</span><span class="hub-st">익명 · 편한 소통</span></span><span class="hub-go" aria-hidden="true">›</span><span id="qTalkBadge" class="hidden absolute -top-1.5 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold text-center"></span></button>
   </div>
   <div id="homeFeedHd" class="flex items-center justify-between mt-5 mb-2"><h2 class="font-black text-sm">📣 최근 현장 Information <span class="text-[10px] font-bold opacity-60">· 올린 뒤 1시간 동안 표시</span></h2><button data-go="voice" class="text-xs font-bold text-purple-600 dark:text-purple-300 min-h-[36px]">전체보기 ›</button></div>
   <div id="homeFeed" class="space-y-3"></div>
@@ -754,6 +772,35 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 
 <!-- HAZARD -->
+<section id="p-talk" class="page pt-4 space-y-3" data-title="익명 토론방">
+  <div class="tk-hero">
+    <div class="text-[15px] font-black">🗣️ 이름 없이, 편하게</div>
+    <p class="text-[12.5px] leading-relaxed mt-1 opacity-90">혼자 알고 있는 꿀팁은 나누고, 궁금한 건 언제든 물어보세요. 글·댓글·사진 모두 <b>누가 썼는지 아무도 알 수 없어요</b> (관리자도 몰라요).</p>
+    <button id="tkNew" type="button" class="tk-write">✏️ 익명으로 글쓰기</button>
+  </div>
+  <div id="tkForm" class="card hidden space-y-2.5">
+    <div class="flex items-center justify-between"><h2 class="font-black text-sm">✏️ 새 글 (익명)</h2><button id="tkCancel" type="button" class="text-xs font-bold opacity-70 min-h-[36px] px-2">닫기 ✕</button></div>
+    <div id="tkCatPick" class="flex gap-1.5"></div>
+    <input id="tkTitle" class="inp" maxlength="50" placeholder="제목">
+    <textarea id="tkText" rows="5" maxlength="1000" class="inp" placeholder="내용을 편하게 적어 주세요. (최대 1,000자)"></textarea>
+    <div class="grid grid-cols-2 gap-2"><label class="tk-ph">📸 촬영<input id="tkCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="tk-ph">🖼️ 사진 첨부<input id="tkFile" type="file" accept="image/*" multiple class="sr-only"></label></div>
+    <div id="tkPrev" class="grid grid-cols-3 gap-2"></div>
+    <p class="text-[11px] opacity-70 leading-snug">사진 속 이름표·얼굴·차량번호·고객 정보가 보이지 않게 해 주세요. 비방·욕설·개인정보가 담긴 글은 관리자가 지울 수 있어요.</p>
+    <button id="tkSend" type="button" class="w-full min-h-[48px] rounded-xl text-white font-black text-sm" style="background:#2563EB">🕶️ 익명으로 올리기</button>
+  </div>
+  <div id="tkCats" class="flex gap-1.5 overflow-x-auto hscroll -mx-1 px-1"></div>
+  <div id="tkList" class="space-y-2.5"></div>
+</section>
+
+<section id="p-talkv" class="page pt-4 space-y-3" data-title="토론방 글">
+  <div id="tvPost"></div>
+  <div class="card !p-3 space-y-2">
+    <div id="tvCmtHd" class="text-xs font-black"></div>
+    <div id="tvCmts" class="space-y-2"></div>
+    <div class="flex gap-2 pt-1"><textarea id="tvIn" rows="1" maxlength="500" class="inp flex-1 !min-h-[44px]" placeholder="익명으로 댓글 달기"></textarea><button id="tvSend" type="button" class="shrink-0 px-4 min-h-[44px] rounded-xl text-white text-sm font-black" style="background:#2563EB">등록</button></div>
+  </div>
+</section>
+
 <section id="p-haz" class="page pt-4 space-y-4" data-title="지사 위험현장 공유">
   <div class="card">
     <h2 class="font-black text-sm mb-2">⚠️ 위험현장 등록</h2>
@@ -993,7 +1040,7 @@ $('#themeBtn').onclick=()=>setTheme(!document.documentElement.classList.contains
 
 /* ===== 데이터 계층: 공유(db) 또는 이 기기(localStorage) ===== */
 let db=null,myId=null,isAdmin=false,ready=false;
-const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts'];
+const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts','talks','talkCmts'];
 const D={};COLS.forEach(c=>D[c]=[]);
 const LK=c=>'kb_'+c;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -1031,13 +1078,14 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',talk:'talk',talkv:'talk-view',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
 let cur='home',speaking=false,rec=null,listening=false,curPost=null;
 function show(name,back){
   if(name==='post'&&!curPost)name='voice';
+  if(name==='talkv'&&!curTalk)name='talk';
   if(speaking)speechSynthesis.cancel();
   if(listening&&rec)try{rec.stop()}catch(e){}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active','back'));
@@ -1082,7 +1130,8 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({talk:renderTalk,talkv:renderTalkV,home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  try{const tn=D.talks.filter(t=>!t.gone&&t.at>store.get('koelsa_talk_seen',0)).length;$('#qTalkBadge').textContent=tn>9?'9+':tn;$('#qTalkBadge').classList.toggle('hidden',!tn||cur==='talk')}catch(e){}
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -1723,6 +1772,106 @@ $('#hAdd').onclick=async()=>{
   }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
   finally{hSending=false;$('#hAdd').textContent='+ 지사에 공유'}
 };
+
+
+/* ===== 익명 토론방 =====
+   작성자 정보(by)를 저장하지 않음. 대신 이 휴대폰에만 있는 비밀값(SK)으로
+   - tag: 글마다 다른 익명 표시값 (같은 글 안에서 '글쓴이'·'익명1' 구분용)
+   - kh : 지우기 열쇠의 지문. 지울 때 열쇠(key)를 내면 서버 규칙이 지문과 맞는지 확인 */
+var curTalk=null;let tkCat='전체',tkNewCat='💡 정보공유',tkPending=[],tkBusy=false;
+const TK_CATS=['💡 정보공유','❓ 질문','💬 자유'];
+const tkSK=()=>{let k=store.get('koelsa_talk_sk','');if(!k){const a=new Uint8Array(24);crypto.getRandomValues(a);k=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');store.set('koelsa_talk_sk',k)}return k};
+const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const tkKey=id=>sha(tkSK()+':key:'+id), tkTag=pid=>sha(tkSK()+':tag:'+pid).then(h=>h.slice(0,12));
+const tkMine=new Map();/* 문서 id → 내가 쓴 것인지 */
+async function tkCheckMine(rows){let nw=false;for(const r of rows){if(tkMine.has(r.id))continue;tkMine.set(r.id,(await sha(await tkKey(r.id)))===r.kh);nw=true}return nw}
+const tkNid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const tkPh=new Map();
+function tkPhoto(id){if(tkPh.has(id))return tkPh.get(id);const pr=(async()=>{try{const s=await db.doc('talkPhotos/'+id).get();return s.exists?s.data().data:''}catch(e){return ''}})();tkPh.set(id,pr);return pr}
+const tkLive=()=>D.talks.filter(t=>!t.gone);
+const tkCmtsOf=id=>D.talkCmts.filter(c=>c.post===id&&!c.gone).sort((a,b)=>a.at-b.at);
+function renderTalk(){
+  store.set('koelsa_talk_seen',Date.now());
+  const all=tkLive();
+  $('#tkCats').innerHTML=['전체',...TK_CATS].map(c=>`<button type="button" data-tkc="${c}" class="tk-chip${c===tkCat?' on':''}">${c}${c==='전체'?'':' '+all.filter(t=>t.cat===c).length}</button>`).join('');
+  $('#tkCatPick').innerHTML=TK_CATS.map(c=>`<button type="button" data-tkn="${c}" class="tk-chip${c===tkNewCat?' on':''}">${c}</button>`).join('');
+  const list=all.filter(t=>tkCat==='전체'||t.cat===tkCat).sort((a,b)=>b.at-a.at);
+  $('#tkList').innerHTML=list.length?list.map(t=>{const n=tkCmtsOf(t.id).length;return `<button type="button" data-tko="${t.id}" class="card !p-3.5 w-full text-left block">
+    <div class="flex items-center gap-1.5 text-[11px] font-bold"><span class="tk-badge">${esc(t.cat)}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}${Date.now()-t.at<864e5?'<span class="tk-new">N</span>':''}</div>
+    <div class="text-[15px] font-black mt-1.5 leading-snug break-words">${esc(t.title)}</div>
+    <div class="text-[13px] opacity-80 mt-1 leading-relaxed tk-clip break-words">${esc(t.text)}</div>
+    <div class="flex items-center gap-3 mt-2 text-[12px] font-bold opacity-75"><span>❤️ ${t.likes||0}</span><span>💬 ${n}</span>${t.photos?`<span>📷 ${t.photos}</span>`:''}</div></button>`}).join('')
+    :`<div class="card text-center text-sm opacity-75 py-8">${tkCat==='전체'?'아직 글이 없어요.<br>첫 이야기를 익명으로 시작해 보세요!':'이 분류에는 아직 글이 없어요.'}</div>`;
+  tkCheckMine(all).then(nw=>{if(nw&&cur==='talk')renderTalk()});
+}
+function renderTalkV(){
+  const t=D.talks.find(x=>x.id===curTalk);
+  if(!t||t.gone){$('#tvPost').innerHTML='<div class="card text-center text-sm opacity-75 py-8">지워진 글이에요.</div>';$('#tvCmts').innerHTML='';$('#tvCmtHd').textContent='';return}
+  const cs=tkCmtsOf(t.id),label=new Map();let k=0;
+  cs.forEach(c=>{if(c.tag!==t.tag&&!label.has(c.tag))label.set(c.tag,'익명'+(++k))});
+  const canDel=id=>tkMine.get(id)||isAdmin,liked=(store.get('koelsa_talk_likes',[])||[]).includes(t.id);
+  $('#tvPost').innerHTML=`<div class="card !p-4">
+    <div class="flex items-center gap-1.5 text-[11px] font-bold"><span class="tk-badge">${esc(t.cat)}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}</div>
+    <h2 class="text-[17px] font-black mt-2 leading-snug break-words">${esc(t.title)}</h2>
+    <div class="text-[14px] leading-relaxed mt-2 whitespace-pre-wrap break-words">${esc(t.text)}</div>
+    ${t.photos?`<div class="grid grid-cols-3 gap-2 mt-3">${Array.from({length:t.photos},(_,i)=>`<button type="button" data-tkimg="${t.id}_${i}" class="aspect-square rounded-xl overflow-hidden bg-purple-100/50"><img data-tkp="${t.id}_${i}" alt="첨부 사진 ${i+1}" class="w-full h-full object-cover"></button>`).join('')}</div>`:''}
+    <div class="flex gap-2 mt-3"><button type="button" id="tvLike" class="tk-like${liked?' on':''}">${liked?'❤️':'🤍'} 공감 ${t.likes||0}</button>${canDel(t.id)?`<button type="button" data-tkdel="${t.id}" class="tk-del">${tkMine.get(t.id)?'내 글 지우기':'관리자 삭제'}</button>`:''}</div></div>`;
+  $('#tvCmtHd').textContent=`💬 댓글 ${cs.length}`;
+  $('#tvCmts').innerHTML=cs.length?cs.map(c=>{const who=c.tag===t.tag?'글쓴이':label.get(c.tag);return `<div class="tk-cmt${c.tag===t.tag?' op':''}"><div class="flex items-center gap-1.5 text-[11px] font-black"><span>${who}</span>${tkMine.get(c.id)?'<span class="tk-me">나</span>':''}<span class="opacity-55 font-bold">${ago(c.at)}</span>${canDel(c.id)?`<button type="button" data-tkcdel="${c.id}" class="ml-auto text-[11px] font-bold text-red-600 min-h-[28px] px-1">삭제</button>`:''}</div><div class="text-[13.5px] mt-0.5 whitespace-pre-wrap break-words leading-relaxed">${esc(c.text)}</div></div>`}).join(''):'<div class="text-xs opacity-60 py-2">첫 댓글을 익명으로 남겨 보세요.</div>';
+  document.querySelectorAll('img[data-tkp]').forEach(async im=>{const d=await tkPhoto(im.dataset.tkp);if(d)im.src=d});
+  tkCheckMine([t,...cs]).then(nw=>{if(nw&&cur==='talkv')renderTalkV()});
+}
+function tkPrev(){$('#tkPrev').innerHTML=tkPending.map((d,i)=>`<div class="relative"><img src="${d}" alt="첨부 사진 ${i+1}" class="w-full aspect-square object-cover rounded-lg"><button type="button" data-tkrm="${i}" aria-label="사진 빼기" class="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-black/70 text-white text-xs">✕</button></div>`).join('')}
+$('#tkPrev').onclick=e=>{const b=e.target.closest('[data-tkrm]');if(b){tkPending.splice(+b.dataset.tkrm,1);tkPrev()}};
+$('#tkFile').onchange=async e=>{const fs=[...e.target.files].slice(0,3-tkPending.length);e.target.value='';if(!fs.length)return toast('사진은 3장까지 붙일 수 있어요.','error');
+  for(const f of fs){try{tkPending.push(await compress(f,1280,.7))}catch(err){toast('이 파일은 사진으로 읽을 수 없어요.','error')}}tkPrev()};
+$('#tkCam').onchange=$('#tkFile').onchange;
+$('#tkNew').onclick=()=>{$('#tkForm').classList.remove('hidden');$('#tkNew').classList.add('hidden');setTimeout(()=>$('#tkTitle').focus(),50)};
+const tkClose=()=>{$('#tkForm').classList.add('hidden');$('#tkNew').classList.remove('hidden')};
+$('#tkCancel').onclick=tkClose;
+$('#tkCats').onclick=e=>{const b=e.target.closest('[data-tkc]');if(b){tkCat=b.dataset.tkc;renderTalk()}};
+$('#tkCatPick').onclick=e=>{const b=e.target.closest('[data-tkn]');if(b){tkNewCat=b.dataset.tkn;renderTalk()}};
+$('#tkList').onclick=e=>{const b=e.target.closest('[data-tko]');if(b){curTalk=b.dataset.tko;go('talkv')}};
+$('#tkSend').onclick=async()=>{
+  if(tkBusy)return;const title=$('#tkTitle').value.trim(),text=$('#tkText').value.trim();
+  if(!title)return toast('제목을 적어 주세요.','error');if(!text)return toast('내용을 적어 주세요.','error');
+  if(!db)return toast('로그인한 뒤에 쓸 수 있어요.','error');
+  tkBusy=true;$('#tkSend').textContent='올리는 중…';
+  const id=tkNid('t');
+  try{
+    for(let i=0;i<tkPending.length;i++){const pid=id+'_'+i;await put('talkPhotos',{data:tkPending[i],kh:await sha(await tkKey(pid)),at:Date.now()},pid);tkPh.set(pid,Promise.resolve(tkPending[i]))}
+    await put('talks',{cat:tkNewCat,title,text,photos:tkPending.length,tag:await tkTag(id),kh:await sha(await tkKey(id)),likes:0,at:Date.now()},id);
+    tkMine.set(id,true);store.set('koelsa_talk_seen',Date.now()+1000);
+    $('#tkTitle').value=$('#tkText').value='';tkPending=[];tkPrev();tkClose();toast('익명으로 올렸어요.','ok');
+  }catch(err){toast(errMsg(err),'error')}
+  finally{tkBusy=false;$('#tkSend').textContent='🕶️ 익명으로 올리기'}
+};
+$('#tvSend').onclick=async()=>{
+  const text=$('#tvIn').value.trim();if(!text||!curTalk)return;if(!db)return toast('로그인한 뒤에 쓸 수 있어요.','error');
+  const b=$('#tvSend');if(b.disabled)return;b.disabled=true;
+  const id=tkNid('c');
+  try{await put('talkCmts',{post:curTalk,text,tag:await tkTag(curTalk),kh:await sha(await tkKey(id)),at:Date.now()},id);tkMine.set(id,true);$('#tvIn').value=''}
+  catch(err){toast(errMsg(err),'error')}finally{b.disabled=false}
+};
+/* 지우기: 내 것은 열쇠를 내고 '지움' 표시 + 내용 비우기, 관리자는 완전 삭제 */
+async function tkRemove(col,id,blank){
+  if(tkMine.get(id))return patch(col,id,{gone:true,key:await tkKey(id),...blank});
+  if(isAdmin)return del(col,id);
+}
+document.addEventListener('click',async e=>{
+  const img=e.target.closest('[data-tkimg]');if(img){const d=await tkPhoto(img.dataset.tkimg);if(d){vwPost=null;$('#vwPost').classList.add('hidden');$('#vwImg').src=d;$('#viewer').classList.remove('hidden');$('#viewer').classList.add('flex')}return}
+  const lk=e.target.closest('#tvLike');if(lk){const L=store.get('koelsa_talk_likes',[])||[];if(L.includes(curTalk))return toast('이미 공감했어요.');
+    try{await patch('talks',curTalk,{likes:firebase.firestore.FieldValue.increment(1)});L.push(curTalk);store.set('koelsa_talk_likes',L.slice(-500));renderTalkV()}catch(err){toast(errMsg(err),'error')}return}
+  const pd=e.target.closest('[data-tkdel]'),cd=e.target.closest('[data-tkcdel]'),b=pd||cd;if(!b)return;
+  if(!b.dataset.arm){b.dataset.arm=1;const t0=b.textContent;b.textContent='한 번 더 누르면 삭제';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent=t0}},3000);return}
+  try{
+    if(pd){const t=D.talks.find(x=>x.id===pd.dataset.tkdel);await tkRemove('talks',t.id,{title:'',text:''});
+      for(let i=0;i<(t.photos||0);i++){const pid=t.id+'_'+i;tkPh.delete(pid);(tkMine.get(t.id)?patch('talkPhotos',pid,{gone:true,key:await tkKey(pid),data:''}):del('talkPhotos',pid)).catch(()=>{})}
+      if(isAdmin&&!tkMine.get(t.id))tkCmtsOf(t.id).forEach(c=>del('talkCmts',c.id).catch(()=>{}));
+      toast('글을 지웠어요.');curTalk=null;go('talk')}
+    else{await tkRemove('talkCmts',cd.dataset.tkcdel,{text:''});toast('댓글을 지웠어요.')}
+  }catch(err){toast(errMsg(err),'error')}
+});
 
 /* ===== 모닝 브리핑: 녹음 → AI 정리 카드만 ===== */
 function renderBrief(){try{renderRec()}catch(e){}
@@ -3131,7 +3280,7 @@ async function init(){
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
   setSync();setTimeout(pushRefresh,4000);setTimeout(()=>touchSeen(true),2500);setTimeout(permAsk,3500);
-  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30},got=new Set();
+  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30,talks:300,talkCmts:2000},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
   COLS.filter(c=>c!=='settings').forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{

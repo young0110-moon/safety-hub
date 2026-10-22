@@ -80,6 +80,40 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isMember() && request.auth.uid == uid);
     }
 
+    // ---------- 익명 토론방 ----------
+    // talks 글 / talkCmts 댓글 / talkPhotos 사진
+    // 작성자(by)를 아예 저장하지 않음 → 관리자도 누가 썼는지 알 수 없음
+    // 지울 때: 글쓴이 휴대폰에만 있는 열쇠(key)를 내면, 저장해 둔 지문(kh)과 맞을 때만 '지움' 처리
+    function anonClean(keys) { return request.resource.data.keys().hasOnly(keys) && request.resource.data.kh is string && request.resource.data.kh.size() == 64; }
+    function anonDelete() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['gone', 'key', 'title', 'text', 'data'])
+          && request.resource.data.gone == true && request.resource.data.key is string
+          && hashing.sha256(request.resource.data.key).toHexString().lower() == resource.data.kh;
+    }
+    match /talks/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && anonClean(['cat', 'title', 'text', 'photos', 'tag', 'kh', 'likes', 'at'])
+                    && request.resource.data.title.size() <= 50 && request.resource.data.text.size() <= 1000
+                    && request.resource.data.photos <= 3 && request.resource.data.likes == 0;
+      // 공감은 한 번에 1씩만 올릴 수 있음
+      allow update: if isAdmin() || (isMember() && (anonDelete()
+                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                        && request.resource.data.likes == resource.data.get('likes', 0) + 1)));
+      allow delete: if isAdmin();
+    }
+    match /talkCmts/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && anonClean(['post', 'text', 'tag', 'kh', 'at']) && request.resource.data.text.size() <= 500;
+      allow update: if isAdmin() || (isMember() && anonDelete());
+      allow delete: if isAdmin();
+    }
+    match /talkPhotos/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && anonClean(['data', 'kh', 'at']) && request.resource.data.data.size() < 700000;
+      allow update: if isAdmin() || (isMember() && anonDelete());
+      allow delete: if isAdmin();
+    }
+
     // ---------- 지사 공통 설정 ----------
     // 상황실 전화번호 등. 지사 멤버는 누구나 보고 고칠 수 있음
     match /settings/main { allow read: if isMember(); allow write: if isMember(); }
