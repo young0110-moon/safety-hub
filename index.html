@@ -3112,20 +3112,28 @@ async function hardUpdate(v){
   try{const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update().catch(()=>{});if(reg.waiting)reg.waiting.postMessage('skipWaiting')}}catch(e){}
   try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.open(k).then(c=>c.keys().then(rs=>Promise.all(rs.filter(r=>!/\/data\//.test(r.url)).map(r=>c.delete(r)))))))}catch(e){}
   const u=new URL(location.href);u.searchParams.set('v',v||Date.now());location.replace(u.pathname+u.search+u.hash)}
-async function checkUpdate(manual){
-  if(updBusy||!location.protocol.startsWith('http'))return;updBusy=true;
-  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});const j=await r.json();
-    if(j.v&&BUILD!=='__BUILD__'&&j.v!==BUILD){
-      const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.value;
-      if(typing||cur==='write'){$('#updBar').classList.remove('hidden');$('#updBar').classList.add('flex')}
-      else{
-        /* 같은 새 버전으로 이미 한 번 바꿨는데도 옛 화면이면 = 서버(CDN)에 아직 퍼지는 중 → 무한 새로고침 막기 */
-        const tried=sessionStorage.getItem('koelsa_upd_try');
-        if(tried===j.v){if(manual)toast('새 버전이 서버에 퍼지는 중이에요. 1~2분 뒤 다시 눌러 주세요.','error');sessionStorage.removeItem('koelsa_upd_try')}
-        else{sessionStorage.setItem('koelsa_upd_try',j.v);toast('새 버전으로 바꾸는 중…','ok');setTimeout(()=>hardUpdate(j.v),300)}}
-    }else if(manual)toast('이미 최신 버전이에요.','ok');
-  }catch(e){if(manual)toast('확인하지 못했어요. 인터넷 연결을 확인해 주세요.','error')}
-  updBusy=false;
+/* 새 버전 확인
+   1) version.json 으로 새 버전이 있는지 빠르게 확인
+   2) 있으면 실제 index.html 을 새로 받아 그 안의 버전까지 맞는지 확인 (서버에 아직 안 퍼졌으면 기다림)
+   3) 맞으면 그 버전으로 다시 불러옴
+   mode: true=프로필 '지금 확인', 'pull'=당겨서 새로고침, 없음=자동 확인 */
+const fetchT=(u,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms||8000);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
+async function checkUpdate(mode){
+  const loud=!!mode;
+  if(!location.protocol.startsWith('http')||BUILD==='__BUILD__')return;
+  if(updBusy&&Date.now()-updBusy<15000)return;updBusy=Date.now();
+  try{
+    const j=await (await fetchT('version.json?t='+Date.now())).json();
+    if(!j.v||j.v===BUILD){if(mode===true)toast('이미 최신 버전이에요.','ok');return}
+    const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.value;
+    if(!loud&&(typing||cur==='write')){$('#updBar').classList.remove('hidden');$('#updBar').classList.add('flex');return}
+    /* 실제 화면 파일이 새 버전인지 확인 */
+    let live='';try{const t=await (await fetchT('index.html?v='+j.v+'&t='+Date.now(),12000)).text();live=(t.match(/const BUILD='([^']+)'/)||[])[1]||''}catch(e){}
+    if(live&&live!==j.v&&live===BUILD){if(loud)toast('새 버전이 서버에 퍼지는 중이에요. 1분 뒤 다시 해 주세요.','error');return}
+    if(!loud){const tried=sessionStorage.getItem('koelsa_upd_try');if(tried===j.v+'|'+live){return}sessionStorage.setItem('koelsa_upd_try',j.v+'|'+live)}
+    toast('새 버전으로 바꾸는 중…','ok');setTimeout(()=>hardUpdate(live||j.v),300);
+  }catch(e){if(mode===true)toast('확인하지 못했어요. 인터넷 연결을 확인해 주세요.','error')}
+  finally{updBusy=false}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
 window.addEventListener('pageshow',()=>checkUpdate());
@@ -3148,7 +3156,7 @@ function ptrDoor(k){const E=$('#hElv');if(!E)return;const o=k>=0.3;if(o&&!E.clas
     ptrDoor(Math.min(dy/90,1));mv(Math.round(dy<90?dy*.5:45+(dy-90)*.2))},{passive:false});
   document.addEventListener('touchend',()=>{if(y0==null)return;if(act&&dy>90){ptrDoor(1);y0=null;back();
       /* 화면 전환 없이 제자리 새로고침: 날씨·최신 버전 확인 후 현재 화면만 다시 그림 */
-      Promise.allSettled([loadWeather(true),checkUpdate(false)]).then(()=>{try{render();sbSig=''}catch(e){}});
+      Promise.allSettled([loadWeather(true),checkUpdate('pull')]).then(()=>{try{render();sbSig=''}catch(e){}});
       setTimeout(()=>{ptrDoor(0);setTimeout(()=>{if(y0==null)reset()},700)},Math.max(600,2500-(Date.now()-ptrOpenAt)))}else reset()});
   document.addEventListener('touchcancel',()=>{if(y0!=null)reset()});
 })();
