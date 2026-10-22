@@ -1182,7 +1182,7 @@ function renderHeader(){
   $('#memCnt').textContent=D.members.length?`멤버 ${D.members.length}`:'멤버';
 }
 function setSync(err){const st=db?(err?'err':'on'):'off',v=(()=>{try{return !DEV?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})();
-  $('#sync').innerHTML=`<span class="sync-dot ${st}" aria-hidden="true"></span><span class="truncate">${db?(err?'<span class="opacity-75">공유 오류: '+esc(err)+'</span>':'<span class="opacity-75">지사 멤버와 </span><span class="sync-on">공유 중</span>'):'<span class="opacity-75">서버 연결 전</span>'}<span class="opacity-60">${v}</span></span>`}
+  $('#sync').innerHTML=`<span class="sync-dot ${st}" aria-hidden="true"></span><span class="truncate">${db?(err?'<span class="opacity-75">공유 오류: '+esc(err)+'</span>':'<span class="opacity-75">지사 멤버와 </span><span class="sync-on">공유 중</span>'):'<span class="opacity-75">서버 연결 전</span>'}</span>`}
 
 /* ===== 로그인 · 가입 ===== */
 ['#lgRank','#pfRank'].forEach(s=>$(s).innerHTML=RANKS.map(r=>`<option>${r}</option>`).join(''));
