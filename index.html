@@ -2795,7 +2795,7 @@ const SKINS=[{id:'violet',name:'기본 보라',d:'앱 기본 테마',c:'#6D28D9'
 function applyTheme(){const id=store.get('koelsa_skin','violet');SKINS.forEach(k=>document.documentElement.classList.toggle(k.id,k.id!=='violet'&&id===k.id));const m=document.querySelector('meta[name="theme-color"]'),k=SKINS.find(x=>x.id===id);if(m&&k)m.content=k.c}
 function renderSkins(){const box=$('#pfThemeList');if(!box)return;const cur_=store.get('koelsa_skin','violet');
   box.innerHTML=SKINS.map(k=>{const on=cur_===k.id;return `<button data-skin="${k.id}" class="rounded-2xl p-3 text-left border-2" style="border-color:${on?k.c:'transparent'};background:${k.c2}22"><span class="flex items-center gap-2"><span class="w-7 h-7 rounded-full shrink-0" style="background:linear-gradient(135deg,${k.c},${k.c2})"></span><b class="text-sm">${k.name}</b>${on?'<span class="ml-auto text-sm">✅</span>':''}</span><span class="block text-[11px] opacity-75 mt-1.5">${k.d}</span></button>`}).join('')}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(!b||cur!=='profile')return;const id=b.dataset.skin;store.set('koelsa_skin',id);applyTheme();renderSkins();toast(`${SKINS.find(x=>x.id===id).name} 테마로 바꿨어요.`,'ok')});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(!b||cur!=='profile')return;const id=b.dataset.skin;store.set('koelsa_skin',id);applyTheme();renderSkins();});
 /* ===== CS 판정가이드: 고객우호도(1~5점) 판정 기준 ===== */
 const CSG=[
  {n:1,c:'#C2410C',tag:'제도 불만',sub:'반복 · 격앙',t:'제도 및 검사기관에 대한 불만',chip:'제도 불만(반복 · 격앙)',
