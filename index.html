@@ -26,10 +26,8 @@
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
 html,body{min-height:100%;overscroll-behavior-y:none}/* 휴대폰 기본 동그란 화살표 새로고침을 끄고, 앱의 엘리베이터 문 새로고침만 사용 */
 body{overflow-x:hidden}
-/* 내용이 짧은 화면도 주소(바닥글)가 화면 맨 아래에 붙도록: 본문이 남는 높이를 채움 */
-body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
-main{flex:1 0 auto;width:100%;overflow-x:clip}
-footer{margin-top:auto}
+/* 바닥글(주소)은 내용 바로 아래에 붙음 */
+main{overflow-x:clip}
 .glow{box-shadow:0 0 18px rgba(168,85,247,.55),inset 0 0 12px rgba(168,85,247,.2)}
 .sos{animation:sos 1.4s infinite}
 @keyframes sos{0%{box-shadow:0 0 0 0 rgba(255,59,48,.7)}70%{box-shadow:0 0 0 34px rgba(255,59,48,0)}100%{box-shadow:0 0 0 0 rgba(255,59,48,0)}}
@@ -941,7 +939,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </section>
 </main>
 
-<footer class="text-center text-[11px] opacity-75 px-4 pt-3 leading-relaxed" style="padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))">한국승강기안전공단 (KoELSA) 부산동부지사<br>부산시 해운대구 센텀중앙로90 | 대표전화: 051-784-8502<br>© 2026 KoELSA All Rights Reserved.</footer>
+<footer class="text-center text-[11px] opacity-75 px-4 pt-3 leading-relaxed" style="padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))">한국승강기안전공단 (KoELSA) 부산동부지사<br>부산시 해운대구 센텀중앙로90 | 대표전화: 051-784-8502<br>© 2026 KoELSA All Rights Reserved.</footer>
 
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
@@ -1444,8 +1442,8 @@ function recCleanup(){clearInterval(aiRec.tick);try{aiRec.stream&&aiRec.stream.g
 async function recSend(blob){
   if(blob.size>REC_MAX_B){aiRec.st='idle';renderRec();return toast('파일이 너무 커요(18MB 초과). 나눠서 올려 주세요.','error')}
   if(blob.size<2000){aiRec.st='idle';renderRec();return toast('녹음이 너무 짧아요.','error')}
-  const sec=Math.round((Date.now()-aiRec.t0)/1000);
-  aiRec.st='busy';aiRec.err='';renderRec();
+  const sec=aiRec.last&&aiRec.last.blob===blob?aiRec.last.sec:Math.round((Date.now()-aiRec.t0)/1000);
+  aiRec.last={blob,sec};aiRec.st='busy';aiRec.err='';renderRec();
   try{const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인이 필요해요.');const tk=await fu.getIdToken();
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),180000);
     const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm','X-Prompt':encodeURIComponent(recPrompt())},body:blob,signal:ctl.signal});clearTimeout(to);
@@ -1453,8 +1451,8 @@ async function recSend(blob){
     if(!r.ok||!j.ok)throw new Error(j.error||('오류 '+r.status));
     const A=x=>Array.isArray(x)?x:[];
     const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',brief:A(j.brief),summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};
-    store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';toast('AI 정리가 끝났어요.','ok')}
-  catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(e.message||'정리하지 못했어요.'))}
+    store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';aiRec.last=null;toast('AI 정리가 끝났어요.','ok')}
+  catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(/location is not supported|지역에서 실행/i.test(e.message)?'AI 서버 위치 문제로 정리하지 못했어요. 녹음은 그대로 있으니 잠시 후 [다시 정리]를 눌러 주세요.':(e.message||'정리하지 못했어요.')))}
   renderRec()}
 /* 복사용: 날짜(예: 10월 19일 월요일) + 전달사항 1. 2. 3. 만 */
 function recBriefText(it){const d=new Date(it.at);const B=(it.brief&&it.brief.length)?it.brief:(it.points||[]);
@@ -1484,11 +1482,15 @@ function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
   else if(aiRec.st==='aiRec')B.innerHTML=`<div class="rounded-2xl p-4 text-center text-white" style="background:linear-gradient(135deg,#B91C1C,#7C3AED)"><div class="text-xs font-bold opacity-90"><span class="rec-dot"></span> 녹음 중</div><div id="recTime" class="text-4xl font-black tabular-nums mt-1">${recFmt(Date.now()-aiRec.t0)}</div><div class="text-[11px] opacity-80 mt-1">휴대폰을 말하는 사람 가까이 두세요 · 최대 60분</div></div>
     <div class="grid grid-cols-3 gap-2 mt-2"><button data-rec="cancel" class="min-h-[52px] rounded-xl border border-purple-400/50 text-sm font-bold">취소</button><button data-rec="stop" class="col-span-2 min-h-[52px] rounded-xl text-white text-sm font-black" style="background:#B91C1C">⏹ 녹음 끝 · AI 정리</button></div>`;
   else if(aiRec.st==='busy'||aiRec.st==='cancel')B.innerHTML='<div class="rounded-2xl p-4 text-center sub"><div class="rec-spin mx-auto"></div><div class="text-sm font-black mt-2">AI가 정리하고 있어요…</div><div class="text-[11px] opacity-70 mt-1">10분 녹음 기준 보통 20초~1분 걸려요. 화면을 닫지 마세요.</div></div>';
-  else B.innerHTML=`${aiRec.err?`<div class="rounded-xl p-3 text-[12px] font-bold mb-2" style="background:#FEE2E2;color:#991B1B">⚠️ ${esc(aiRec.err)}</div>`:''}<div class="grid grid-cols-3 gap-2"><button data-rec="start" class="col-span-2 min-h-[56px] rounded-xl text-white text-sm font-black" style="background:#B91C1C">● 녹음 시작</button><label class="min-h-[56px] rounded-xl border border-purple-400/50 text-[12px] font-bold flex flex-col items-center justify-center cursor-pointer text-center leading-tight">🎵 파일<br>올리기<input id="recFile" type="file" accept="audio/*,.m4a,.mp3,.wav,.aac,.ogg,.webm" class="hidden"></label></div>`;
+  else B.innerHTML=`${aiRec.err?`<div class="rounded-xl p-3 text-[12px] font-bold mb-2" style="background:#FEE2E2;color:#991B1B">⚠️ ${esc(aiRec.err)}</div>`:''}${aiRec.last?`<div class="grid grid-cols-2 gap-2 mb-2"><button data-rec="retry" class="min-h-[48px] rounded-xl text-white text-sm font-black" style="background:#6D28D9">🔁 다시 정리</button><button data-rec="save" class="min-h-[48px] rounded-xl border border-purple-400/50 text-[13px] font-bold">💾 녹음 파일 저장</button></div>`:''}<div class="grid grid-cols-3 gap-2"><button data-rec="start" class="col-span-2 min-h-[56px] rounded-xl text-white text-sm font-black" style="background:#B91C1C">● 녹음 시작</button><label class="min-h-[56px] rounded-xl border border-purple-400/50 text-[12px] font-bold flex flex-col items-center justify-center cursor-pointer text-center leading-tight">🎵 파일<br>올리기<input id="recFile" type="file" accept="audio/*,.m4a,.mp3,.wav,.aac,.ogg,.webm" class="hidden"></label></div>`;
   const L=recSaved(),Lb=$('#recList');if(!Lb)return;
   Lb.innerHTML=L.length?`<div class="text-xs font-black pt-1">📚 정리 기록 <span class="opacity-60 font-bold">(이 휴대폰에만 · 최근 15개)</span></div>`+L.map(it=>aiRec.open===it.id?recView(it):`<button data-recopen="${it.id}" class="w-full text-left flex items-center gap-3 sub rounded-xl px-3 py-2.5 min-h-[48px]"><span class="text-lg">📝</span><span class="flex-1 min-w-0"><span class="block text-sm font-bold truncate">${esc(it.title)}</span><span class="block text-[11px] opacity-60">${new Date(it.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} · 전달사항 ${(it.brief||[]).length}건</span></span><span class="opacity-50">›</span></button>`).join(''):''}
 document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
-  if(b=e.target.closest('[data-rec]')){const a=b.dataset.rec;if(a==='start')recStart();else if(a==='stop')recStop();else if(a==='cancel')recCancel();return}
+  if(b=e.target.closest('[data-rec]')){const a=b.dataset.rec;if(a==='start'){aiRec.last=null;recStart()}else if(a==='stop')recStop();else if(a==='cancel')recCancel();
+    else if(a==='retry'&&aiRec.last)recSend(aiRec.last.blob);
+    else if(a==='save'&&aiRec.last){const L=aiRec.last.blob,ext=/mp4|m4a/.test(L.type)?'m4a':/ogg/.test(L.type)?'ogg':'webm',d=new Date(),nm=`브리핑녹음_${d.getMonth()+1}월${d.getDate()}일_${d.getHours()}시${String(d.getMinutes()).padStart(2,'0')}분.${ext}`,f=new File([L],nm,{type:L.type});
+      if(isIOS&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(()=>{})}else{const u=URL.createObjectURL(L),x=document.createElement('a');x.href=u;x.download=nm;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}}
+    return}
   if(b=e.target.closest('[data-recopen]')){aiRec.open=aiRec.open===b.dataset.recopen?null:b.dataset.recopen;aiRec.delArm='';renderRec();return}
   if(b=e.target.closest('[data-rectodo]')){const [id,i]=b.dataset.rectodo.split(':');const L=recSaved();const it=L.find(x=>x.id===id);if(it&&it.todos[+i]){it.todos[+i].done=!it.todos[+i].done;store.set('koelsa_rec',L);renderRec()}return}
   const it_=id=>recSaved().find(x=>x.id===id);

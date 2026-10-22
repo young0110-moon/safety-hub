@@ -1,0 +1,13 @@
+# 안전 허브 AI 정리·알림 서버 (Cloudflare Worker: koelsa-ai)
+# GitHub Actions(.github/workflows/worker.yml)가 이 설정으로 자동 배포합니다.
+name = "koelsa-ai"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+# 대시보드에서 넣은 일반 변수(MODEL 등)는 지우지 않고 유지
+keep_vars = true
+
+# 실행 위치 고정: 한국 사용자가 홍콩 등 Gemini 미지원 지역 서버로 연결돼
+# "User location is not supported" 오류가 나는 것을 막기 위해 미국 서부 근처에서 실행
+[placement]
+region = "gcp:us-west1"

@@ -55,7 +55,7 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return out({ ok: true, name: '안전 허브 녹음 정리·알림 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA });
+    if (req.method === 'GET') return out({ ok: true, name: '안전 허브 녹음 정리·알림 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA, colo: (req.cf && req.cf.colo) || '' });
     if (req.method !== 'POST') return out({ error: '지원하지 않는 요청이에요.' }, 405);
     if (!okOrigin) return out({ error: '허용되지 않은 주소에서 온 요청이에요.' }, 403);
 
@@ -101,7 +101,12 @@ export default {
       if (r.status === 404) { last = `모델 ${m} 없음`; continue; }        // 이름이 바뀐 모델은 건너뜀
       const j = await r.json().catch(() => ({}));
       if (r.status === 429) return out({ error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' }, 429);
-      if (!r.ok) { last = (j.error && j.error.message) || ('HTTP ' + r.status); if (r.status >= 500) continue; return out({ error: 'AI 정리에 실패했어요: ' + last }, 502); }
+      if (!r.ok) {
+        last = (j.error && j.error.message) || ('HTTP ' + r.status); if (r.status >= 500) continue;
+        // 이 서버가 Gemini 미지원 지역(예: 홍콩)에서 실행되면 구글이 거절함 → 알아보기 쉽게 안내
+        if (/location is not supported/i.test(last)) return out({ error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요. (실행 위치: ' + ((req.cf && req.cf.colo) || '?') + ')', code: 'location' }, 502);
+        return out({ error: 'AI 정리에 실패했어요: ' + last }, 502);
+      }
       const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
       let data; try { data = JSON.parse(txt); } catch (e) { return out({ error: 'AI 응답을 읽지 못했어요. 다시 시도해 주세요.' }, 502); }
       return out({ ok: true, model: m, by: user.email || '', at: Date.now(), ...data });
