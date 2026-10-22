@@ -276,14 +276,14 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 /* 메인 '지사 멤버와 공유 중' 점: 와이파이처럼 연결된 느낌의 밝은 파랑, 또렷하게 깜빡 + 두 겹 물결 (움직임 줄이기 설정과 관계없이 표시) */
 #sync{display:inline-flex;align-items:center;gap:7px}
 .sync-dot{position:relative;flex-shrink:0;width:8px;height:8px;border-radius:999px;background:#2563EB}
-.sync-dot.on{background:radial-gradient(circle at 35% 35%,#7DD3FC,#0EA5E9 55%,#2563EB);box-shadow:0 0 6px 1px rgba(14,165,233,.8);animation:syncBlink 2.2s ease-in-out infinite!important}
-.sync-dot.on::before,.sync-dot.on::after{content:"";position:absolute;inset:0;border-radius:999px;border:1.5px solid #0EA5E9;animation:syncWave 3s ease-out infinite!important}
+.sync-dot.on{background:radial-gradient(circle at 35% 35%,#FFB4B4,#FF3B3B 55%,#E11D2E);box-shadow:0 0 7px 1px rgba(255,59,59,.85);animation:syncBlink 2.2s ease-in-out infinite!important}
+.sync-dot.on::before,.sync-dot.on::after{content:"";position:absolute;inset:0;border-radius:999px;border:1.5px solid #FF3B3B;animation:syncWave 3s ease-out infinite!important}
 .sync-dot.on::after{animation-delay:1.5s!important}
 @keyframes syncBlink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.8)}}
 @keyframes syncWave{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
 .sync-dot.err{background:#F59E0B}.sync-dot.off{background:#CBD5E1}
-#sync .sync-on{color:#0284C7;font-weight:800;opacity:1}
-.dark #sync .sync-on{color:#7DD3FC}
+#sync .sync-on{color:#E11D2E;font-weight:800;opacity:1}
+.dark #sync .sync-on{color:#FF7A7A}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
