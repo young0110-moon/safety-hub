@@ -230,23 +230,45 @@ body.fab-open header{z-index:56}
 .dark .nd{box-shadow:0 10px 24px -8px var(--c2),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.25)}
 @media (prefers-reduced-motion:reduce){.nd-sos{animation:none}}
 
-/* 익명 토론방 */
-.tk-hero{border-radius:20px;padding:16px;color:#fff;background:radial-gradient(120% 120% at 0% 0%,#60A5FA 0%,#2563EB 45%,#4C1D95 100%);box-shadow:0 14px 30px -14px rgba(37,99,235,.6)}
-.tk-write{margin-top:12px;width:100%;min-height:48px;border-radius:14px;background:#fff;color:#1D4ED8;font-weight:900;font-size:14px;box-shadow:0 6px 16px -6px rgba(0,0,0,.25)}
-.tk-chip{flex-shrink:0;min-height:36px;padding:0 13px;border-radius:999px;font-size:12.5px;font-weight:800;border:1px solid #BFDBFE;background:#fff;color:#1E3A8A;white-space:nowrap}
-.tk-chip.on{background:#2563EB;border-color:#2563EB;color:#fff}
-.tk-badge{padding:2px 8px;border-radius:999px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
-.tk-me{padding:1px 7px;border-radius:999px;background:#2563EB;color:#fff;font-size:10px}
+/* 익명 토론방 (C안: 따뜻한 카드 + 주제 칩, 테마 색 따라감) */
+#p-talk,#p-talkv{--ta:#6D28D9;--ta2:#8B5CF6;--tbg:#FFFFFF;--tln:#EFE9E1;--ttx:#212124;--tsb:#6B6B73}
+html.sunset #p-talk,html.sunset #p-talkv{--ta:#ED8A17;--ta2:#FFA63D}
+html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
+.dark #p-talk,.dark #p-talkv{--tbg:#1D1736;--tln:#33295A;--ttx:#F3F0FF;--tsb:#B9B2D6}
+.tk-head{padding:2px 4px}
+.tk-sub{font-size:12px;font-weight:700;color:var(--ta)}
+.dark .tk-sub{color:var(--ta2)}html.dark:not(.sunset):not(.mint) .tk-sub{color:#C4B5FD}
+.tk-lead{font-size:15px;font-weight:800;line-height:1.45;margin-top:3px;color:var(--ttx)}
+.tk-card{background:var(--tbg);border:1px solid var(--tln);border-radius:18px;padding:16px;color:var(--ttx);box-shadow:0 2px 10px -6px rgba(60,40,20,.12)}
+.tk-item{display:flex;flex-direction:column;gap:8px}
+.tk-item:active{transform:scale(.99)}
+.tk-tt{font-size:16px;font-weight:800;line-height:1.45;word-break:break-word}
+.tk-tx{font-size:14px;line-height:1.55;color:var(--tsb);word-break:break-word}
+.tk-thumb{height:150px;border-radius:12px;overflow:hidden;background:var(--tln)}.tk-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.tk-ft{display:flex;justify-content:space-between;align-items:center;padding-top:4px;font-size:12.5px;color:var(--tsb)}
+.tk-ft b{font-weight:800}
+.tk-tag{font-size:12px;font-weight:800;padding:3px 9px;border-radius:8px}
+.tk-tag.tip{color:#0F766E;background:#E3F5F1}.tk-tag.ask{color:#C2410C;background:#FFF0E5}.tk-tag.chat{color:#6D28D9;background:#F1ECFD}
+.tk-ft b.tip{color:#0F766E}.tk-ft b.ask{color:#C2410C}.tk-ft b.chat{color:#7C3AED}
+.dark .tk-tag.tip{color:#5EEAD4;background:rgba(45,212,191,.14)}.dark .tk-tag.ask{color:#FDBA74;background:rgba(251,146,60,.15)}.dark .tk-tag.chat{color:#C4B5FD;background:rgba(167,139,250,.16)}
+.dark .tk-ft b.tip{color:#5EEAD4}.dark .tk-ft b.ask{color:#FDBA74}.dark .tk-ft b.chat{color:#C4B5FD}
+.tk-chip{flex-shrink:0;min-height:38px;padding:0 15px;border-radius:999px;font-size:13.5px;font-weight:800;border:1px solid var(--tln);background:var(--tbg);color:var(--ttx);white-space:nowrap}
+.tk-chip.on{background:var(--ta);border-color:var(--ta);color:#fff}
+.tk-me{padding:1px 7px;border-radius:999px;background:var(--ta);color:#fff;font-size:10px;font-weight:800}
 .tk-new{width:16px;height:16px;border-radius:999px;background:#FF3B30;color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:900}
 .tk-clip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.tk-ph{min-height:46px;border-radius:12px;border:1px solid #BFDBFE;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#1E3A8A;background:#F8FAFF}
-.tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid #FBCFE8;background:#FFF5F9;color:#BE185D}
-.tk-like.on{background:#FCE7F3}
+.tk-fab{position:fixed;right:18px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;height:52px;padding:0 20px;border-radius:26px;display:flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,var(--ta2),var(--ta));color:#fff;font-size:15px;font-weight:800;box-shadow:0 10px 22px -6px var(--ta);transition:transform .2s}
+.tk-fab:active{transform:scale(.95)}
+.tk-btn{border-radius:12px;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--ta2),var(--ta))}
+.tk-ph{min-height:46px;border-radius:12px;border:1px dashed var(--tln);font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ttx);background:transparent}
+.tk-phbg{background:var(--tln)}
+.tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--tln);background:transparent;color:var(--ttx)}
+.tk-like.on.tip{background:#E3F5F1;color:#0F766E;border-color:#99E2D4}.tk-like.on.ask{background:#FFF0E5;color:#C2410C;border-color:#FDBA8C}.tk-like.on.chat{background:#F1ECFD;color:#6D28D9;border-color:#C4B5FD}
 .tk-del{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;font-weight:800;color:#DC2626;border:1px solid rgba(220,38,38,.35)}
-.tk-cmt{padding:9px 11px;border-radius:12px;background:rgba(239,246,255,.75);border:1px solid #DBEAFE}
-.tk-cmt.op{background:#EEF2FF;border-color:#C7D2FE}.tk-cmt.op>div:first-child>span:first-child{color:#2563EB}
-.dark .tk-chip:not(.on),.dark .tk-ph{background:#1E2A4A;border-color:#334E8A;color:#DBEAFE}.dark .tk-badge{background:#1E2A4A;border-color:#334E8A;color:#BFDBFE}
-.dark .tk-cmt{background:#1E2A4A;border-color:#334E8A}.dark .tk-cmt.op{background:#26305A}.dark .tk-like{background:#3B1730;border-color:#9D174D;color:#FBCFE8}
+.tk-cmt{padding:10px 12px;border-radius:14px;background:rgba(127,127,127,.06);border:1px solid var(--tln)}
+.tk-cmt.op{border-color:var(--ta);background:color-mix(in srgb,var(--ta) 7%,transparent)}.tk-cmt.op>div:first-child>span:first-child{color:var(--ta)}
+#p-talk .inp,#p-talkv .inp{border-radius:12px}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -773,12 +795,11 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- HAZARD -->
 <section id="p-talk" class="page pt-4 space-y-3" data-title="익명 토론방">
-  <div class="tk-hero">
-    <div class="text-[15px] font-black">🗣️ 이름 없이, 편하게</div>
-    <p class="text-[12.5px] leading-relaxed mt-1 opacity-90">혼자 알고 있는 꿀팁은 나누고, 궁금한 건 언제든 물어보세요. 글·댓글·사진 모두 <b>누가 썼는지 아무도 알 수 없어요</b> (관리자도 몰라요).</p>
-    <button id="tkNew" type="button" class="tk-write">✏️ 익명으로 글쓰기</button>
+  <div class="tk-head">
+    <div class="tk-sub">🕶️ 글·댓글·사진 모두 <b>누가 썼는지 아무도 몰라요</b> (관리자도)</div>
+    <p class="tk-lead">혼자 알고 있는 꿀팁은 나누고, 궁금한 건 편하게 물어보세요.</p>
   </div>
-  <div id="tkForm" class="card hidden space-y-2.5">
+  <div id="tkForm" class="tk-card hidden space-y-2.5">
     <div class="flex items-center justify-between"><h2 class="font-black text-sm">✏️ 새 글 (익명)</h2><button id="tkCancel" type="button" class="text-xs font-bold opacity-70 min-h-[36px] px-2">닫기 ✕</button></div>
     <div id="tkCatPick" class="flex gap-1.5"></div>
     <input id="tkTitle" class="inp" maxlength="50" placeholder="제목">
@@ -786,18 +807,19 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <div class="grid grid-cols-2 gap-2"><label class="tk-ph">📸 촬영<input id="tkCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="tk-ph">🖼️ 사진 첨부<input id="tkFile" type="file" accept="image/*" multiple class="sr-only"></label></div>
     <div id="tkPrev" class="grid grid-cols-3 gap-2"></div>
     <p class="text-[11px] opacity-70 leading-snug">사진 속 이름표·얼굴·차량번호·고객 정보가 보이지 않게 해 주세요. 비방·욕설·개인정보가 담긴 글은 관리자가 지울 수 있어요.</p>
-    <button id="tkSend" type="button" class="w-full min-h-[48px] rounded-xl text-white font-black text-sm" style="background:#2563EB">🕶️ 익명으로 올리기</button>
+    <button id="tkSend" type="button" class="tk-btn w-full min-h-[48px] text-sm">🕶️ 익명으로 올리기</button>
   </div>
-  <div id="tkCats" class="flex gap-1.5 overflow-x-auto hscroll -mx-1 px-1"></div>
-  <div id="tkList" class="space-y-2.5"></div>
+  <div id="tkCats" class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1 pb-0.5"></div>
+  <div id="tkList" class="space-y-2.5 pb-16"></div>
+  <button id="tkNew" type="button" class="tk-fab" aria-label="익명으로 글쓰기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>글쓰기</button>
 </section>
 
 <section id="p-talkv" class="page pt-4 space-y-3" data-title="토론방 글">
   <div id="tvPost"></div>
-  <div class="card !p-3 space-y-2">
+  <div class="tk-card space-y-2">
     <div id="tvCmtHd" class="text-xs font-black"></div>
     <div id="tvCmts" class="space-y-2"></div>
-    <div class="flex gap-2 pt-1"><textarea id="tvIn" rows="1" maxlength="500" class="inp flex-1 !min-h-[44px]" placeholder="익명으로 댓글 달기"></textarea><button id="tvSend" type="button" class="shrink-0 px-4 min-h-[44px] rounded-xl text-white text-sm font-black" style="background:#2563EB">등록</button></div>
+    <div class="flex gap-2 pt-1"><textarea id="tvIn" rows="1" maxlength="500" class="inp flex-1 !min-h-[44px]" placeholder="익명으로 댓글 달기"></textarea><button id="tvSend" type="button" class="tk-btn shrink-0 px-4 min-h-[44px] text-sm">등록</button></div>
   </div>
 </section>
 
@@ -1778,8 +1800,11 @@ $('#hAdd').onclick=async()=>{
    작성자 정보(by)를 저장하지 않음. 대신 이 휴대폰에만 있는 비밀값(SK)으로
    - tag: 글마다 다른 익명 표시값 (같은 글 안에서 '글쓴이'·'익명1' 구분용)
    - kh : 지우기 열쇠의 지문. 지울 때 열쇠(key)를 내면 서버 규칙이 지문과 맞는지 확인 */
-var curTalk=null;let tkCat='전체',tkNewCat='💡 정보공유',tkPending=[],tkBusy=false;
-const TK_CATS=['💡 정보공유','❓ 질문','💬 자유'];
+var curTalk=null;let tkCat='전체',tkNewCat='💡 꿀팁 공유',tkPending=[],tkBusy=false;
+const TK_CATS=['💡 꿀팁 공유','🙋 궁금해요','☕ 수다'];
+const TK_OLD={'💡 정보공유':'💡 꿀팁 공유','❓ 질문':'🙋 궁금해요','💬 자유':'☕ 수다'};
+const tkC=c=>TK_OLD[c]||c, tkCls=c=>({'💡 꿀팁 공유':'tip','🙋 궁금해요':'ask','☕ 수다':'chat'})[tkC(c)]||'chat';
+const tkReact=c=>({tip:'도움돼요',ask:'나도 궁금해요',chat:'공감'})[tkCls(c)];
 const tkSK=()=>{let k=store.get('koelsa_talk_sk','');if(!k){const a=new Uint8Array(24);crypto.getRandomValues(a);k=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');store.set('koelsa_talk_sk',k)}return k};
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const tkKey=id=>sha(tkSK()+':key:'+id), tkTag=pid=>sha(tkSK()+':tag:'+pid).then(h=>h.slice(0,12));
@@ -1793,15 +1818,17 @@ const tkCmtsOf=id=>D.talkCmts.filter(c=>c.post===id&&!c.gone).sort((a,b)=>a.at-b
 function renderTalk(){
   store.set('koelsa_talk_seen',Date.now());
   const all=tkLive();
-  $('#tkCats').innerHTML=['전체',...TK_CATS].map(c=>`<button type="button" data-tkc="${c}" class="tk-chip${c===tkCat?' on':''}">${c}${c==='전체'?'':' '+all.filter(t=>t.cat===c).length}</button>`).join('');
+  $('#tkCats').innerHTML=['전체',...TK_CATS].map(c=>`<button type="button" data-tkc="${c}" class="tk-chip${c===tkCat?' on':''}">${c}</button>`).join('');
   $('#tkCatPick').innerHTML=TK_CATS.map(c=>`<button type="button" data-tkn="${c}" class="tk-chip${c===tkNewCat?' on':''}">${c}</button>`).join('');
-  const list=all.filter(t=>tkCat==='전체'||t.cat===tkCat).sort((a,b)=>b.at-a.at);
-  $('#tkList').innerHTML=list.length?list.map(t=>{const n=tkCmtsOf(t.id).length;return `<button type="button" data-tko="${t.id}" class="card !p-3.5 w-full text-left block">
-    <div class="flex items-center gap-1.5 text-[11px] font-bold"><span class="tk-badge">${esc(t.cat)}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}${Date.now()-t.at<864e5?'<span class="tk-new">N</span>':''}</div>
-    <div class="text-[15px] font-black mt-1.5 leading-snug break-words">${esc(t.title)}</div>
-    <div class="text-[13px] opacity-80 mt-1 leading-relaxed tk-clip break-words">${esc(t.text)}</div>
-    <div class="flex items-center gap-3 mt-2 text-[12px] font-bold opacity-75"><span>❤️ ${t.likes||0}</span><span>💬 ${n}</span>${t.photos?`<span>📷 ${t.photos}</span>`:''}</div></button>`}).join('')
-    :`<div class="card text-center text-sm opacity-75 py-8">${tkCat==='전체'?'아직 글이 없어요.<br>첫 이야기를 익명으로 시작해 보세요!':'이 분류에는 아직 글이 없어요.'}</div>`;
+  const list=all.filter(t=>tkCat==='전체'||tkC(t.cat)===tkCat).sort((a,b)=>b.at-a.at);
+  $('#tkList').innerHTML=list.length?list.map(t=>{const n=tkCmtsOf(t.id).length,k=tkCls(t.cat);return `<button type="button" data-tko="${t.id}" class="tk-card tk-item w-full text-left block">
+    <div class="flex items-center gap-1.5"><span class="tk-tag ${k}">${esc(tkC(t.cat).replace(/^\S+\s/,''))}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}${Date.now()-t.at<864e5?'<span class="tk-new">N</span>':''}</div>
+    <div class="tk-tt">${esc(t.title)}</div>
+    <div class="tk-tx tk-clip">${esc(t.text)}</div>
+    ${t.photos?`<div class="tk-thumb"><img data-tkp="${t.id}_0" alt="첨부 사진"></div>`:''}
+    <div class="tk-ft"><span>익명 · ${ago(t.at)}</span><span class="flex gap-3"><b class="${k}">${tkReact(t.cat)} ${t.likes||0}</b><b>댓글 ${n}</b></span></div></button>`}).join('')
+    :`<div class="tk-card text-center text-sm opacity-75 py-8">${tkCat==='전체'?'아직 글이 없어요.<br>첫 이야기를 익명으로 시작해 보세요!':'이 주제에는 아직 글이 없어요.'}</div>`;
+  document.querySelectorAll('#tkList img[data-tkp]').forEach(async im=>{const d=await tkPhoto(im.dataset.tkp);if(d)im.src=d;else im.parentElement.remove()});
   tkCheckMine(all).then(nw=>{if(nw&&cur==='talk')renderTalk()});
 }
 function renderTalkV(){
@@ -1810,12 +1837,12 @@ function renderTalkV(){
   const cs=tkCmtsOf(t.id),label=new Map();let k=0;
   cs.forEach(c=>{if(c.tag!==t.tag&&!label.has(c.tag))label.set(c.tag,'익명'+(++k))});
   const canDel=id=>tkMine.get(id)||isAdmin,liked=(store.get('koelsa_talk_likes',[])||[]).includes(t.id);
-  $('#tvPost').innerHTML=`<div class="card !p-4">
-    <div class="flex items-center gap-1.5 text-[11px] font-bold"><span class="tk-badge">${esc(t.cat)}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}</div>
+  $('#tvPost').innerHTML=`<div class="tk-card !p-4">
+    <div class="flex items-center gap-1.5 text-[12px] font-bold"><span class="tk-tag ${tkCls(t.cat)}">${esc(tkC(t.cat).replace(/^\S+\s/,''))}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}</div>
     <h2 class="text-[17px] font-black mt-2 leading-snug break-words">${esc(t.title)}</h2>
     <div class="text-[14px] leading-relaxed mt-2 whitespace-pre-wrap break-words">${esc(t.text)}</div>
-    ${t.photos?`<div class="grid grid-cols-3 gap-2 mt-3">${Array.from({length:t.photos},(_,i)=>`<button type="button" data-tkimg="${t.id}_${i}" class="aspect-square rounded-xl overflow-hidden bg-purple-100/50"><img data-tkp="${t.id}_${i}" alt="첨부 사진 ${i+1}" class="w-full h-full object-cover"></button>`).join('')}</div>`:''}
-    <div class="flex gap-2 mt-3"><button type="button" id="tvLike" class="tk-like${liked?' on':''}">${liked?'❤️':'🤍'} 공감 ${t.likes||0}</button>${canDel(t.id)?`<button type="button" data-tkdel="${t.id}" class="tk-del">${tkMine.get(t.id)?'내 글 지우기':'관리자 삭제'}</button>`:''}</div></div>`;
+    ${t.photos?`<div class="grid grid-cols-3 gap-2 mt-3">${Array.from({length:t.photos},(_,i)=>`<button type="button" data-tkimg="${t.id}_${i}" class="aspect-square rounded-xl overflow-hidden tk-phbg"><img data-tkp="${t.id}_${i}" alt="첨부 사진 ${i+1}" class="w-full h-full object-cover"></button>`).join('')}</div>`:''}
+    <div class="flex gap-2 mt-3"><button type="button" id="tvLike" class="tk-like ${tkCls(t.cat)}${liked?' on':''}">${liked?'✔ ':''}${tkReact(t.cat)} ${t.likes||0}</button>${canDel(t.id)?`<button type="button" data-tkdel="${t.id}" class="tk-del">${tkMine.get(t.id)?'내 글 지우기':'관리자 삭제'}</button>`:''}</div></div>`;
   $('#tvCmtHd').textContent=`💬 댓글 ${cs.length}`;
   $('#tvCmts').innerHTML=cs.length?cs.map(c=>{const who=c.tag===t.tag?'글쓴이':label.get(c.tag);return `<div class="tk-cmt${c.tag===t.tag?' op':''}"><div class="flex items-center gap-1.5 text-[11px] font-black"><span>${who}</span>${tkMine.get(c.id)?'<span class="tk-me">나</span>':''}<span class="opacity-55 font-bold">${ago(c.at)}</span>${canDel(c.id)?`<button type="button" data-tkcdel="${c.id}" class="ml-auto text-[11px] font-bold text-red-600 min-h-[28px] px-1">삭제</button>`:''}</div><div class="text-[13.5px] mt-0.5 whitespace-pre-wrap break-words leading-relaxed">${esc(c.text)}</div></div>`}).join(''):'<div class="text-xs opacity-60 py-2">첫 댓글을 익명으로 남겨 보세요.</div>';
   document.querySelectorAll('img[data-tkp]').forEach(async im=>{const d=await tkPhoto(im.dataset.tkp);if(d)im.src=d});
@@ -1826,7 +1853,7 @@ $('#tkPrev').onclick=e=>{const b=e.target.closest('[data-tkrm]');if(b){tkPending
 $('#tkFile').onchange=async e=>{const fs=[...e.target.files].slice(0,3-tkPending.length);e.target.value='';if(!fs.length)return toast('사진은 3장까지 붙일 수 있어요.','error');
   for(const f of fs){try{tkPending.push(await compress(f,1280,.7))}catch(err){toast('이 파일은 사진으로 읽을 수 없어요.','error')}}tkPrev()};
 $('#tkCam').onchange=$('#tkFile').onchange;
-$('#tkNew').onclick=()=>{$('#tkForm').classList.remove('hidden');$('#tkNew').classList.add('hidden');setTimeout(()=>$('#tkTitle').focus(),50)};
+$('#tkNew').onclick=()=>{$('#tkForm').classList.remove('hidden');$('#tkNew').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>$('#tkTitle').focus({preventScroll:true}),350)};
 const tkClose=()=>{$('#tkForm').classList.add('hidden');$('#tkNew').classList.remove('hidden')};
 $('#tkCancel').onclick=tkClose;
 $('#tkCats').onclick=e=>{const b=e.target.closest('[data-tkc]');if(b){tkCat=b.dataset.tkc;renderTalk()}};
