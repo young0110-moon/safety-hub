@@ -272,6 +272,17 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .ic-badge{position:absolute;top:-5px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#FF3B30;color:#fff;font-size:11px;font-weight:900;line-height:16px;text-align:center;border:2px solid #fff;box-shadow:0 3px 8px -2px rgba(255,59,48,.6);z-index:2;animation:icPop .45s cubic-bezier(.34,1.56,.64,1)}
 .dark .ic-badge{border-color:#1E1B4B}
 @keyframes icPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+
+/* 메인 '지사 멤버와 공유 중' 점: CS 아이콘 청록색, 신호를 보내듯 퍼지며 깜빡임 */
+#sync{display:inline-flex;align-items:center;gap:6px}
+.sync-dot{position:relative;flex-shrink:0;width:9px;height:9px;border-radius:999px;background:linear-gradient(135deg,#2DD4BF,#0F766E);box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.sync-dot.on{animation:syncBlink 1.6s ease-in-out infinite}
+.sync-dot.on::after{content:"";position:absolute;inset:0;border-radius:999px;background:#14B8A6;animation:syncWave 1.6s ease-out infinite}
+@keyframes syncBlink{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes syncWave{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.8);opacity:0}}
+.sync-dot.err{background:#F59E0B}.sync-dot.off{background:#CBD5E1}
+.dark .sync-dot{box-shadow:0 0 0 1.5px rgba(30,27,75,.9)}
+@media (prefers-reduced-motion:reduce){.sync-dot.on,.sync-dot.on::after{animation:none}}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -493,7 +504,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- HOME -->
 <section id="p-home" class="page active pt-4">
   <button data-go="weather" id="wxChip" class="w-full text-left mb-1.5 px-3 py-2 rounded-2xl"><span class="flex items-center gap-3"><span id="wxIco" class="text-3xl leading-none">🌤</span><span class="flex-1 min-w-0"><span id="wxMain" class="block text-sm font-black truncate">오늘의 날씨</span><span id="wxSub" class="block text-xs opacity-90 truncate">불러오는 중…</span></span><span class="text-xs opacity-80 shrink-0">›</span></span><span id="wxWeek" class="hidden mt-1.5 pt-1.5 border-t border-purple-400/25 flex justify-between items-center gap-1 overflow-x-auto whitespace-nowrap text-[10px] leading-none"></span></button>
-  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="opacity-75 truncate">⚪ 연결 확인 중…</span></div>
+  <div class="text-[10px] mb-3 px-1 flex items-center gap-1.5 min-w-0"><span id="sync" class="min-w-0 pl-1"><span class="sync-dot off" aria-hidden="true"></span><span>연결 확인 중…</span></span></div>
   <div id="banner" class="hidden w-full min-h-[48px] mb-3 rounded-xl bg-[#FF3B30] text-white text-sm font-bold items-stretch overflow-hidden"><button id="bnGo" class="flex-1 min-w-0 px-3 text-left animate-pulse truncate"></button><button id="bnX" aria-label="배너 닫기" class="shrink-0 w-11 border-l border-white/30 text-base">✕</button></div>
   <button data-go="notice" id="nBanner" class="hidden w-full mb-2 p-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-800 text-white text-left flex items-center gap-3 shadow-lg">
     <span class="w-10 h-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center text-xl">📣</span>
@@ -1169,7 +1180,8 @@ function renderHeader(){
   
   $('#memCnt').textContent=D.members.length?`멤버 ${D.members.length}`:'멤버';
 }
-function setSync(err){$('#sync').textContent=(db?(err?'🟠 공유 오류: '+err:'🟢 지사 멤버와 공유 중'):'⚪ 서버 연결 전')+(()=>{try{return !DEV?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})()}
+function setSync(err){const st=db?(err?'err':'on'):'off',v=(()=>{try{return !DEV?' · v'+BUILD.slice(0,7):''}catch(e){return ''}})();
+  $('#sync').innerHTML=`<span class="sync-dot ${st}" aria-hidden="true"></span><span class="opacity-75 truncate">${db?(err?'공유 오류: '+esc(err):'지사 멤버와 공유 중'):'서버 연결 전'}${v}</span>`}
 
 /* ===== 로그인 · 가입 ===== */
 ['#lgRank','#pfRank'].forEach(s=>$(s).innerHTML=RANKS.map(r=>`<option>${r}</option>`).join(''));
