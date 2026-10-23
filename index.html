@@ -284,6 +284,23 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .sync-dot.err{background:#F59E0B}.sync-dot.off{background:#CBD5E1}
 #sync .sync-on{color:#0284C7;font-weight:800;opacity:1}
 .dark #sync .sync-on{color:#7DD3FC}
+
+/* 아침 소식: 접기·펼치기 */
+.bf-tog{font-size:11px;font-weight:800;color:#6D28D9;background:rgba(255,255,255,.75);border:1px solid #C4B5FD;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.rv-sec{border:1px solid rgba(167,139,250,.35);border-radius:12px;padding:0 12px}
+.rv-sec>summary,.rv-brief>summary{list-style:none;cursor:pointer;min-height:42px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900}
+.rv-brief>summary{min-height:28px}
+.rv-sec>summary::-webkit-details-marker,.rv-brief>summary::-webkit-details-marker{display:none}
+.rv-sec>summary::after,.rv-brief>summary::after{content:"펼치기 ▼";margin-left:auto;font-size:11px;font-weight:800;opacity:.65}
+.rv-sec[open]>summary::after,.rv-brief[open]>summary::after{content:"접기 ▲"}
+.rv-sec[open]{padding-bottom:12px}
+.rv-n{font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;background:rgba(167,139,250,.2)}
+
+/* 긴 글 접기·펼치기 */
+.fold{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--fl,5);overflow:hidden}
+.fold.open{display:block;-webkit-line-clamp:unset;overflow:visible}
+.fold-btn{display:inline-flex;align-items:center;min-height:32px;padding:0 2px;font-size:12.5px;font-weight:800;color:#7C3AED}
+html.sunset .fold-btn{color:#C2410C}html.mint .fold-btn{color:#0F766E}.dark .fold-btn{color:#C4B5FD}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -1275,7 +1292,7 @@ function renderNotices(){
       <div class="flex items-center gap-2 mb-2">${avatar(n.by,32)}<div class="min-w-0 flex-1"><div class="text-xs font-bold truncate">${esc(nmFull(n.by))}</div><div class="text-[10px] opacity-60">${tstr(n.at)}</div></div><span class="${urg?'nt-urg':'nt-norm'} text-[10px] font-black px-2 py-0.5 rounded-full text-white ${urg?'bg-[#FF3B30]':'bg-[#6D28D9]'}">${urg?'긴급':'공지'}</span></div>
       ${wait?`<span class="inline-block text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 mb-1">⏰ ${tstr(n.at)} 발송 예정</span>`:''}${!wait&&!mine?'<span class="nt-new inline-block text-[10px] font-black px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 mb-1">NEW</span>':''}
       <b class="text-sm block break-words">${esc(n.title)}</b>
-      ${n.body?`<p class="text-sm mt-1 break-words whitespace-pre-line">${esc(n.body)}</p>`:''}
+      ${n.body?`<p class="text-sm mt-1 break-words whitespace-pre-line fold" data-fk="n${n.id}">${esc(n.body)}</p>`:''}
       ${wait?'':`<div class="text-[11px] mt-2 p-2 rounded-lg sub leading-relaxed">👀 읽음 ${rd.length+(mine&&!rd.includes(myId)?1:0)}명${D.members.length?` · 미확인 ${notYet.length}명${notYet.length?': '+esc(notYet.slice(0,8).map(m=>m.name).join(', '))+(notYet.length>8?' 외':''):''}`:''}</div>`}
       <div class="grid grid-cols-2 gap-2 mt-2">${wait?'<span></span>':`<button data-nr="${n.id}" ${mine?'disabled':''} class="min-h-[44px] rounded-xl text-xs font-bold ${mine?'nt-done border border-green-400/60 text-green-600':'nt-btn bg-[#6D28D9] text-white'}">${mine?'✔ 읽음 확인 완료':'✔ 읽음 확인'}</button>`}${canDel(n.by)?`<button data-nx="${n.id}" class="min-h-[44px] rounded-xl border border-red-400/60 text-xs font-bold text-red-500">🗑️ ${wait?'예약 취소':'삭제'}</button>`:'<span></span>'}</div>
     </div>`}).join(''):`<p class="text-sm opacity-70 text-center py-6">${['게시된 공지가 없습니다. 위에서 첫 공지를 작성해 보세요.','모든 공지를 읽었습니다.','예약된 공지가 없습니다.'][nFilter]}</p>`;
@@ -1399,12 +1416,12 @@ function photoGrid(ids,postId){
   const n=ids.length,cls=n===1?'grid-cols-1':'grid-cols-2';
   return `<div class="grid ${cls} gap-1 mt-2 rounded-xl overflow-hidden">${ids.map((p,i)=>`<button data-view="${p}" data-post="${postId}" class="block ${n===3&&i===0?'row-span-2':''}"><img data-ph="${p}" alt="현장 사진 ${i+1}" class="ph w-full ${n===1?'max-h-80 aspect-[4/3]':'aspect-square'} h-full"></button>`).join('')}</div>`;
 }
-function postCard(v,compact,hq){
+function postCard(v,compact,hq,full){
   const c=cOf(v.cat),lk=likes(v.id),liked=lk.some(r=>r.by===myId),cm=cmts(v.id).length;
   return `<article class="card !p-3">
     <div class="flex items-center gap-2">${avatar(v.by,40)}<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">${esc(nmFull(v.by))}</div><div class="text-[11px] opacity-60 truncate">${ago(v.at)}${v.editedAt?' · 수정됨':''}${v.place?' · 📍 '+esc(v.place):''}</div></div>${canDel(v.by)?`<button data-pmenu="${v.id}" aria-label="글 메뉴" class="w-9 h-9 shrink-0 rounded-full text-lg leading-none opacity-70 hover:bg-purple-500/10">⋯</button>`:''}${v.urgent?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white shrink-0">긴급전파</span>':''}</div>
     <div class="flex items-center gap-1.5 mt-2"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${c.c}">${c.i} ${esc(c.k)}</span></div>
-    <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${compact?'line-clamp-3':''}">${hq?sbHL(v.text,hq):esc(v.text)}</p></button>${hq&&v._why?`<div class="text-[10px] font-bold mt-1 opacity-70">🔎 ${esc(v._why)}</div>`:''}
+    <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${full?'':'fold'}" ${compact?'style="--fl:3"':''} data-fk="v${v.id}">${hq?sbHL(v.text,hq):esc(v.text)}</p></button>${hq&&v._why?`<div class="text-[10px] font-bold mt-1 opacity-70">🔎 ${esc(v._why)}</div>`:''}
     ${photoGrid(v.photos,v.id)}
     <div class="flex items-center gap-1 mt-2 pt-2 border-t border-purple-400/30 text-xs font-bold">
       <button data-like="${v.id}" class="flex-1 min-h-[40px] rounded-lg ${liked?'text-[#7C3AED]':'opacity-80'}">${liked?'💜':'🤍'} 공감 ${lk.length||''}</button>
@@ -1483,16 +1500,17 @@ function recText(it){const d=new Date(it.at),W='일월화수목금토';const L=[
   return L.join('\n')}
 const REC_COL=['#7C3AED','#0D9488','#EA580C','#2563EB','#DB2777','#65A30D'];
 function recView(it){const sp=[...new Set(it.dialogue.map(d=>d.s))];const col=s=>REC_COL[sp.indexOf(s)%REC_COL.length];
-  const sec=(t,arr,f)=>arr&&arr.length?`<div><div class="text-xs font-black mb-1.5">${t}</div><ul class="space-y-1">${arr.map(f).join('')}</ul></div>`:'';
+  const sec=(t,arr,f)=>arr&&arr.length?`<details class="rv-sec"><summary>${t} <span class="rv-n">${arr.length}</span></summary><ul class="space-y-1 mt-1.5">${arr.map(f).join('')}</ul></details>`:'';
   return `<div class="rounded-2xl border border-purple-400/40 p-3 space-y-3">
     <button data-recopen="${it.id}" class="w-full text-left"><div class="text-[11px] opacity-60">${new Date(it.at).toLocaleString('ko-KR')}${it.sec?' · '+recFmt(it.sec*1000):''} · 접기 ▲</div><div class="font-black">${esc(it.title)}</div></button>
-    ${(it.brief||[]).length?`<div class="rounded-xl p-3" style="background:linear-gradient(135deg,#EDE9FE,#F5F3FF);border:1px solid #C4B5FD;color:#1E1B4B"><div class="text-xs font-black mb-1.5" style="color:#6D28D9">📢 전달사항</div><ol class="space-y-1.5">${it.brief.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></div>`:''}
-    <p class="text-sm leading-relaxed sub rounded-xl p-3" style="border-left:4px solid #0D9488">${esc(it.summary)}</p>
+    ${(it.brief||[]).length?`<details open class="rounded-xl p-3 rv-brief" style="background:linear-gradient(135deg,#EDE9FE,#F5F3FF);border:1px solid #C4B5FD;color:#1E1B4B"><summary class="text-xs font-black" style="color:#6D28D9">📢 전달사항 <span class="rv-n">${it.brief.length}</span></summary><ol class="space-y-1.5 mt-1.5">${it.brief.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol></details>`:''}
+    ${it.summary?`<details class="rv-sec"><summary>📝 핵심 요약</summary><p class="text-sm leading-relaxed sub rounded-xl p-3 mt-1.5" style="border-left:4px solid #0D9488">${esc(it.summary)}</p></details>`:''}
     ${sec('✅ 결정 사항',it.decisions,x=>`<li class="text-[13px] sub rounded-lg px-3 py-2">${esc(x)}</li>`)}
     ${sec('⛑️ 안전 당부',it.safety,x=>`<li class="text-[13px] rounded-lg px-3 py-2" style="background:#FEF3C7;color:#78350F">${esc(x)}</li>`)}
-    ${it.dialogue.length?`<details><summary class="text-xs font-black cursor-pointer min-h-[36px] flex items-center">💬 대화 정리 (${it.dialogue.length}마디) — 눌러서 펼치기</summary><div class="space-y-1.5 mt-1">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
+    ${it.dialogue.length?`<details class="rv-sec"><summary>💬 대화 정리 <span class="rv-n">${it.dialogue.length}마디</span></summary><div class="space-y-1.5 mt-1.5">${it.dialogue.map(d=>`<div class="text-[13px] leading-relaxed"><b style="color:${col(d.s)}">${esc(d.s)}</b> <span>${esc(d.t)}</span></div>`).join('')}</div></details>`:''}
     ${(it.brief||[]).length?`<button data-recpub="${it.id}" class="w-full min-h-[48px] rounded-xl text-white text-sm font-black" style="background:linear-gradient(135deg,#6D28D9,#0D9488)">📢 전달사항 지사에 공유</button>`:''}
     <div class="grid grid-cols-3 gap-2"><button data-recshare="${it.id}" class="min-h-[42px] rounded-xl bg-[#6D28D9] text-white text-xs font-bold">📤 공유</button><button data-reccopy="${it.id}" class="min-h-[42px] rounded-xl border border-purple-400/50 text-xs font-bold">📋 전달사항 복사</button><button data-recdel="${it.id}" class="min-h-[42px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">${aiRec.delArm===it.id?'한 번 더 누르면 삭제':'🗑 삭제'}</button></div>
+    <button data-recopen="${it.id}" class="w-full min-h-[40px] rounded-xl text-[13px] font-bold opacity-75 border border-dashed border-purple-400/50">접기 ▲</button>
   </div>`}
 function renderRec(){const B=$('#recBody');if(!B)return;const url=recUrl();
   if(!url)B.innerHTML='<div class="rounded-xl p-3 text-[12px] sub">⏳ AI 정리 서버 연결 준비 중이에요. 서버 주소가 등록되면 바로 쓸 수 있어요.</div>';
@@ -1705,10 +1723,10 @@ $('#wSend').onclick=async()=>{
 function renderPost(){
   const v=D.voices.find(x=>x.id===curPost);
   if(!v){$('#postBox').innerHTML='<p class="text-sm opacity-70 text-center py-6">삭제되었거나 찾을 수 없는 글입니다.</p>';$('#cmtList').innerHTML='';return}
-  $('#postBox').innerHTML=postCard(v)+(canDel(v.by)?'<button id="postDel" class="mt-3 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 글 삭제</button>':'');
+  $('#postBox').innerHTML=postCard(v,false,'',true)+(canDel(v.by)?'<button id="postDel" class="mt-3 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 글 삭제</button>':'');
   hydrate($('#postBox'));
   const cs=cmts(v.id),ids=new Set(cs.map(c=>c.id)),tops=cs.filter(c=>!c.parent||!ids.has(c.parent));$('#cmtCnt').textContent=`댓글 ${cs.length}`;
-  const one=(c,rep)=>`<div class="flex gap-2 ${rep?'ml-9 pl-3 border-l-2 border-purple-400/40':''}">${avatar(c.by,rep?26:32)}<div class="flex-1 min-w-0"><div class="text-xs"><b>${esc(nmFull(c.by))}</b> <span class="opacity-60">${ago(c.at)}</span></div><p class="text-sm break-words">${rep&&c.to?`<span class="font-bold text-purple-600 dark:text-purple-300">@${esc(nm(c.to))}</span> `:''}${esc(c.text)}</p><button data-rp="${c.id}" class="text-[11px] font-bold opacity-70 min-h-[30px]">↳ 답글</button></div>${canDel(c.by)?`<button data-cx="${c.id}" aria-label="댓글 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">✕</button>`:''}</div>`;
+  const one=(c,rep)=>`<div class="flex gap-2 ${rep?'ml-9 pl-3 border-l-2 border-purple-400/40':''}">${avatar(c.by,rep?26:32)}<div class="flex-1 min-w-0"><div class="text-xs"><b>${esc(nmFull(c.by))}</b> <span class="opacity-60">${ago(c.at)}</span></div><p class="text-sm break-words whitespace-pre-line fold" data-fk="c${c.id}">${rep&&c.to?`<span class="font-bold text-purple-600 dark:text-purple-300">@${esc(nm(c.to))}</span> `:''}${esc(c.text)}</p><button data-rp="${c.id}" class="text-[11px] font-bold opacity-70 min-h-[30px]">↳ 답글</button></div>${canDel(c.by)?`<button data-cx="${c.id}" aria-label="댓글 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">✕</button>`:''}</div>`;
   $('#cmtList').innerHTML=tops.length?tops.map(t=>one(t)+cs.filter(r=>r.parent===t.id).map(r=>one(r,1)).join('')).join(''):'<p class="text-xs opacity-70">첫 댓글로 확인·조치 내용을 남겨 주세요.</p>';
 }
 /* 내 글 메뉴: 수정 · 삭제 */
@@ -1794,7 +1812,7 @@ $('#hFile').onchange=async e=>{
 $('#hCam').onchange=$('#hFile').onchange;
 function renderHaz(){
   const list=D.hazards.slice().sort((a,b)=>b.at-a.at);
-  $('#hazList').innerHTML=list.length?list.map(h=>`<div class="card !p-3" style="border-left:6px solid ${LC[h.level]||'#EAB308'}"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${LC[h.level]||'#EAB308'}">${esc(h.level)}</span><b class="text-sm break-words min-w-0">${esc(h.title)}</b></div><div class="text-xs opacity-80">📍 ${esc(h.place||'장소 미입력')}</div>${h.desc?`<p class="text-sm mt-1 break-words">${esc(h.desc)}</p>`:''}${photoGrid(h.photos,'')}<div class="text-[10px] opacity-60 mt-1">${esc(nmFull(h.by))} · ${tstr(h.at)}</div>${canDel(h.by)?`<button data-hx="${h.id}" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-xs font-bold text-red-500">🗑️ 삭제</button>`:''}</div>`).join(''):'<p class="text-sm opacity-70 text-center py-6">등록된 위험현장이 없습니다.</p>';
+  $('#hazList').innerHTML=list.length?list.map(h=>`<div class="card !p-3" style="border-left:6px solid ${LC[h.level]||'#EAB308'}"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${LC[h.level]||'#EAB308'}">${esc(h.level)}</span><b class="text-sm break-words min-w-0">${esc(h.title)}</b></div><div class="text-xs opacity-80">📍 ${esc(h.place||'장소 미입력')}</div>${h.desc?`<p class="text-sm mt-1 break-words whitespace-pre-line fold" style="--fl:3" data-fk="h${h.id}">${esc(h.desc)}</p>`:''}${photoGrid(h.photos,'')}<div class="text-[10px] opacity-60 mt-1">${esc(nmFull(h.by))} · ${tstr(h.at)}</div>${canDel(h.by)?`<button data-hx="${h.id}" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-xs font-bold text-red-500">🗑️ 삭제</button>`:''}</div>`).join(''):'<p class="text-sm opacity-70 text-center py-6">등록된 위험현장이 없습니다.</p>';
   hydrate($('#hazList'));
 }
 $('#hazList').onclick=async e=>{
@@ -1864,11 +1882,11 @@ function renderTalkV(){
   $('#tvPost').innerHTML=`<div class="tk-card !p-4">
     <div class="flex items-center gap-1.5 text-[12px] font-bold"><span class="tk-tag ${tkCls(t.cat)}">${esc(tkC(t.cat).replace(/^\S+\s/,''))}</span><span class="opacity-60">익명 · ${ago(t.at)}</span>${tkMine.get(t.id)?'<span class="tk-me">내 글</span>':''}</div>
     <h2 class="text-[17px] font-black mt-2 leading-snug break-words">${esc(t.title)}</h2>
-    <div class="text-[14px] leading-relaxed mt-2 whitespace-pre-wrap break-words">${esc(t.text)}</div>
+    <div class="text-[14px] leading-relaxed mt-2 whitespace-pre-wrap break-words fold" style="--fl:10" data-fk="t${t.id}">${esc(t.text)}</div>
     ${t.photos?`<div class="grid grid-cols-3 gap-2 mt-3">${Array.from({length:t.photos},(_,i)=>`<button type="button" data-tkimg="${t.id}_${i}" class="aspect-square rounded-xl overflow-hidden tk-phbg"><img data-tkp="${t.id}_${i}" alt="첨부 사진 ${i+1}" class="w-full h-full object-cover"></button>`).join('')}</div>`:''}
     <div class="flex gap-2 mt-3"><button type="button" id="tvLike" class="tk-like ${tkCls(t.cat)}${liked?' on':''}">${liked?'✔ ':''}${tkReact(t.cat)} ${t.likes||0}</button>${canDel(t.id)?`<button type="button" data-tkdel="${t.id}" class="tk-del">${tkMine.get(t.id)?'내 글 지우기':'관리자 삭제'}</button>`:''}</div></div>`;
   $('#tvCmtHd').textContent=`💬 댓글 ${cs.length}`;
-  $('#tvCmts').innerHTML=cs.length?cs.map(c=>{const who=c.tag===t.tag?'글쓴이':label.get(c.tag);return `<div class="tk-cmt${c.tag===t.tag?' op':''}"><div class="flex items-center gap-1.5 text-[11px] font-black"><span>${who}</span>${tkMine.get(c.id)?'<span class="tk-me">나</span>':''}<span class="opacity-55 font-bold">${ago(c.at)}</span>${canDel(c.id)?`<button type="button" data-tkcdel="${c.id}" class="ml-auto text-[11px] font-bold text-red-600 min-h-[28px] px-1">삭제</button>`:''}</div><div class="text-[13.5px] mt-0.5 whitespace-pre-wrap break-words leading-relaxed">${esc(c.text)}</div></div>`}).join(''):'<div class="text-xs opacity-60 py-2">첫 댓글을 익명으로 남겨 보세요.</div>';
+  $('#tvCmts').innerHTML=cs.length?cs.map(c=>{const who=c.tag===t.tag?'글쓴이':label.get(c.tag);return `<div class="tk-cmt${c.tag===t.tag?' op':''}"><div class="flex items-center gap-1.5 text-[11px] font-black"><span>${who}</span>${tkMine.get(c.id)?'<span class="tk-me">나</span>':''}<span class="opacity-55 font-bold">${ago(c.at)}</span>${canDel(c.id)?`<button type="button" data-tkcdel="${c.id}" class="ml-auto text-[11px] font-bold text-red-600 min-h-[28px] px-1">삭제</button>`:''}</div><div class="text-[13.5px] mt-0.5 whitespace-pre-wrap break-words leading-relaxed fold" data-fk="k${c.id}">${esc(c.text)}</div></div>`}).join(''):'<div class="text-xs opacity-60 py-2">첫 댓글을 익명으로 남겨 보세요.</div>';
   document.querySelectorAll('img[data-tkp]').forEach(async im=>{const d=await tkPhoto(im.dataset.tkp);if(d)im.src=d});
   tkCheckMine([t,...cs]).then(nw=>{if(nw&&cur==='talkv')renderTalkV()});
 }
@@ -1924,16 +1942,38 @@ document.addEventListener('click',async e=>{
   }catch(err){toast(errMsg(err),'error')}
 });
 
+
+/* ===== 긴 글 접기·펼치기: .fold 글이 정해진 줄 수(--fl, 기본 5줄)보다 길면 '더보기 ▼' 버튼을 붙임
+   펼친 상태는 글 id(data-fk)로 기억 → 화면이 새로 그려져도 펼친 채로 유지 */
+const foldOpen=new Set();
+function foldScan(){document.querySelectorAll('.fold').forEach(el=>{
+  if(el.offsetParent===null)return;const k=el.dataset.fk||'';const host=el.closest('button[data-open]')||el;
+  let b=host.nextElementSibling;if(!(b&&b.classList.contains('fold-btn')&&b.dataset.for===k))b=null;
+  const open=foldOpen.has(k);el.classList.toggle('open',open);
+  if(el.dataset.fs!=='1'){el.dataset.fs='1';el.dataset.long=el.scrollHeight>el.clientHeight+2?'1':''}
+  if(el.dataset.long==='1'||open){if(!b){b=document.createElement('button');b.type='button';b.className='fold-btn';b.dataset.for=k;host.insertAdjacentElement('afterend',b)}const tx=open?'접기 ▲':'더보기 ▼';if(b.textContent!==tx)b.textContent=tx;if(b.getAttribute('aria-expanded')!==String(open))b.setAttribute('aria-expanded',open)}
+  else if(b)b.remove();
+})}
+let foldT=0;const foldLater=()=>{cancelAnimationFrame(foldT);foldT=requestAnimationFrame(foldScan)};
+new MutationObserver(foldLater).observe(document.body,{childList:true,subtree:true});
+window.addEventListener('resize',()=>{document.querySelectorAll('.fold').forEach(el=>delete el.dataset.fs);foldLater()});
+document.addEventListener('click',e=>{const b=e.target.closest('.fold-btn');if(!b)return;e.stopPropagation();const k=b.dataset.for;
+  if(foldOpen.has(k))foldOpen.delete(k);else foldOpen.add(k);foldScan()},true);
+
 /* ===== 모닝 브리핑: 녹음 → AI 정리 카드만 ===== */
 function renderBrief(){try{renderRec()}catch(e){}
   const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief,box=$('#briefShared');if(!box)return;
   if(!(bf&&bf.items&&bf.items.length)){box.innerHTML='';return}
   const fresh=Date.now()-bf.at<HOME_VOICE_MS;if(bf.by!==myId)store.set('koelsa_brief_seen',bf.at);
+  const op=store.get('koelsa_bf_open',{})[bf.at]===true,many=bf.items.length>2,shown=op||!many?bf.items:bf.items.slice(0,2);
   box.innerHTML=`<div class="rounded-2xl p-4 shadow-sm" style="background:linear-gradient(135deg,#EDE9FE,#F0FDFA);border:1px solid #C4B5FD;color:#1E1B4B">
-    <div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 공유된 브리핑 전달사항</div>${fresh?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:#DC2626">NEW</span>':''}</div>
-    <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))} · ${ago(bf.at)}</div>
-    <ol class="mt-2 space-y-1.5">${bf.items.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol>
-    ${bf.by===myId||isAdmin?`<button type="button" id="bfDel" class="mt-3 w-full min-h-[44px] rounded-xl text-sm font-bold" style="color:#DC2626;border:1px solid rgba(220,38,38,.4);background:rgba(255,255,255,.7)">🗑️ 공유한 전달사항 내리기</button>`:''}</div>`}
+    <button type="button" ${many?'data-bftog':''} class="w-full text-left block" aria-expanded="${op||!many}"><div class="flex items-center justify-between gap-2"><div class="text-sm font-black" style="color:#6D28D9">📢 공유된 브리핑 전달사항</div><span class="flex items-center gap-1.5">${fresh?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:#DC2626">NEW</span>':''}${many?`<span class="bf-tog">${op?'접기 ▲':'펼치기 ▼'}</span>`:''}</span></div>
+    <div class="text-[12px] font-bold mt-0.5 opacity-75">${esc(bf.date||'')} · ${esc(nmFull(bf.by))} · ${ago(bf.at)} · ${bf.items.length}건</div></button>
+    <ol class="mt-2 space-y-1.5">${shown.map((x,i)=>`<li class="flex gap-2 text-[14px] leading-relaxed"><b class="shrink-0" style="color:#6D28D9">${i+1}.</b><span>${esc(x)}</span></li>`).join('')}</ol>
+    ${many&&!op?`<button type="button" data-bftog class="mt-2 w-full min-h-[40px] rounded-xl text-[13px] font-bold" style="color:#6D28D9;background:rgba(255,255,255,.6);border:1px dashed #C4B5FD">나머지 ${bf.items.length-2}건 더 보기 ▼</button>`:''}
+    ${(op||!many)&&(bf.by===myId||isAdmin)?`<button type="button" id="bfDel" class="mt-3 w-full min-h-[44px] rounded-xl text-sm font-bold" style="color:#DC2626;border:1px solid rgba(220,38,38,.4);background:rgba(255,255,255,.7)">🗑️ 공유한 전달사항 내리기</button>`:''}</div>`}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-bftog]'))return;const m=D.settings.find(x=>x.id==='main'),bf=m&&m.brief;if(!bf)return;
+  const o={};o[bf.at]=!(store.get('koelsa_bf_open',{})[bf.at]===true);store.set('koelsa_bf_open',o);renderBrief()});
 /* 공유한 전달사항 내리기: 올린 사람·관리자만, 두 번 눌러 확인 */
 document.addEventListener('click',async e=>{const b=e.target.closest('#bfDel');if(!b)return;
   if(!b.dataset.arm){b.dataset.arm=1;b.textContent='한 번 더 누르면 모든 직원 화면에서 내려가요';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='🗑️ 공유한 전달사항 내리기'}},3500);return}
