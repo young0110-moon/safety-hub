@@ -1,7 +1,7 @@
 {
-  "name": "부산동부지사 안전 허브",
-  "short_name": "안전 허브",
-  "description": "한국승강기안전공단 부산동부지사 직원 전용 소통·안전·기준 자료 앱",
+  "name": "MOA · 부산동부지사",
+  "short_name": "MOA",
+  "description": "MOA — 모이고 모으는 우리 공간. 한국승강기안전공단 부산동부지사 직원 소통·정보 공유 앱",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<title>부산동부지사 안전 허브</title>
+<title>MOA · 부산동부지사</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#6D28D9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="안전 허브">
+<meta name="apple-mobile-web-app-title" content="MOA">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
 <link rel="icon" href="icon-192.png?v=4">
 <script src="vendor/firebase-app-compat.js"></script>
@@ -311,6 +311,12 @@ html.sunset .fold-btn{color:#C2410C}html.mint .fold-btn{color:#0F766E}.dark .fol
 html.sunset .mem-call{--k1:#FFC27A;--k2:#ED8A17}
 html.mint .mem-call{--k1:#5EEAD4;--k2:#0F9D8A}
 .dark .mem-call{box-shadow:0 8px 18px -7px var(--k2),inset 0 2px 0 rgba(255,255,255,.3)}
+
+/* 앱 이름 MOA 글자: 테마색 그라데이션 */
+.moa-word{font-weight:900;letter-spacing:.06em;line-height:1;background:linear-gradient(135deg,#8B5CF6,#6D28D9 45%,#0D9488);-webkit-background-clip:text;background-clip:text;color:transparent}
+html.sunset .moa-word{background-image:linear-gradient(135deg,#FB923C,#ED8A17 45%,#E11D48)}
+html.mint .moa-word{background-image:linear-gradient(135deg,#2DD4BF,#0F9D8A 45%,#2563EB)}
+.dark .moa-word{background-image:linear-gradient(135deg,#C4B5FD,#A78BFA 45%,#5EEAD4)}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -509,7 +515,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <div id="hLogo" class="min-w-0 flex items-center gap-2" style="max-width:calc(50% - 28px)">
       <span class="klogo w-9 h-9 shrink-0" role="img" aria-label="한국승강기안전공단 로고"></span>
       <div class="min-w-0 leading-tight">
-        <div class="text-[13px] font-bold truncate">한국승강기안전공단</div>
+        <div class="moa-word text-[19px] truncate" aria-label="MOA">MOA</div>
         <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#9333EA] text-white">부산동부지사</span>
       </div>
     </div>
@@ -994,7 +1000,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <div class="lk-car"><img src="eli.png" alt=""><div class="lk-door l"></div><div class="lk-door r"></div></div>
     </div>
     <div class="text-xs font-bold lk-sub mt-6">한국승강기안전공단 부산동부지사</div>
-    <div class="text-2xl font-black mt-0.5">안전 허브</div>
+    <div class="moa-word text-4xl mt-1">MOA</div><div class="text-[11px] font-bold lk-sub mt-1 opacity-80">모이고, 모으는 우리 공간</div>
     <script>(function(){let f=1;const el=document.getElementById("lkFloor"),E=document.querySelector(".lk-elv"),open=()=>{if(E)E.classList.add("go")};const t=setInterval(()=>{f++;if(el)el.textContent=f;if(f>=19){clearInterval(t);requestAnimationFrame(()=>requestAnimationFrame(open))}},35);setTimeout(open,1200)})()</script>
     <p id="lockMsg" class="text-sm lk-msg mt-3 leading-relaxed">문이 열리고 있어요…</p>
     <button id="gBtn" class="hidden mt-6 w-full min-h-[52px] rounded-xl bg-white text-[#1E1B4B] font-black flex items-center justify-center gap-2"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.9l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>구글 계정으로 로그인</button>
@@ -1231,7 +1237,7 @@ $('#lgForm').onsubmit=async e=>{
   const fu=firebase.auth().currentUser;
   const tryJoin=st=>db.doc('members/'+myId).set({name,rank:$('#lgRank').value,team:$('#lgTeam').value.trim(),tel:$('#lgTel').value.trim(),email:((fu&&fu.email)||'').toLowerCase(),code,status:st,at:Date.now()});
   try{try{await tryJoin('active')}catch(e1){if(e1&&e1.code==='permission-denied')await tryJoin('pending');else throw e1}
-    toast(`${name}님, 부산동부지사 안전 허브에 오신 것을 환영합니다!`,'ok');setTimeout(()=>location.reload(),600)}
+    toast(`${name}님, MOA에 오신 것을 환영합니다!`,'ok');setTimeout(()=>location.reload(),600)}
   catch(err){toast(err&&err.code==='permission-denied'?'입장 코드가 맞지 않거나 가입이 제한된 계정이에요. 지사에서 받은 코드를 다시 확인해 주세요.':errMsg(err),'error')}
 };
 function renderProfile(){
@@ -1570,7 +1576,7 @@ async function pushOn(){if(pushBusy)return;
   try{const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('알림이 차단돼 있어요. 휴대폰 설정 → 앱(브라우저) → 알림에서 허용해 주세요.');
     const t=await pushToken();if(!t)throw new Error('알림 주소를 받지 못했어요.');
     await db.doc('pushTokens/'+myId).set({tokens:firebase.firestore.FieldValue.arrayUnion(t),on:true,at:Date.now()},{merge:true});
-    store.set('koelsa_push_tok',t);toast('알림을 켰어요. 시험 알림을 보내 볼게요.','ok');pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 켜졌어요!','#profile')}
+    store.set('koelsa_push_tok',t);toast('알림을 켰어요. 시험 알림을 보내 볼게요.','ok');pushSend('test','🔔 알림 시험','MOA 알림이 잘 켜졌어요!','#profile')}
   catch(e){toast(e.message||'알림을 켜지 못했어요.','error')}
   pushBusy=false;renderPush()}
 async function pushOff(){const t=store.get('koelsa_push_tok','');pushBusy=true;renderPush();
@@ -1584,7 +1590,7 @@ function renderGeo(){const G=$('#geoBox');if(!G)return;const on=geoState==='gran
   G.innerHTML=`<div class="flex items-center gap-3 rounded-xl p-3 sub"><span class="text-2xl">📍</span><div class="flex-1 min-w-0 leading-tight"><div class="text-sm font-black">${on?'위치 허용됨':den?'위치 차단됨':'위치 허용 안 됨'}</div><div class="text-[11px] opacity-70">${on?'SOS 때 위치가 함께 전달돼요':den?'휴대폰 설정 → 앱(브라우저) → 권한 → 위치에서 허용해 주세요':'버튼을 눌러 허용해 주세요'}</div></div>${on||den?'':`<button data-geo class="shrink-0 min-h-[44px] px-4 rounded-xl text-xs font-bold text-white" style="background:#6D28D9">위치 허용</button>`}</div>`}
 function renderPush(){renderGeo();if(geoState==='unknown')geoCheck().then(renderGeo);const B=$('#pushBox');if(!B)return;const on=!!store.get('koelsa_push_tok','')&&pushOK()&&Notification.permission==='granted';
   let h='';
-  if(isIOS&&!isStandalone())h=`<div class="rounded-xl p-3 text-[12px] sub leading-relaxed">📱 <b>아이폰은 먼저 앱 설치가 필요해요.</b><br>사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b> → 홈 화면의 '안전 허브' 아이콘으로 열고 여기서 알림을 켜 주세요. (iOS 16.4 이상)</div>`;
+  if(isIOS&&!isStandalone())h=`<div class="rounded-xl p-3 text-[12px] sub leading-relaxed">📱 <b>아이폰은 먼저 앱 설치가 필요해요.</b><br>사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b> → 홈 화면의 'MOA' 아이콘으로 열고 여기서 알림을 켜 주세요. (iOS 16.4 이상)</div>`;
   else if(!pushOK())h='<div class="rounded-xl p-3 text-[12px] sub">이 브라우저는 알림을 지원하지 않아요. 크롬(안드로이드)이나 홈 화면에 설치한 앱(아이폰)에서 열어 주세요.</div>';
   else h=`<div class="flex items-center gap-3 rounded-xl p-3 sub"><span class="text-2xl">${on?'🔔':'🔕'}</span><div class="flex-1 min-w-0 leading-tight"><div class="text-sm font-black">${on?'이 휴대폰 알림 켜짐':'알림 꺼짐'}</div><div class="text-[11px] opacity-70">${on?'잠금 화면에 알림이 와요':Notification.permission==='denied'?'휴대폰 설정에서 알림이 차단돼 있어요':'버튼을 눌러 켜 주세요'}</div></div>
     <button data-push="${on?'off':'on'}" class="shrink-0 min-h-[44px] px-4 rounded-xl text-xs font-bold ${on?'border border-purple-400/50':'text-white'}" ${on?'':'style="background:#6D28D9"'} ${pushBusy?'disabled':''}>${pushBusy?'처리 중…':on?'끄기':'알림 켜기'}</button></div>`;
@@ -1595,7 +1601,7 @@ function renderPush(){renderGeo();if(geoState==='unknown')geoCheck().then(render
 document.addEventListener('click',async e=>{if(e.target.closest('[data-geo]')){const ok=await geoAsk();toast(ok?'위치를 허용했어요.':'위치를 허용하지 못했어요. 휴대폰 설정에서 허용해 주세요.',ok?'ok':'error');renderGeo()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-push],[data-pushk]');if(!b||!b.closest('#pushBox'))return;
   if(b.dataset.pushk){if(b.dataset.pushk==='sos'&&!(pushPrefs||[]).includes('sos')&&!confirm('긴급 SOS 알림을 끄면 동료의 긴급 상황을 놓칠 수 있어요. 그래도 끌까요?'))return;pushPrefToggle(b.dataset.pushk);return}
-  const a=b.dataset.push;if(a==='on')pushOn();else if(a==='off')pushOff();else if(a==='test'){pushSend('test','🔔 알림 시험','안전 허브 알림이 잘 와요!','#profile');toast('시험 알림을 보냈어요. 몇 초 안에 와요.','ok')}});
+  const a=b.dataset.push;if(a==='on')pushOn();else if(a==='off')pushOff();else if(a==='test'){pushSend('test','🔔 알림 시험','MOA 알림이 잘 와요!','#profile');toast('시험 알림을 보냈어요. 몇 초 안에 와요.','ok')}});
 /* 처음 로그인(설치)했을 때 한 번만: 위치·알림 권한 묻기. 이후에는 내 프로필에서 설정 */
 let geoState='unknown';
 async function geoCheck(){try{if(navigator.permissions&&navigator.permissions.query){const r=await navigator.permissions.query({name:'geolocation'});geoState=r.state;r.onchange=()=>{geoState=r.state;renderPush()}}}catch(e){}return geoState}
@@ -1612,7 +1618,7 @@ async function permAsk(){try{
   o.style.cssText='position:fixed;inset:0;z-index:131;background:rgba(15,10,40,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px';
   o.innerHTML=`<div style="width:100%;max-width:420px;background:#fff;color:#1E1B4B;border-radius:24px;padding:22px 20px 18px;box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center">
     <div style="font-size:18px;font-weight:900">처음 한 번만 허용해 주세요</div>
-    <p style="font-size:12px;opacity:.7;margin-top:4px">안전 허브를 제대로 쓰려면 아래 두 가지가 필요해요</p>
+    <p style="font-size:12px;opacity:.7;margin-top:4px">MOA를 제대로 쓰려면 아래 두 가지가 필요해요</p>
     ${geoNeed?row('📍','위치 허용','SOS를 보낼 때 내 위치를 동료에게 함께 알리고, 현재 위치 날씨를 보여줘요.'):''}
     ${pushNeed?row('🔔','알림 허용','앱이 꺼져 있어도 브리핑 전달사항 · 긴급 SOS · 새 공지 · 긴급 위험현장을 잠금 화면으로 알려줘요.'):''}
     <button id="permOk" style="width:100%;min-height:52px;margin-top:16px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">허용하고 시작하기</button>
