@@ -326,6 +326,19 @@ html.sunset .moa-word{background-image:linear-gradient(135deg,#FB923C,#ED8A17 45
 html.coral .moa-word{background-image:linear-gradient(135deg,#FA8A78,#EF6F62 45%,#E11D48)}
 html.mint .moa-word{background-image:linear-gradient(135deg,#2DD4BF,#0F9D8A 45%,#2563EB)}
 .dark .moa-word{background-image:linear-gradient(135deg,#C4B5FD,#A78BFA 45%,#5EEAD4)}
+
+/* 상단 로고: 1줄 MOA KoELSA AI / 2줄 모으고, 모이는 우리 공간 — 두 줄 끝을 맞춤 */
+.hb-box{display:inline-flex;flex-direction:column;min-width:0;line-height:1}
+.hb-l1{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.hb-moa{font-size:clamp(14.5px,4.55vw,18.5px)}
+.hb-ko{display:inline-flex;align-items:center;gap:2px;font-size:clamp(8px,2.3vw,9px);font-weight:800;white-space:nowrap;color:rgba(30,27,75,.7)}
+.dark .hb-ko{color:rgba(255,255,255,.75)}
+.hb-ai{font-size:8px;font-weight:900;padding:2px 4px;border-radius:5px;color:#fff;background:linear-gradient(135deg,#A78BFA,#6D28D9);letter-spacing:.02em}
+.hb-tag{font-size:clamp(8.6px,2.56vw,10px);font-weight:700;margin-top:3px;letter-spacing:-.01em;white-space:nowrap;text-align:justify;text-align-last:justify;color:#7C3AED}
+.dark .hb-tag{color:#C4B5FD}
+html.sunset .hb-ai{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .hb-tag{color:#C2410C}html.dark.sunset .hb-tag{color:#FDBA74}
+html.mint .hb-ai{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .hb-tag{color:#0F766E}html.dark.mint .hb-tag{color:#5EEAD4}
+html.coral .hb-ai{background:linear-gradient(135deg,#FFB89A,#EF6F62)}html.coral .hb-tag{color:#E5574A}html.dark.coral .hb-tag{color:#FDB0A0}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -562,9 +575,9 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div class="max-w-xl mx-auto px-3 py-2 flex items-center justify-between gap-2 min-h-[60px]" style="position:relative">
     <div id="hLogo" class="min-w-0 flex items-center gap-2" style="max-width:calc(50% - 28px)">
       <span class="klogo w-9 h-9 shrink-0" role="img" aria-label="한국승강기안전공단 로고"></span>
-      <div class="min-w-0 leading-tight">
-        <div class="moa-word text-[19px] truncate" aria-label="MOA">MOA</div>
-        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#9333EA] text-white">부산동부지사</span>
+      <div class="hb-box" aria-label="MOA KoELSA AI · 모으고, 모이는 우리 공간">
+        <div class="hb-l1"><span class="moa-word hb-moa">MOA</span><span class="hb-ko">KoELSA<span class="hb-ai">AI</span></span></div>
+        <div class="hb-tag">모으고, 모이는 우리 공간</div>
       </div>
     </div>
     <div id="hBack" class="hidden items-center gap-1 min-w-0" style="max-width:calc(50% - 28px)">
