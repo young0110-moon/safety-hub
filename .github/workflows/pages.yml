@@ -38,6 +38,7 @@ jobs:
           V="${GITHUB_SHA::12}"
           sed -i "s/const BUILD='__BUILD__';/const BUILD='$V';/" index.html
           grep -q "const BUILD='$V';" index.html
+          sed -i "s/manifest.webmanifest?v=[^\"]*/manifest.webmanifest?v=$V/" index.html
           DV=$(cat data/*.json | sha1sum | cut -c1-10)
           sed -i "s/('__DATAV__')/('$DV')/" index.html
           grep -q "('$DV')" index.html

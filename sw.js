@@ -11,7 +11,7 @@ self.addEventListener('fetch',e=>{
     e.respondWith(caches.open(VER).then(async c=>{const h=await c.match(e.request);if(h)return h;const r=await fetch(e.request,{cache:'no-cache'});if(r.ok)c.put(e.request,r.clone());return r}));return;
   }
   // 앱 파일: 네트워크 우선(브라우저 HTTP 캐시도 건너뜀 → 항상 최신), 실패 시 캐시
-  const nav=e.request.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname.endsWith('/')||u.pathname.endsWith('/version.json')||u.pathname.endsWith('/config.js')||u.pathname.endsWith('/tailwind.css');
+  const nav=e.request.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname.endsWith('/')||u.pathname.endsWith('/version.json')||u.pathname.endsWith('/config.js')||u.pathname.endsWith('/tailwind.css')||u.pathname.endsWith('.webmanifest')||/\/(icon-[\w-]+|apple-touch-icon)\.png$/.test(u.pathname);
   const req=nav?new Request(e.request.url,{cache:'no-store',credentials:'same-origin'}):e.request;
   e.respondWith(fetch(req).then(r=>{if(r.ok&&!u.pathname.endsWith('/version.json'))caches.open(VER).then(c=>c.put(e.request,r.clone()));return r}).catch(()=>caches.match(e.request,{ignoreSearch:true})));
 });
