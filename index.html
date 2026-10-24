@@ -301,6 +301,10 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .fold.open{display:block;-webkit-line-clamp:unset;overflow:visible}
 .fold-btn{display:inline-flex;align-items:center;min-height:32px;padding:0 2px;font-size:12.5px;font-weight:800;color:#7C3AED}
 html.sunset .fold-btn{color:#C2410C}html.mint .fold-btn{color:#0F766E}.dark .fold-btn{color:#C4B5FD}
+
+/* 멤버 전화 버튼: 접속 여부와 관계없이 항상 초록색 → 누르면 바로 전화 */
+.mem-call{flex-shrink:0;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#4ADE80,#16A34A);box-shadow:0 6px 14px -5px rgba(22,163,74,.7),inset 0 1px 0 rgba(255,255,255,.4);opacity:1!important;transition:transform .15s}
+.mem-call:active{transform:scale(.9)}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -1793,7 +1797,7 @@ function renderMembers(){
   const list=D.members.filter(m=>!q||[m.name,m.rank,m.team].join(' ').includes(q)).sort((a,b)=>(isOnline(b)?1:0)-(isOnline(a)?1:0)||ord(a.rank)-ord(b.rank)||a.name.localeCompare(b.name,'ko'));
   const on=D.members.filter(isOnline).length;
   $('#mOnline').innerHTML=`<span class="mem-on-dot"></span> 지금 접속 중 <b>${on}명</b><span class="opacity-60">/ 전체 ${D.members.length}명</span>`;
-  $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="w-11 h-11 shrink-0 rounded-full bg-purple-600/30 flex items-center justify-center">📞</a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
+  $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="mem-call"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
 }
 $('#mSearch').oninput=renderMembers;
 
