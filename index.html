@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<title>소통창고 MOA · 부산동부지사</title>
+<title>모아-우리들소통창고</title>
 <link rel="manifest" href="manifest.webmanifest?v=8">
 <meta name="theme-color" content="#6D28D9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="소통창고">
+<meta name="apple-mobile-web-app-title" content="모아-우리들소통창고">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=8">
 <link rel="icon" href="icon-192.png?v=8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -325,6 +325,9 @@ html.mint .moa-word{background-image:linear-gradient(135deg,#2DD4BF,#0F9D8A 45%,
 .dark .hb-tag{color:#C4B5FD}
 html.sunset .hb-ai{background:linear-gradient(135deg,#FFC27A,#ED8A17)}html.sunset .hb-tag{color:#C2410C}html.dark.sunset .hb-tag{color:#FDBA74}
 html.mint .hb-ai{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .hb-tag{color:#0F766E}html.dark.mint .hb-tag{color:#5EEAD4}
+
+/* 로딩 화면 앱 이름: '모아'만 진하게 */
+.lk-app{font-size:15px;font-weight:500;letter-spacing:-.01em;opacity:.9}.lk-app b{font-weight:900;opacity:1}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -1008,7 +1011,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <div class="lk-car"><img src="eli.png" alt=""><div class="lk-door l"></div><div class="lk-door r"></div></div>
     </div>
     <div class="text-xs font-bold lk-sub mt-6">한국승강기안전공단 부산동부지사</div>
-    <div class="moa-word text-4xl mt-1">MOA</div><div class="text-[11px] font-bold lk-sub mt-1 opacity-80">모이고, 모으는 우리 공간</div>
+    <div class="moa-word text-4xl mt-1">MOA</div><div class="lk-app mt-2"><b>모아</b>-우리들소통창고</div><div class="text-[11px] font-bold lk-sub mt-1 opacity-80">모이고, 모으는 우리 공간</div>
     <script>(function(){let f=1;const el=document.getElementById("lkFloor"),E=document.querySelector(".lk-elv"),open=()=>{if(E)E.classList.add("go")};const t=setInterval(()=>{f++;if(el)el.textContent=f;if(f>=19){clearInterval(t);setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(open)),250)}},70);setTimeout(open,2300)})()</script>
     <p id="lockMsg" class="text-sm lk-msg mt-3 leading-relaxed">문이 열리고 있어요…</p>
     <button id="gBtn" class="hidden mt-6 w-full min-h-[52px] rounded-xl bg-white text-[#1E1B4B] font-black flex items-center justify-center gap-2"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.9l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>구글 계정으로 로그인</button>
