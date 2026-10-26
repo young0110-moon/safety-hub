@@ -55,7 +55,7 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return out({ ok: true, name: '안전 허브 녹음 정리·알림 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA, colo: (req.cf && req.cf.colo) || '' });
+    if (req.method === 'GET') return out({ ok: true, name: 'MOA 녹음 정리·알림·장소 검색 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA, place: !!env.KAKAO_KEY, colo: (req.cf && req.cf.colo) || '' });
     if (req.method !== 'POST') return out({ error: '지원하지 않는 요청이에요.' }, 405);
     if (!okOrigin) return out({ error: '허용되지 않은 주소에서 온 요청이에요.' }, 403);
 
@@ -63,6 +63,22 @@ export default {
     const tok = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     let user;
     try { user = await verifyFirebase(tok); } catch (e) { return out({ error: '로그인 확인에 실패했어요. 앱을 다시 열어 주세요.' }, 401); }
+
+    // ── 맛집 상호명으로 주소 찾기 (카카오 장소 검색, 부산 안에서만) ──
+    if (new URL(req.url).pathname === '/place') {
+      if (!env.KAKAO_KEY) return out({ error: 'nokey', places: [] }, 200);
+      let q = ''; try { q = String((await req.json()).q || '').trim().slice(0, 40); } catch (e) {}
+      if (q.length < 2) return out({ places: [] });
+      const u = 'https://dapi.kakao.com/v2/local/search/keyword.json?size=8&rect=128.75,34.98,129.35,35.40&query=' + encodeURIComponent(q);
+      const r = await fetch(u, { headers: { Authorization: 'KakaoAK ' + env.KAKAO_KEY } });
+      if (!r.ok) return out({ error: 'kakao ' + r.status, places: [] }, 200);
+      const j = await r.json();
+      const places = (j.documents || []).filter(d => /^부산/.test(d.address_name || d.road_address_name || '')).map(d => ({
+        name: d.place_name, road: d.road_address_name || '', jibun: d.address_name || '', tel: d.phone || '',
+        cat: (d.category_name || '').split('>').map(x => x.trim()).slice(1).join(' > '), url: d.place_url || ''
+      }));
+      return out({ places });
+    }
 
     // ── 푸시 알림 보내기 ──
     if (new URL(req.url).pathname === '/push') {

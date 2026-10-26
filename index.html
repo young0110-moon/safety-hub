@@ -328,6 +328,15 @@ html.mint .hb-ai{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .h
 
 /* 로딩 화면 앱 이름: '모아'만 진하게 */
 .lk-app{font-size:15px;font-weight:500;letter-spacing:-.01em;opacity:.9}.lk-app b{font-weight:900;opacity:1}
+
+/* 상호명 검색 결과 */
+.fd-pick{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:#fff;border:1px solid #DDD6FE;border-radius:14px;box-shadow:0 14px 30px -12px rgba(76,29,149,.35);max-height:300px;overflow:auto;padding:4px}
+.fd-pi{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;width:100%;text-align:left;padding:10px 10px;border-radius:10px;font-size:13px;min-height:44px}
+.fd-pi:hover,.fd-pi:active{background:#F5F3FF}.fd-pi+.fd-pi{border-top:1px solid #F1EDFB}
+.fd-pc{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:#F1ECFD;color:#6D28D9}
+.fd-pa{width:100%;font-size:11.5px;opacity:.75}
+.fd-px{justify-content:center;font-weight:700;opacity:.65;font-size:12px}
+.dark .fd-pick{background:#1E1B4B;border-color:#3B2A66}.dark .fd-pi:hover{background:#2A2360}.dark .fd-pi+.fd-pi{border-color:#2E2560}.dark .fd-pc{background:#2E1065;color:#DDD6FE}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -787,7 +796,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <section id="p-food" class="page pt-4 space-y-4" data-title="맛집 공유">
   <form id="fdForm" class="card space-y-2" autocomplete="off">
     <h2 class="font-black text-sm">🍽️ 내가 아는 맛집 등록</h2>
-    <input id="fdName" class="inp" maxlength="30" placeholder="상호명 (예: 해운대 OO돼지국밥)" required>
+    <div class="relative"><input id="fdName" class="inp" maxlength="30" placeholder="상호명만 넣으면 주소를 찾아줘요 (예: 연산동 밀면)" required autocomplete="off"><div id="fdPick" class="fd-pick hidden" role="listbox" aria-label="찾은 가게"></div></div>
     <input id="fdTel" class="inp" maxlength="16" inputmode="tel" placeholder="전화번호 (예: 051-123-4567)">
     <div class="gap-2" style="display:grid;grid-template-columns:minmax(0,1fr) auto"><input id="fdAddr" class="inp" maxlength="80" placeholder="주소 (예: 중앙대로 1063)" required><select id="fdGu" class="inp !w-auto" aria-label="구 선택"></select></div>
     <p id="fdGuHint" class="text-[11px] font-bold opacity-80 -mt-1 min-h-[16px]"></p>
@@ -2846,6 +2855,36 @@ function fdFixOld(){
       if(g.length===1&&(f.by===myId||isAdmin))patch('foods',f.id,{gu:g[0],addr:normAddr(f.addr,g[0])}).catch(()=>{});
       if(g.length&&(cur==='food'||cur==='vital'))render()}
     setTimeout(next,1100)})()}
+
+/* ===== 상호명으로 주소 자동 찾기 =====
+   1순위: AI 서버의 카카오 장소 검색(가게 정보가 가장 정확)  2순위: 무료 지도(OpenStreetMap) 이름 검색
+   고르면 주소·전화·구·메뉴 분류를 자동으로 채움 */
+const kakaoCat=c=>{c=c||'';return /카페|커피|디저트|베이커리|제과/.test(c)?'카페':/국밥|탕|해장|곰탕|감자탕|순대/.test(c)?'국밥·탕':/고기|구이|삼겹|갈비|육류|곱창|막창|돼지|소고기|오리|닭갈비/.test(c)?'고기':/중식|중국/.test(c)?'중식':/일식|초밥|돈까스|라멘|우동|회|이자카야/.test(c)?'일식':/국수|냉면|밀면|분식|칼국수|라면|떡볶이|김밥|면/.test(c)?'면·분식':/백반|한정식|가정식|정식|뷔페/.test(c)?'백반·정식':/한식/.test(c)?'한식':''};
+async function placeSearch(q){
+  const out=[];const u=recUrl(),fu=(()=>{try{return firebase.auth().currentUser}catch(e){return null}})();
+  if(u&&fu){try{const tk=await fu.getIdToken();const r=await fetch(u.replace(/\/$/,'')+'/place',{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({q})});
+    const j=await r.json();if(j.places&&j.places.length)return j.places.map(p=>({...p,src:'k'}))}catch(e){}}
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&accept-language=ko&countrycodes=kr&limit=6&bounded=1&viewbox=128.75,35.40,129.35,34.98&q='+encodeURIComponent(q),{headers:{'Accept':'application/json'}});
+    const j=await r.json();j.filter(x=>x.name).forEach(x=>{const a=x.address||{},gu=guFind(Object.values(a).join(' '))[0]||'';
+      const road=[a.road,a.house_number].filter(Boolean).join(' ');out.push({name:x.name,road:road?`부산 ${gu?gu+' ':''}${road}`:'',jibun:'',tel:'',cat:x.type||'',src:'o',gu})})}catch(e){}
+  return out}
+let fdPT=0,fdPSeq=0,fdPList=[];
+function fdPickHide(){$('#fdPick').classList.add('hidden')}
+$('#fdName').addEventListener('input',()=>{const q=$('#fdName').value.trim();clearTimeout(fdPT);const P=$('#fdPick');
+  if(q.length<2){fdPickHide();return}
+  P.classList.remove('hidden');P.innerHTML='<div class="fd-pi opacity-70">🔎 가게를 찾는 중…</div>';const my=++fdPSeq;
+  fdPT=setTimeout(async()=>{const L=await placeSearch(q);if(my!==fdPSeq)return;fdPList=L;
+    P.innerHTML=L.length?L.map((p,i)=>`<button type="button" class="fd-pi" data-pi="${i}"><b>${esc(p.name)}</b>${p.cat?`<span class="fd-pc">${esc(p.cat.split(' > ').pop())}</span>`:''}<span class="fd-pa">📍 ${esc(p.road||p.jibun||'주소 정보 없음')}</span></button>`).join('')+'<button type="button" class="fd-pi fd-px" data-pi="x">직접 입력할게요 ✕</button>'
+      :'<div class="fd-pi opacity-70">찾은 가게가 없어요. 주소를 직접 적어 주세요.</div><button type="button" class="fd-pi fd-px" data-pi="x">닫기 ✕</button>'},450)});
+$('#fdPick').addEventListener('click',e=>{const b=e.target.closest('[data-pi]');if(!b)return;fdPickHide();if(b.dataset.pi==='x')return;
+  const p=fdPList[+b.dataset.pi];if(!p)return;
+  $('#fdName').value=p.name.slice(0,30);
+  const addr=(p.road||p.jibun||'').replace(/^부산광역시/,'부산');if(addr)$('#fdAddr').value=addr;
+  if(p.tel&&!$('#fdTel').value.trim())$('#fdTel').value=p.tel;
+  const c=kakaoCat(p.cat);if(c&&!$('#fdCat').value)$('#fdCat').value=c;
+  const S=$('#fdGu');S.dataset.manual='';fdGuCheck();
+  toast(addr?'주소를 자동으로 채웠어요. 맞는지 확인해 주세요.':'주소 정보가 없어 직접 적어 주세요.',addr?'ok':'error')});
+document.addEventListener('click',e=>{if(!e.target.closest('#fdPick')&&e.target.id!=='fdName')fdPickHide()});
 const fLikes=id=>D.foodLikes.filter(l=>l.food===id);
 let fdCatSel='전체',fdGuSel='전체',fdByLike=true;
 $('#fdCat').innerHTML='<option value="">메뉴 분류 선택</option>'+FCATS.map(c=>`<option>${c}</option>`).join('');
