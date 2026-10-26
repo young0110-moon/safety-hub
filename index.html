@@ -337,6 +337,8 @@ html.mint .hb-ai{background:linear-gradient(135deg,#5EEAD4,#0F9D8A)}html.mint .h
 .fd-pa{width:100%;font-size:11.5px;opacity:.75}
 .fd-px{justify-content:center;font-weight:700;opacity:.65;font-size:12px}
 .dark .fd-pick{background:#1E1B4B;border-color:#3B2A66}.dark .fd-pi:hover{background:#2A2360}.dark .fd-pi+.fd-pi{border-color:#2E2560}.dark .fd-pc{background:#2E1065;color:#DDD6FE}
+
+#fdForm{scroll-margin-top:76px}#fdForm.fd-editing{outline:2px solid #A78BFA;outline-offset:2px}
 /* 오늘 뭐 먹지? */
 .eat-card{border-color:rgba(251,146,60,.45)!important}
 .eat-flash{animation:eatFlash 1.5s ease}
@@ -795,13 +797,13 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- FOOD -->
 <section id="p-food" class="page pt-4 space-y-4" data-title="맛집 공유">
   <form id="fdForm" class="card space-y-2" autocomplete="off">
-    <h2 class="font-black text-sm">🍽️ 내가 아는 맛집 등록</h2>
+    <div class="flex items-center justify-between gap-2"><h2 id="fdFormT" class="font-black text-sm">🍽️ 내가 아는 맛집 등록</h2><button type="button" id="fdCancel" class="hidden text-xs font-bold opacity-75 min-h-[36px] px-2">수정 취소 ✕</button></div>
     <div class="relative"><input id="fdName" class="inp" maxlength="30" placeholder="상호명만 넣으면 주소를 찾아줘요 (예: 연산동 밀면)" required autocomplete="off"><div id="fdPick" class="fd-pick hidden" role="listbox" aria-label="찾은 가게"></div></div>
     <input id="fdTel" class="inp" maxlength="16" inputmode="tel" placeholder="전화번호 (예: 051-123-4567)">
     <div class="gap-2" style="display:grid;grid-template-columns:minmax(0,1fr) auto"><input id="fdAddr" class="inp" maxlength="80" placeholder="주소 (예: 중앙대로 1063)" required><select id="fdGu" class="inp !w-auto" aria-label="구 선택"></select></div>
     <p id="fdGuHint" class="text-[11px] font-bold opacity-80 -mt-1 min-h-[16px]"></p>
     <select id="fdCat" class="inp" aria-label="메뉴 분류"></select>
-    <button class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">+ 맛집 공유하기</button>
+    <button id="fdSubmit" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">+ 맛집 공유하기</button>
   </form>
   <input id="fdSearch" class="inp" placeholder="🔍 상호명·주소 검색 (예: 연산동, 국밥)">
   <div class="hscroll -mx-3 px-3"><div id="fdCatF" class="flex gap-2 w-max"></div></div>
@@ -2893,7 +2895,7 @@ function foodCard(f,compact){
   return `<div class="card !p-3">
     <div class="flex items-start gap-2"><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(f.name)}</b>${compact?'':`<div class="flex flex-wrap gap-1 mt-1">${f.cat?`<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(f.cat)}</span>`:''}<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(fGu(f))}</span></div>`}</div>
     <button data-fl="${f.id}" aria-pressed="${mine}" class="shrink-0 min-h-[36px] px-3 rounded-full text-xs font-bold border ${mine?'bg-[#6D28D9] text-white border-[#6D28D9]':'border-purple-400/50'}">👍 ${lk.length}</button>
-    ${!compact&&canDel(f.by)?`<button data-fx="${f.id}" aria-label="맛집 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">🗑️</button>`:''}</div>
+    ${!compact&&canDel(f.by)?`<button data-fe="${f.id}" aria-label="맛집 수정" class="w-9 h-9 shrink-0 text-sm opacity-70">✏️</button><button data-fx="${f.id}" aria-label="맛집 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">🗑️</button>`:''}</div>
     ${f.tel?`<a href="tel:${esc(f.tel.replace(/[^0-9+]/g,''))}" class="block text-sm mt-1">📞 <span class="select-all">${esc(f.tel)}</span></a>`:''}
     <div class="text-sm mt-1 break-words">📍 <span class="select-all">${esc(f.addr)}</span></div>
   </div>`;
@@ -2916,7 +2918,15 @@ $('#fdSearch').oninput=renderFood;
 $('#fdCatF').onclick=e=>{const b=e.target.closest('[data-fc]');if(b){fdCatSel=b.dataset.fc;renderFood()}};
 $('#fdGuF').onclick=e=>{const b=e.target.closest('[data-fg]');if(b){fdGuSel=b.dataset.fg;renderFood()}};
 $('#fdSort').onclick=()=>{fdByLike=!fdByLike;renderFood()};
-let fdBusy=false;
+let fdBusy=false,fdEditId=null;
+function fdReset(){fdEditId=null;$('#fdName').value=$('#fdTel').value=$('#fdAddr').value='';$('#fdCat').value='';$('#fdGu').value='';$('#fdGu').dataset.manual='';$('#fdGuHint').textContent='';
+  $('#fdFormT').textContent='🍽️ 내가 아는 맛집 등록';$('#fdSubmit').textContent='+ 맛집 공유하기';$('#fdCancel').classList.add('hidden');$('#fdForm').classList.remove('fd-editing')}
+function fdEdit(id){const f=D.foods.find(x=>x.id===id);if(!f)return;fdEditId=id;
+  $('#fdName').value=f.name||'';$('#fdTel').value=f.tel||'';$('#fdAddr').value=f.addr||'';$('#fdCat').value=f.cat||'';
+  const g=fGu(f);$('#fdGu').value=g!=='기타'?g:'';$('#fdGu').dataset.manual=$('#fdGu').value?'1':'';fdGuCheck();
+  $('#fdFormT').textContent='✏️ 맛집 정보 수정';$('#fdSubmit').textContent='✔ 수정 저장';$('#fdCancel').classList.remove('hidden');$('#fdForm').classList.add('fd-editing');
+  $('#fdForm').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>$('#fdName').focus({preventScroll:true}),400)}
+$('#fdCancel').onclick=fdReset;
 $('#fdForm').onsubmit=async e=>{
   e.preventDefault();if(fdBusy)return;
   const name=$('#fdName').value.trim(),tel=$('#fdTel').value.trim(),raw=$('#fdAddr').value.trim(),cat=$('#fdCat').value;
@@ -2928,9 +2938,9 @@ $('#fdForm').onsubmit=async e=>{
   if(!addr)return toast('주소를 입력해 주세요.','error');
   if(!cat)return toast('메뉴 분류를 골라 주세요.','error');
   if(tel&&!/^[0-9+\-\s()]{7,16}$/.test(tel))return toast('전화번호는 숫자와 - 로만 입력해 주세요.','error');
-  if(D.foods.some(f=>f.name.replace(/\s/g,'')===name.replace(/\s/g,'')&&f.addr.replace(/\s/g,'')===addr.replace(/\s/g,'')))return toast('이미 등록된 맛집이에요.','error');
+  if(D.foods.some(f=>f.id!==fdEditId&&f.name.replace(/\s/g,'')===name.replace(/\s/g,'')&&f.addr.replace(/\s/g,'')===addr.replace(/\s/g,'')))return toast('이미 등록된 맛집이에요.','error');
   fdBusy=true;
-  try{await put('foods',{name,tel,addr,gu,cat,by:myId,at:Date.now()});$('#fdName').value=$('#fdTel').value=$('#fdAddr').value='';$('#fdCat').value='';$('#fdGu').value='';$('#fdGu').dataset.manual='';$('#fdGuHint').textContent='';toast('맛집을 공유했습니다.','ok')}
+  try{if(fdEditId){await patch('foods',fdEditId,{name,tel,addr,gu,cat,editedAt:Date.now()});fdReset();toast('맛집 정보를 수정했어요.','ok')}else{await put('foods',{name,tel,addr,gu,cat,by:myId,at:Date.now()});fdReset();toast('맛집을 공유했습니다.','ok')}}
   catch(err){toast(errMsg(err),'error')}finally{fdBusy=false}
 };
 async function toggleFoodLike(id){
@@ -2939,6 +2949,7 @@ async function toggleFoodLike(id){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-fl]');if(b){e.preventDefault();toggleFoodLike(b.dataset.fl)}});
 $('#fdList').onclick=async e=>{
+  const ed=e.target.closest('[data-fe]');if(ed){fdEdit(ed.dataset.fe);return}
   const x=e.target.closest('[data-fx]');if(!x)return;
   if(!x.dataset.arm){x.dataset.arm=1;x.textContent='삭제?';return}
   const id=x.dataset.fx;
