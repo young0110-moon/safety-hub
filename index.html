@@ -789,7 +789,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <h2 class="font-black text-sm">🍽️ 내가 아는 맛집 등록</h2>
     <input id="fdName" class="inp" maxlength="30" placeholder="상호명 (예: 해운대 OO돼지국밥)" required>
     <input id="fdTel" class="inp" maxlength="16" inputmode="tel" placeholder="전화번호 (예: 051-123-4567)">
-    <input id="fdAddr" class="inp" maxlength="80" placeholder="주소 (예: 부산 해운대구 OO로 12)" required>
+    <div class="gap-2" style="display:grid;grid-template-columns:minmax(0,1fr) auto"><input id="fdAddr" class="inp" maxlength="80" placeholder="주소 (예: 중앙대로 1063)" required><select id="fdGu" class="inp !w-auto" aria-label="구 선택"></select></div>
     <p id="fdGuHint" class="text-[11px] font-bold opacity-80 -mt-1 min-h-[16px]"></p>
     <select id="fdCat" class="inp" aria-label="메뉴 분류"></select>
     <button class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">+ 맛집 공유하기</button>
@@ -2797,13 +2797,62 @@ const guOf=a=>{a=(a||'').replace(/\s+/g,' ');const names=FGUS.filter(g=>g!=='기
   for(const g of names)if(a.includes(g))return g;
   for(const [k,g] of GU_ALIAS)if(a.includes(k))return g;
   return '기타'};
+
+/* ===== 맛집 주소 → 구 자동 찾기 =====
+   1) 주소 글자에 구·동 이름이 있으면 바로 분류
+   2) 없으면 지도 검색(OpenStreetMap)으로 부산 안에서 주소를 찾아 구를 알아냄 (결과는 휴대폰에 기억)
+   3) 그래도 모르거나 여러 구에 걸친 길이면 직접 고르게 함 */
+const GU_CACHE_K='koelsa_gu_cache';
+const guCache=()=>store.get(GU_CACHE_K,{})||{};
+const addrKey=a=>(a||'').replace(/\s+/g,'').replace(/^부산(광역시)?/,'');
+function guFind(text){const n=FGUS.filter(g=>g!=='기타');return n.filter(g=>text.includes(g))}
+async function geoGu(addr){
+  const k=addrKey(addr);if(!k)return [];const c=guCache();if(c[k])return c[k];
+  const q=addr.replace(/^\s*부산(광역시)?\s*/,'');
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&accept-language=ko&countrycodes=kr&limit=6&bounded=1&viewbox=128.75,35.40,129.35,34.98&q='+encodeURIComponent('부산 '+q),{headers:{'Accept':'application/json'}});
+    if(!r.ok)return [];const j=await r.json();
+    const gus=[...new Set(j.map(x=>{const v=Object.values(x.address||{}).join(' ')+' '+(x.display_name||'');return guFind(v)[0]}).filter(Boolean))];
+    if(gus.length){const c2=guCache();c2[k]=gus;const ks=Object.keys(c2);if(ks.length>300)delete c2[ks[0]];store.set(GU_CACHE_K,c2)}
+    return gus}catch(e){return []}
+}
+/* 맛집 한 곳의 구: 저장된 구 → 주소 글자 → 기억해 둔 지도 검색 결과 */
+const fGu=f=>{if(f.gu)return f.gu;const t=guOf(f.addr);if(t!=='기타')return t;const c=guCache()[addrKey(f.addr)];return c&&c.length===1?c[0]:'기타'};
+/* 구가 붙은 주소로 정리: '중앙대로 1063' → '부산 동래구 중앙대로 1063' */
+const normAddr=(addr,gu)=>{let a=addr.trim().replace(/\s+/g,' ');if(!gu||gu==='기타'||a.includes(gu))return a;a=a.replace(/^부산(광역시)?\s*/,'');return `부산 ${gu} ${a}`};
+$('#fdGu').innerHTML='<option value="">구 자동</option>'+FGUS.filter(g=>g!=='기타').map(g=>`<option>${g}</option>`).join('');
+let fdGeoT=0,fdGeoSeq=0;
+function fdGuCheck(){
+  const v=$('#fdAddr').value.trim(),H=$('#fdGuHint'),S=$('#fdGu');clearTimeout(fdGeoT);
+  if(!v){H.textContent='';S.dataset.auto='';if(S.dataset.auto!=='0')S.value='';return}
+  const t=guOf(v);
+  if(t!=='기타'){if(!S.dataset.manual)S.value=t;H.textContent=`📍 ${t}(으)로 분류돼요`;return}
+  if(S.dataset.manual&&S.value){H.textContent=`📍 ${S.value}(으)로 분류돼요 (직접 선택)`;return}
+  H.textContent='🔎 주소로 구를 찾는 중…';const my=++fdGeoSeq;
+  fdGeoT=setTimeout(async()=>{const g=await geoGu(v);if(my!==fdGeoSeq)return;
+    if(g.length===1){S.value=g[0];H.textContent=`📍 ${g[0]}에 있는 곳으로 찾았어요. 등록하면 '부산 ${g[0]} …'로 정리돼요. 다르면 오른쪽에서 바꿔 주세요.`}
+    else if(g.length>1){S.value='';H.textContent=`🤔 이 길은 ${g.join('·')}에 걸쳐 있어요. 오른쪽에서 구를 골라 주세요.`}
+    else{S.value='';H.textContent='구를 찾지 못했어요. 오른쪽에서 구를 골라 주세요.'}},700)}
+$('#fdAddr').addEventListener('input',fdGuCheck);
+$('#fdGu').onchange=()=>{const S=$('#fdGu');S.dataset.manual=S.value?'1':'';fdGuCheck()};
+/* 예전에 구 없이 등록된 맛집: 화면을 볼 때 하나씩(1초 간격) 지도에서 찾아 정리. 올린 사람·관리자면 주소도 고쳐 저장 */
+let fdFixQ=[],fdFixBusy=false;
+function fdFixOld(){
+  /* 글자로 구를 알 수 있는데 주소에 구 이름이 없는 것(예: '전포' → 부산진구)은 바로 정리 */
+  D.foods.filter(f=>!f.gu&&!guFind(f.addr||'').length&&guOf(f.addr)!=='기타'&&(f.by===myId||isAdmin)&&!fdFixQ.includes('t'+f.id)).forEach(f=>{fdFixQ.push('t'+f.id);const g=guOf(f.addr);patch('foods',f.id,{gu:g,addr:normAddr(f.addr,g)}).catch(()=>{})});
+  const todo=D.foods.filter(f=>!f.gu&&guOf(f.addr)==='기타'&&!guCache()[addrKey(f.addr)]&&!fdFixQ.includes(f.id));
+  fdFixQ.push(...todo.map(f=>f.id));if(fdFixBusy)return;fdFixBusy=true;
+  (async function next(){let id=fdFixQ.shift();while(id&&id[0]==='t'&&!D.foods.some(x=>x.id===id))id=fdFixQ.shift();if(!id){fdFixBusy=false;return}
+    const f=D.foods.find(x=>x.id===id);if(f){const g=await geoGu(f.addr);
+      if(g.length===1&&(f.by===myId||isAdmin))patch('foods',f.id,{gu:g[0],addr:normAddr(f.addr,g[0])}).catch(()=>{});
+      if(g.length&&(cur==='food'||cur==='vital'))render()}
+    setTimeout(next,1100)})()}
 const fLikes=id=>D.foodLikes.filter(l=>l.food===id);
 let fdCatSel='전체',fdGuSel='전체',fdByLike=true;
 $('#fdCat').innerHTML='<option value="">메뉴 분류 선택</option>'+FCATS.map(c=>`<option>${c}</option>`).join('');
 function foodCard(f,compact){
   const lk=fLikes(f.id),mine=lk.some(l=>l.by===myId);
   return `<div class="card !p-3">
-    <div class="flex items-start gap-2"><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(f.name)}</b>${compact?'':`<div class="flex flex-wrap gap-1 mt-1">${f.cat?`<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(f.cat)}</span>`:''}<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(guOf(f.addr))}</span></div>`}</div>
+    <div class="flex items-start gap-2"><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(f.name)}</b>${compact?'':`<div class="flex flex-wrap gap-1 mt-1">${f.cat?`<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(f.cat)}</span>`:''}<span class="text-[10px] font-bold px-2 py-0.5 rounded-full sub">${esc(fGu(f))}</span></div>`}</div>
     <button data-fl="${f.id}" aria-pressed="${mine}" class="shrink-0 min-h-[36px] px-3 rounded-full text-xs font-bold border ${mine?'bg-[#6D28D9] text-white border-[#6D28D9]':'border-purple-400/50'}">👍 ${lk.length}</button>
     ${!compact&&canDel(f.by)?`<button data-fx="${f.id}" aria-label="맛집 삭제" class="w-9 h-9 shrink-0 text-sm opacity-70">🗑️</button>`:''}</div>
     ${f.tel?`<a href="tel:${esc(f.tel.replace(/[^0-9+]/g,''))}" class="block text-sm mt-1">📞 <span class="select-all">${esc(f.tel)}</span></a>`:''}
@@ -2813,33 +2862,36 @@ function foodCard(f,compact){
 const fdSorted=list=>list.slice().sort((a,b)=>fdByLike?(fLikes(b.id).length-fLikes(a.id).length)||(b.at-a.at):b.at-a.at);
 function renderFood(){
   const chip=(v,sel,attr)=>`<button ${attr}="${v}" class="chip ${v===sel?'sel':''}">${v}</button>`;
-  const cnt=(k,v)=>D.foods.filter(f=>k==='cat'?f.cat===v:guOf(f.addr)===v).length;
+  const cnt=(k,v)=>D.foods.filter(f=>k==='cat'?f.cat===v:fGu(f)===v).length;fdFixOld();
   $('#fdCatF').innerHTML=chip('전체',fdCatSel,'data-fc')+FCATS.filter(c=>cnt('cat',c)).map(c=>chip(c,fdCatSel,'data-fc')).join('');
   $('#fdGuF').innerHTML=chip('전체',fdGuSel,'data-fg').replace('>전체<','>📍 전체 지역<')+FGUS.filter(g=>cnt('gu',g)).map(g=>chip(g,fdGuSel,'data-fg')).join('');
   $('#fdSort').textContent=fdByLike?'👍 추천순':'🕒 최신순';
   const q=$('#fdSearch').value.trim();
-  const list=fdSorted(D.foods.filter(f=>(!q||(f.name+' '+f.addr+' '+(f.cat||'')).includes(q))&&(fdCatSel==='전체'||f.cat===fdCatSel)&&(fdGuSel==='전체'||guOf(f.addr)===fdGuSel)));
+  const list=fdSorted(D.foods.filter(f=>(!q||(f.name+' '+f.addr+' '+(f.cat||'')).includes(q))&&(fdCatSel==='전체'||f.cat===fdCatSel)&&(fdGuSel==='전체'||fGu(f)===fdGuSel)));
   $('#fdInfo').textContent=`${list.length}곳`;
-  const groups=FGUS.map(g=>({g,items:list.filter(f=>guOf(f.addr)===g)})).filter(x=>x.items.length);
+  const groups=FGUS.map(g=>({g,items:list.filter(f=>fGu(f)===g)})).filter(x=>x.items.length);
   if(list.length){$('#fdList').innerHTML=groups.map(x=>`<section class="space-y-2"><h3 class="flex items-center justify-between gap-2 pt-2 pb-1 border-b border-purple-400/40"><span class="text-sm font-black">📍 ${x.g}</span><span class="text-[11px] font-bold opacity-75">${x.items.length}곳</span></h3>${x.items.map(f=>foodCard(f)).join('')}</section>`).join('');return}
   $('#fdList').innerHTML=list.length?list.map(f=>foodCard(f)).join(''):`<p class="text-sm opacity-70 text-center py-6">${D.foods.length?'조건에 맞는 맛집이 없습니다.':'아직 등록된 맛집이 없어요. 위에서 첫 맛집을 공유해 보세요.'}</p>`;
 }
 $('#fdSearch').oninput=renderFood;
-$('#fdAddr').addEventListener('input',()=>{const v=$('#fdAddr').value.trim();$('#fdGuHint').textContent=v?(guOf(v)==='기타'?'구를 찾지 못했어요. "OO구"를 함께 적으면 구별로 정리돼요.':`📍 ${guOf(v)}(으)로 분류돼요`):''});
 $('#fdCatF').onclick=e=>{const b=e.target.closest('[data-fc]');if(b){fdCatSel=b.dataset.fc;renderFood()}};
 $('#fdGuF').onclick=e=>{const b=e.target.closest('[data-fg]');if(b){fdGuSel=b.dataset.fg;renderFood()}};
 $('#fdSort').onclick=()=>{fdByLike=!fdByLike;renderFood()};
 let fdBusy=false;
 $('#fdForm').onsubmit=async e=>{
   e.preventDefault();if(fdBusy)return;
-  const name=$('#fdName').value.trim(),tel=$('#fdTel').value.trim(),addr=$('#fdAddr').value.trim(),cat=$('#fdCat').value;
+  const name=$('#fdName').value.trim(),tel=$('#fdTel').value.trim(),raw=$('#fdAddr').value.trim(),cat=$('#fdCat').value;
+  let gu=$('#fdGu').value||(guOf(raw)!=='기타'?guOf(raw):'');
+  if(raw&&!gu){const g=await geoGu(raw);if(g.length===1)gu=g[0]}
+  if(raw&&!gu){$('#fdGu').focus();return toast('어느 구에 있는지 오른쪽에서 골라 주세요.','error')}
+  const addr=normAddr(raw,gu);
   if(!name)return toast('상호명을 입력해 주세요.','error');
   if(!addr)return toast('주소를 입력해 주세요.','error');
   if(!cat)return toast('메뉴 분류를 골라 주세요.','error');
   if(tel&&!/^[0-9+\-\s()]{7,16}$/.test(tel))return toast('전화번호는 숫자와 - 로만 입력해 주세요.','error');
   if(D.foods.some(f=>f.name.replace(/\s/g,'')===name.replace(/\s/g,'')&&f.addr.replace(/\s/g,'')===addr.replace(/\s/g,'')))return toast('이미 등록된 맛집이에요.','error');
   fdBusy=true;
-  try{await put('foods',{name,tel,addr,cat,by:myId,at:Date.now()});$('#fdName').value=$('#fdTel').value=$('#fdAddr').value='';$('#fdCat').value='';$('#fdGuHint').textContent='';toast('맛집을 공유했습니다.','ok')}
+  try{await put('foods',{name,tel,addr,gu,cat,by:myId,at:Date.now()});$('#fdName').value=$('#fdTel').value=$('#fdAddr').value='';$('#fdCat').value='';$('#fdGu').value='';$('#fdGu').dataset.manual='';$('#fdGuHint').textContent='';toast('맛집을 공유했습니다.','ok')}
   catch(err){toast(errMsg(err),'error')}finally{fdBusy=false}
 };
 async function toggleFoodLike(id){
