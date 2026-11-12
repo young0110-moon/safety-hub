@@ -11,3 +11,7 @@ keep_vars = true
 # "User location is not supported" 오류가 나는 것을 막기 위해 미국 서부 근처에서 실행
 [placement]
 region = "gcp:us-west1"
+
+# 장비 교정·반납 알림: 매일 한국 시간 아침 8시, 저녁 6시 30분
+[triggers]
+crons = ["0 23 * * *", "30 9 * * *"]

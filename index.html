@@ -268,6 +268,37 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .at-go{flex-shrink:0;font-size:12px;font-weight:900;color:#fff;background:#7C3AED;border-radius:99px;padding:5px 10px;min-width:46px;text-align:center}
 .at-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px}
 .dark .at-row{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.25)}
+.eq-hero{background:linear-gradient(135deg,#FFFBEB,#FEF3C7)!important;border:1px solid #FCD34D!important}
+.dark .eq-hero{background:linear-gradient(135deg,#3B2A0B,#2A1E07)!important;border-color:#92400E!important}
+.eq-btn{min-height:52px;border-radius:14px;border:1.5px solid #F59E0B;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:#fff;color:#92400E}
+.eq-btn.pri{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border-color:transparent;box-shadow:0 8px 18px -8px #D97706}
+.dark .eq-btn{background:#1E1B4B;color:#FCD34D}.dark .eq-btn.pri{color:#fff;background:linear-gradient(135deg,#F59E0B,#B45309)}
+.eq-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:rgba(124,58,237,.08)}
+.eq-tab{min-height:44px;border-radius:11px;font-size:13px;font-weight:800;opacity:.75}
+.eq-tab.on{background:#fff;opacity:1;color:#6D28D9;box-shadow:0 2px 8px rgba(76,29,149,.15)}
+.dark .eq-tab.on{background:#2E1065;color:#E9D5FF}
+.eq-th{width:64px;height:64px;border-radius:14px;object-fit:cover;flex-shrink:0;background:#FEF3C7}
+.eq-ph{display:flex;align-items:center;justify-content:center;font-size:30px}
+.eq-bd{font-size:10.5px;font-weight:900;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.eq-red{background:#FEE2E2;color:#B91C1C}.eq-amb{background:#FEF3C7;color:#B45309}.eq-pur{background:#EDE9FE;color:#6D28D9}.eq-grn{background:#DCFCE7;color:#15803D}.eq-gry{background:#F1F5F9;color:#475569}
+.dark .eq-red{background:#450A0A;color:#FCA5A5}.dark .eq-amb{background:#451A03;color:#FCD34D}.dark .eq-pur{background:#2E1065;color:#DDD6FE}.dark .eq-grn{background:#052E16;color:#86EFAC}.dark .eq-gry{background:#1E293B;color:#CBD5E1}
+.eq-b{min-height:42px;border-radius:12px;font-size:12.5px;font-weight:800;border:1px solid rgba(124,58,237,.3)}
+.eq-b.pri{background:#6D28D9;color:#fff;border-color:transparent}.eq-b.amb{background:#F59E0B;color:#fff;border-color:transparent}.eq-b.grn{background:#16A34A;color:#fff;border-color:transparent}
+.eq-chip{min-height:38px;padding:0 13px;border-radius:99px;font-size:12.5px;font-weight:800;border:1px solid rgba(124,58,237,.3);white-space:nowrap}
+.eq-chip.on{background:#6D28D9;color:#fff;border-color:transparent}
+.eq-sheet{position:fixed;inset:0;z-index:125}
+.eq-dim{position:absolute;inset:0;background:rgba(15,10,40,.5)}
+.eq-box{position:absolute;left:0;right:0;bottom:0;max-height:90vh;overflow:auto;background:#fff;border-radius:22px 22px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;animation:eqUp .28s cubic-bezier(.2,.9,.3,1)}
+.dark .eq-box{background:#1E1B4B;color:#EDE9FE}
+.eq-grab{width:42px;height:5px;border-radius:9px;background:#CBD5E1;margin:0 auto 8px}
+.eq-close{position:absolute;right:12px;top:10px;width:40px;height:40px;border-radius:50%;font-size:16px;opacity:.6}
+@keyframes eqUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.eq-sec{font-size:12px;font-weight:900;color:#6D28D9;margin:12px 0 4px}.dark .eq-sec{color:#C4B5FD}
+.eq-txt{font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.eq-ai{border-radius:14px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;font-size:12.5px;line-height:1.65}
+.dark .eq-ai{background:#082F49;border-color:#0C4A6E}
+.eq-prog{height:12px;border-radius:99px;background:rgba(124,58,237,.12);overflow:hidden}.eq-prog>i{display:block;height:100%;background:linear-gradient(90deg,#22C55E,#16A34A);border-radius:99px;transition:width .4s}
+.eq-lbl{font-size:11.5px;font-weight:800;opacity:.75;margin:8px 0 3px;display:block}
 .tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--tln);background:transparent;color:var(--ttx)}
 .tk-like.on.tip{background:#E3F5F1;color:#0F766E;border-color:#99E2D4}.tk-like.on.ask{background:#FFF0E5;color:#C2410C;border-color:#FDBA8C}.tk-like.on.chat{background:#F1ECFD;color:#6D28D9;border-color:#C4B5FD}
 .tk-del{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;font-weight:800;color:#DC2626;border:1px solid rgba(220,38,38,.35)}
@@ -594,7 +625,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <button data-go="cs" class="node absolute top-0 right-0 w-[76px] flex flex-col items-center min-h-[44px]"><span class="nd" style="--c1:#2DD4BF;--c2:#0F766E"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 15 14.5H9l-3.5 3v-3H4A1.5 1.5 0 0 1 2.5 13V7A1.5 1.5 0 0 1 4 5.5z"/><path d="m6.3 10 1.5 1.5 3-3"/><path d="M18.5 9h1A1.5 1.5 0 0 1 21 10.5v5A1.5 1.5 0 0 1 19.5 17H19v2.5L16 17h-3"/></svg></span><span class="text-[10px] font-bold leading-tight text-center mt-1">내 손안의<br>CS</span></button>
     <button data-go="insp" class="node absolute bottom-0 left-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="nd" style="--c1:#A78BFA;--c2:#6D28D9"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 5.8v5.4c0 4.3 3 8.1 7 9.3 4-1.2 7-5 7-9.3V5.8z"/><path d="M9 12.2h6M9 9.5h6M9.5 15h3"/></svg></span><span class="text-[10px] font-bold leading-tight text-center mb-1">기준이<br>뭐더라?</span></button>
     <button data-go="sos" class="node absolute bottom-0 left-1/2 -translate-x-1/2 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="nd nd-sos" style="--c1:#FB7185;--c2:#DC2626"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6"/><path d="M4 17h16v2.5H4z"/><path d="M12 2.5V4M5.2 5.2l1.1 1.1M18.8 5.2l-1.1 1.1M3 9.5h1.5M19.5 9.5H21"/><path d="M12 8.5v3.5"/></svg></span><span class="text-[10px] font-bold leading-tight text-center mb-1">SOS<br>도와줘!</span></button>
-    <button data-go="vital" class="node absolute bottom-0 right-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="nd" style="--c1:#F472B6;--c2:#C026D3"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.6C21 10.9 21.4 8.4 20 6.5c-1.8-2.4-5.2-2.3-7 .2V7c-1.8-2.5-5.2-2.6-7-.2-1.4 1.9-1 4.4.5 6.1"/><path d="M12 20.5 6.4 14.9"/><path d="M12 20.5l5.6-5.6"/><path d="M3 12.5h3.5l1.5-2.5 2 5 1.5-3.5 1 1h4"/></svg></span><span class="text-[10px] font-bold leading-tight text-center mb-1">나 오늘<br>괜찮나?</span></button>
+    <button data-go="equip" class="node absolute bottom-0 right-0 w-[76px] flex flex-col-reverse items-center min-h-[44px]"><span class="nd" style="--c1:#FCD34D;--c2:#D97706"><span id="qEqBadge" class="ic-badge hidden" aria-label="장비 알림"></span><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="12" rx="2.2"/><path d="M8.5 8V6.2A2.2 2.2 0 0 1 10.7 4h2.6a2.2 2.2 0 0 1 2.2 2.2V8"/><path d="M3 13h18"/><path d="M10 13v2h4v-2"/></svg></span><span class="text-[10px] font-bold leading-tight text-center mb-1">나의 장비<br>관리는?</span></button>
   </div>
   <div id="hubLinks" class="grid grid-cols-2 gap-2.5 mt-5">
     <button data-go="notice" class="hub-t relative"><span class="hub-ic" style="--c1:#A78BFA;--c2:#6D28D9">📌</span><span class="hub-tx"><span class="hub-tt">우리 뭐해?</span><span class="hub-st">지사 스케줄 · 공지사항</span></span><span class="hub-go" aria-hidden="true">›</span><span id="qNoticeBadge" class="hidden absolute -top-1.5 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[#FF3B30] text-white text-[10px] leading-5 font-bold"></span></button>
@@ -846,6 +877,23 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <p class="text-[11px] opacity-70 text-center leading-relaxed px-2">표준화된 고객우호도 판정 가이드로, 신뢰할 수 있는 PCSI 표본 선정 체계를 만들어갑니다.</p>
 </section>
 
+<!-- 나의 장비 관리는? -->
+<section id="p-equip" class="page pt-4 space-y-3" data-title="나의 장비 관리는?">
+  <div id="eqAlert"></div>
+  <div class="card eq-hero">
+    <h2 class="font-black text-[15px]">📸 사진으로 장비 알아보기</h2>
+    <p class="text-xs opacity-80 mt-1 leading-relaxed">장비나 장비에 붙은 <b>이름표(기기번호)</b>를 찍으면 AI가 무슨 장비인지 알아보고, 그 장비 <b>자료</b>를 바로 보여 줘요.</p>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <label class="eq-btn pri">📸 사진 찍기<input id="eqCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
+      <label class="eq-btn">🖼️ 앨범에서<input id="eqPic" type="file" accept="image/*" class="sr-only"></label>
+    </div>
+    <div id="eqResult"></div>
+  </div>
+  <div id="eqTabs" class="eq-tabs" role="tablist"></div>
+  <div id="eqPane" class="space-y-2.5 pb-6"></div>
+</section>
+<div id="eqSheet" class="eq-sheet hidden" role="dialog" aria-modal="true"><div class="eq-dim" data-eqclose></div><div class="eq-box"><div class="eq-grab"></div><button type="button" class="eq-close" data-eqclose aria-label="닫기">✕</button><div id="eqSheetBody"></div></div></div>
+
 <!-- FORTUNE -->
 <section id="p-fortune" class="page pt-4 space-y-4" data-title="두근두근 쿵쿵">
   <form id="ftForm" class="card space-y-3" autocomplete="off">
@@ -1026,7 +1074,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <div id="fabDim" class="fab-dim" aria-hidden="true"></div>
 <nav id="fabNav" class="fab-nav" aria-label="메뉴">
-  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="members" class="tab fab-it fab-c" style="--i:0;--x:-126px;--y:70px;--c1:#4ADE80;--c2:#059669"><span class="ic"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><circle cx="9" cy="8.2" r="3.6" fill="#fff"/><path d="M2.6 19.6c0-3.7 2.9-6.2 6.4-6.2s6.4 2.5 6.4 6.2z" fill="#fff"/><circle cx="16.8" cy="9.2" r="2.8" fill="#fff" opacity=".8"/><path d="M15.4 13.8c3.3-.5 6.1 1.7 6.1 5.8h-4.6c0-2.4-.5-4.3-1.5-5.8z" fill="#fff" opacity=".8"/></svg></span><span class="fab-lb"><span id="memCnt">멤버</span></span></button><button data-go="vital" data-scroll="lunchCard" class="tab fab-it fab-c" style="--i:1;--x:-42px;--y:84px;--c1:#FDBA74;--c2:#F43F5E"><span class="ic">🍜</span><span class="fab-lb">오늘<br>뭐 먹지?</span></button><button data-go="fortune" class="tab fab-it fab-c" style="--i:2;--x:42px;--y:84px;--c1:#C4B5FD;--c2:#7C3AED"><span class="ic">🔮</span><span class="fab-lb">두근두근<br>쿵쿵</span></button><button data-go="profile" data-scroll="pfTheme" class="tab fab-it fab-c" style="--i:3;--x:126px;--y:70px;--c1:#F9A8D4;--c2:#DB2777"><span class="ic">🎨</span><span class="fab-lb">화면<br>테마</span></button></div>
+  <div id="fabMenu" class="fab-menu" role="menu"><button data-go="members" class="tab fab-it fab-c" style="--i:0;--x:-140px;--y:62px;--c1:#4ADE80;--c2:#059669"><span class="ic"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><circle cx="9" cy="8.2" r="3.6" fill="#fff"/><path d="M2.6 19.6c0-3.7 2.9-6.2 6.4-6.2s6.4 2.5 6.4 6.2z" fill="#fff"/><circle cx="16.8" cy="9.2" r="2.8" fill="#fff" opacity=".8"/><path d="M15.4 13.8c3.3-.5 6.1 1.7 6.1 5.8h-4.6c0-2.4-.5-4.3-1.5-5.8z" fill="#fff" opacity=".8"/></svg></span><span class="fab-lb"><span id="memCnt">멤버</span></span></button><button data-go="vital" data-fabv="1" class="tab fab-it fab-c" style="--i:1;--x:-70px;--y:82px;--c1:#F472B6;--c2:#C026D3"><span class="ic">❤️</span><span class="fab-lb">나 오늘<br>괜찮나?</span></button><button data-go="vital" data-scroll="lunchCard" class="tab fab-it fab-c" style="--i:2;--x:0px;--y:90px;--c1:#FDBA74;--c2:#F43F5E"><span class="ic">🍜</span><span class="fab-lb">오늘<br>뭐 먹지?</span></button><button data-go="fortune" class="tab fab-it fab-c" style="--i:3;--x:70px;--y:82px;--c1:#C4B5FD;--c2:#7C3AED"><span class="ic">🔮</span><span class="fab-lb">두근두근<br>쿵쿵</span></button><button data-go="profile" data-scroll="pfTheme" class="tab fab-it fab-c" style="--i:4;--x:140px;--y:62px;--c1:#F9A8D4;--c2:#DB2777"><span class="ic">🎨</span><span class="fab-lb">화면<br>테마</span></button></div>
   <button id="fabBtn" class="fab-btn" hidden aria-hidden="true"></button>
 </nav>
 
@@ -1157,7 +1205,7 @@ $('#themeBtn').onclick=()=>setTheme(!document.documentElement.classList.contains
 
 /* ===== 데이터 계층: 공유(db) 또는 이 기기(localStorage) ===== */
 let db=null,myId=null,isAdmin=false,ready=false;
-const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts','talks','talkCmts'];
+const COLS=['settings','foods','foodLikes','members','events','notices','noticeReads','voices','comments','reacts','hazards','alerts','talks','talkCmts','equips','equipTypes'];
 const D={};COLS.forEach(c=>D[c]=[]);
 const LK=c=>'kb_'+c;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -1195,7 +1243,7 @@ const avatar=(id,sz=40)=>{const m=mem(id),n=m?m.name:'?',h=[...String(id||'x')].
 const canDel=by=>!db||by===myId||isAdmin;
 
 /* ===== 라우팅 (#home #notice #voice #write #post #photos #calendar #briefing #condition #hazard #members #profile #sos) ===== */
-const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',haz:'hazard',talk:'talk',talkv:'talk-view',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
+const H={home:'home',notice:'notice',voice:'voice',write:'write',post:'post',photos:'photos',cal:'calendar',brief:'briefing',vital:'condition',equip:'equip',haz:'hazard',talk:'talk',talkv:'talk-view',members:'members',profile:'profile',sos:'sos',weather:'weather',fortune:'fortune',cs:'cs-guide',food:'food',insp:'inspection',admin:'admin'};
 const RH=Object.fromEntries(Object.entries(H).map(([a,b])=>[b,a]));
 const fromHash=()=>RH[(location.hash||'').slice(1)]||'home';
 const navStack=[];
@@ -1247,8 +1295,9 @@ let rq=0;
 function changed(){if(!rq)rq=requestAnimationFrame(()=>{rq=0;render()})}
 function render(){
   renderHeader();renderWxBar();
-  ({talk:renderTalk,talkv:renderTalkV,home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
+  ({talk:renderTalk,talkv:renderTalkV,home:renderHome,notice:renderNotices,voice:renderVoice,post:renderPost,photos:renderPhotos,cal:renderBig,brief:renderBrief,vital:()=>{renderVHist();renderLunch()},equip:renderEquip,haz:renderHaz,members:renderMembers,profile:renderProfile,weather:renderWeather,fortune:()=>{renderFortune();requestAnimationFrame(ftDraw)},cs:renderCS,food:renderFood,insp:renderInsp,sos:renderSOS,admin:renderAdmin,write:renderWrite}[cur]||(()=>{}))();
   try{const tn=D.talks.filter(t=>!t.gone&&t.at>store.get('koelsa_talk_seen',0)).length;$('#qTalkBadge').textContent=tn>99?'99+':tn;$('#qTalkBadge').classList.toggle('hidden',!tn||cur==='talk');$('#qTalkBadge').setAttribute('aria-label','새 글 '+tn+'개')}catch(e){}
+  try{const n=eqMyAlerts().length;$('#qEqBadge').textContent=n>9?'9+':n;$('#qEqBadge').classList.toggle('hidden',!n)}catch(e){}
   const un=unreadNotices().length;$('#qNoticeBadge').textContent=un;$('#qNoticeBadge').classList.toggle('hidden',!un);
   checkLogin();renderHomeAcct();renderBell();renderBanner();
 }
@@ -1490,9 +1539,9 @@ const atBusy=new Set();
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-atd]');if(!b)return;e.preventDefault();e.stopPropagation();
   const key=b.dataset.atd,[scope,pid,ix]=key.split('|'),i=+ix;if(atBusy.has(key))return;
-  const post=scope==='v'?D.voices.find(x=>x.id===pid):D.talks.find(x=>x.id===pid),f=post&&post.files&&post.files[i];
+  const post=scope==='v'?D.voices.find(x=>x.id===pid):scope==='e'?D.equipTypes.find(x=>x.id===pid):D.talks.find(x=>x.id===pid),f=post&&post.files&&post.files[i];
   if(!f||!db)return toast('자료를 찾을 수 없어요.','error');
-  const col=scope==='v'?'fileChunks':'talkFiles',cid=k=>scope==='v'?f.id+'_'+k:`${pid}_f${i}_${k}`;
+  const col=scope==='t'?'talkFiles':'fileChunks',cid=k=>scope==='t'?`${pid}_f${i}_${k}`:f.id+'_'+k;
   atBusy.add(key);const go=b.querySelector('.at-go'),t0=go.textContent;
   try{const parts=[];for(let k=0;k<f.c;k++){go.textContent=Math.round(k/f.c*100)+'%';
       const sn=await db.doc(col+'/'+cid(k)).get();const dd=sn.exists&&sn.data();if(!dd||dd.gone||!dd.data)throw {code:'missing'};
@@ -1504,6 +1553,266 @@ document.addEventListener('click',async e=>{
   finally{atBusy.delete(key);go.textContent=t0}
 },true);
 const atDelV=v=>((v&&v.files)||[]).forEach(f=>{for(let k=0;k<f.c;k++)del('fileChunks',f.id+'_'+k).catch(()=>{})});
+
+/* ===== 나의 장비 관리는? =====
+   · 사진 → AI(서버 /equip)가 장비 종류·기기번호를 읽음 → 장비 자료 팝업 / 등록된 장비 찾기
+   · 장비 목록(equips): 교정 만료일, 사용·반납, 담당자 / 장비별 자료(equipTypes): 설명·사용법·점검·첨부 파일
+   · 재고 조사: settings/main.inv 회차, 장비마다 inv:{r,by,at} 로 확인 표시
+   · 알림: 화면 안 알림 + 서버(매일 아침·저녁)가 담당자·사용자에게 푸시 */
+let eqTab='list',eqF='전체',eqQ='',eqLast=null,eqBusy=false;
+const eqN=s=>String(s||'').toUpperCase().replace(/[^0-9A-Z가-힣]/g,'');
+const eqToday=()=>new Date(new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})+'T00:00:00+09:00').getTime();
+const eqDays=c=>c?Math.round((new Date(c+'T00:00:00+09:00').getTime()-eqToday())/864e5):null;
+const eqDday=d=>d===0?'D-day':d>0?'D-'+d:'D+'+(-d);
+const eqEmoji=k=>{k=k||'';return /절연|접지|전압|전류|멀티|클램프|검전|전기/.test(k)?'🔌':/소음/.test(k)?'🔊':/조도|빛/.test(k)?'💡':/회전|타코/.test(k)?'⚙️':/거리|레이저|캘리퍼|버니어|줄자|게이지|수평/.test(k)?'📏':/하중|저울|로프|와이어|장력/.test(k)?'🏋️':/온도|습도/.test(k)?'🌡️':/진동|가속/.test(k)?'📳':'🧰'};
+const eqInv=()=>{const m=D.settings.find(x=>x.id==='main');return m&&m.inv&&!m.inv.done?m.inv:null};
+const eqChecked=e=>{const r=eqInv();return !!(r&&e.inv&&e.inv.r===r.id)};
+const eqUseLate=e=>!!(e.use&&e.use.by&&e.use.due&&e.use.due<Date.now());
+const eqMgr=e=>e.mgr||e.by;
+/* 내가 챙겨야 할 알림: 내가 쓰는 장비 반납 늦음 + 내가 담당인 장비 교정 30일 이내/지남 */
+function eqMyAlerts(){const out=[];(D.equips||[]).forEach(e=>{
+  if(e.use&&e.use.by===myId&&eqUseLate(e))out.push({e,k:'late'});
+  const d=eqDays(e.calib);if(d!==null&&d<=30&&eqMgr(e)===myId)out.push({e,k:d<0?'over':'soon',d})});return out}
+function eqBadges(e){const b=[],d=eqDays(e.calib);
+  if(d!==null&&d<0)b.push(`<span class="eq-bd eq-red">교정 지남 ${eqDday(d)}</span>`);else if(d!==null&&d<=30)b.push(`<span class="eq-bd eq-amb">교정 ${eqDday(d)}</span>`);
+  if(e.use&&e.use.by)b.push(`<span class="eq-bd ${eqUseLate(e)?'eq-red':'eq-pur'}">${eqUseLate(e)?'반납 늦음':'사용 중'}</span>`);
+  if(eqInv())b.push(eqChecked(e)?'<span class="eq-bd eq-grn">재고 ✔</span>':'<span class="eq-bd eq-gry">재고 미확인</span>');
+  return b.join('')}
+const eqTime=t=>{const d=new Date(t),n=new Date();const md=`${d.getMonth()+1}/${d.getDate()}`,hm=`${pad(d.getHours())}:${pad(d.getMinutes())}`;return (d.toDateString()===n.toDateString()?'오늘':d.toDateString()===new Date(Date.now()+864e5).toDateString()?'내일':md)+' '+hm};
+function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.use&&e.use.by&&!mine,edit=canDel(e.by)||eqMgr(e)===myId;
+  return `<div class="card !p-3" data-eqid="${e.id}">
+  <div class="flex gap-3">${e.photo?`<img data-ph="${e.photo}" alt="${esc(e.name)} 사진" class="eq-th">`:`<span class="eq-th eq-ph" aria-hidden="true">${eqEmoji(e.kind)}</span>`}
+  <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><b class="text-[15px] break-words">${esc(e.name)}</b>${eqBadges(e)}</div>
+    <div class="text-xs opacity-85 mt-0.5 break-words">${e.kind?esc(e.kind)+' · ':''}🔢 ${esc(e.no||'기기번호 없음')}${e.model?' · '+esc(e.model):''}</div>
+    <div class="text-xs opacity-75 break-words">📍 ${esc(e.place||'보관 위치 미입력')} · 👤 담당 ${esc(nmFull(eqMgr(e)))}</div>
+    ${e.calib?`<div class="text-xs mt-0.5 ${d<0?'text-red-500 font-bold':d<=30?'text-amber-600 dark:text-amber-300 font-bold':'opacity-75'}">🗓️ 교정 만료 ${esc(e.calib)} (${eqDday(d)})</div>`:''}
+    ${e.use&&e.use.by?`<div class="text-xs mt-0.5 font-bold ${eqUseLate(e)?'text-red-500':'text-purple-600 dark:text-purple-300'}">🔧 ${esc(nmFull(e.use.by))} 사용 중${e.use.where?' · '+esc(e.use.where):''} · 반납 ${eqTime(e.use.due)}${eqUseLate(e)?' (늦음)':''}</div>`:''}
+  </div></div>
+  <div class="grid ${edit?'grid-cols-3':'grid-cols-2'} gap-1.5 mt-2.5">
+    <button type="button" data-equse="${e.id}" class="eq-b ${mine?'amb':other?'':'pri'}">${mine?'↩️ 반납하기':other?'대신 반납':'🔧 사용 시작'}</button>
+    <button type="button" data-eqdoc="${e.id}" class="eq-b">📄 장비 자료</button>
+    ${edit?`<button type="button" data-eqedit="${e.id}" class="eq-b">✏️ 고치기</button>`:''}
+  </div></div>`}
+function renderEquip(){
+  const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
+  $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
+    ${my.map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}
+    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon} · 반납 늦음 ${late}</div></div>`:'';
+  const inv=eqInv();
+  $('#eqTabs').innerHTML=[['list','🧰 장비 목록'],['inv','📋 재고 조사'+(inv?' ●':'')],['doc','📄 장비별 자료']].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===eqTab}" data-eqtab="${k}" class="eq-tab${k===eqTab?' on':''}">${l}</button>`).join('');
+  const P=$('#eqPane');
+  if(eqTab==='list'){
+    const q=eqN(eqQ),f=eqF;
+    const L=all.filter(e=>(!q||eqN([e.name,e.kind,e.no,e.model,e.place,e.serial].join(' ')).includes(q))&&(f==='전체'||(f==='사용 중'&&e.use&&e.use.by)||(f==='교정 임박'&&(eqDays(e.calib)??99)<=30)||(f==='내 담당'&&eqMgr(e)===myId)))
+      .sort((a,b)=>(eqDays(a.calib)??9999)-(eqDays(b.calib)??9999)||a.name.localeCompare(b.name));
+    const box=`<div class="text-xs opacity-70">장비 ${L.length}대${all.length!==L.length?` / 전체 ${all.length}대`:''}</div>
+      ${L.length?L.map(eqCard).join(''):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
+    if(document.activeElement&&document.activeElement.id==='eqQ'&&$('#eqListBox')){$('#eqListBox').innerHTML=box;hydrate(P);return}
+    P.innerHTML=`<button type="button" data-eqnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 등록하기</button>
+      <input id="eqQ" class="inp" placeholder="🔍 장비 이름·기기번호·보관 위치 검색" value="${esc(eqQ)}">
+      <div class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1">${['전체','사용 중','교정 임박','내 담당'].map(c=>`<button type="button" data-eqf="${c}" class="eq-chip${c===f?' on':''}">${c}</button>`).join('')}</div>
+      <div id="eqListBox" class="space-y-2.5">${box}</div>`;
+    $('#eqQ').oninput=ev=>{eqQ=ev.target.value;renderEquip()};
+  }else if(eqTab==='inv'){
+    const m=D.settings.find(x=>x.id==='main')||{},hist=(m.invHist||[]).slice().reverse();
+    if(!inv){P.innerHTML=`<div class="card !p-4"><b class="text-sm">📋 재고 조사란?</b><p class="text-[13px] opacity-85 mt-1 leading-relaxed">지사 장비가 제자리에 다 있는지 한 번에 확인하는 기능이에요. 조사를 시작한 뒤 장비 이름표(기기번호)를 사진으로 찍으면 AI가 번호를 읽어 <b>자동으로 ✔ 확인</b>해 줘요.</p>
+      <label class="eq-lbl" for="eqInvT">조사 이름</label><input id="eqInvT" class="inp" maxlength="40" value="${new Date().getFullYear()}년 ${new Date().getMonth()+1}월 장비 재고 조사">
+      <button type="button" data-eqinvstart class="mt-3 w-full min-h-[50px] rounded-xl bg-[#16A34A] text-white font-black text-sm">▶ 재고 조사 시작</button></div>
+      ${hist.length?`<div class="card !p-3"><b class="text-sm">지난 재고 조사</b>${hist.map(h=>`<div class="flex justify-between gap-2 text-[13px] mt-2"><span class="min-w-0 break-words">${esc(h.title)}<br><span class="text-[11px] opacity-65">${tstr(h.at)} · ${esc(nmFull(h.by))}</span></span><b class="${h.ok<h.total?'text-red-500':'text-green-600'} shrink-0">${h.ok}/${h.total}</b></div>`).join('')}</div>`:''}`;return}
+    const ok=all.filter(eqChecked),no=all.filter(e=>!eqChecked(e)),pct=all.length?Math.round(ok.length/all.length*100):0;
+    P.innerHTML=`<div class="card !p-4"><div class="flex items-center justify-between gap-2"><b class="text-[15px] break-words">${esc(inv.title)}</b><span class="eq-bd eq-grn shrink-0">진행 중</span></div>
+      <div class="text-[11.5px] opacity-70 mt-0.5">${tstr(inv.at)} · ${esc(nmFull(inv.by))} 시작</div>
+      <div class="flex items-center justify-between mt-3 text-sm font-black"><span>확인 ${ok.length} / ${all.length}대</span><span>${pct}%</span></div><div class="eq-prog mt-1"><i style="width:${pct}%"></i></div>
+      <label class="eq-btn pri mt-3">📸 기기번호 찍어서 확인<input id="eqInvCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
+      <div id="eqInvRes"></div>
+      <div class="flex gap-2 mt-2"><input id="eqInvNo" class="inp flex-1" placeholder="번호를 직접 입력 (예: KE-015)"><button type="button" data-eqinvno class="eq-b pri px-4 shrink-0">확인</button></div></div>
+      <div class="eq-sec">❌ 아직 확인 안 된 장비 ${no.length}</div>
+      ${no.map(e=>`<div class="card !p-3 flex items-center gap-2"><span class="text-xl shrink-0">${eqEmoji(e.kind)}</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · 📍 ${esc(e.place||'위치 미입력')}</div></div><button type="button" data-eqchk="${e.id}" class="eq-b grn px-3 shrink-0">✔ 확인</button></div>`).join('')||'<div class="text-[13px] opacity-70 px-1">모두 확인했어요! 👏</div>'}
+      <div class="eq-sec">✅ 확인된 장비 ${ok.length}</div>
+      ${ok.map(e=>`<div class="card !p-3 flex items-center gap-2 opacity-90"><span class="text-xl shrink-0">✅</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · ${esc(nmFull(e.inv.by))} · ${ago(e.inv.at)}</div></div><button type="button" data-equnchk="${e.id}" class="text-xs font-bold opacity-60 min-h-[40px] px-2 shrink-0">취소</button></div>`).join('')}
+      <button type="button" data-eqinvend class="w-full min-h-[48px] rounded-xl border border-red-400/60 text-red-500 text-sm font-bold">■ 재고 조사 끝내기</button>`;
+  }else{
+    const T=(D.equipTypes||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    P.innerHTML=`<button type="button" data-eqtnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 자료 등록하기</button>
+      <p class="text-[12px] opacity-75 px-1 leading-relaxed">장비 종류마다 설명·사용 방법·점검 요령과 설명서(PDF 등)를 올려 두면, 사진으로 장비를 찍었을 때 이 자료가 바로 떠요.</p>
+      ${T.length?T.map(t=>{const n=all.filter(e=>eqN(e.kind)===eqN(t.name)).length;return `<button type="button" data-eqtype="${t.id}" class="card !p-3 w-full text-left flex items-center gap-3"><span class="eq-th eq-ph !w-12 !h-12 !text-2xl">${eqEmoji(t.name)}</span><span class="flex-1 min-w-0"><b class="text-[15px] block break-words">${esc(t.name)}</b><span class="text-xs opacity-75 block truncate">${esc(t.desc||'설명 없음')}</span><span class="text-[11px] opacity-65">등록 장비 ${n}대${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span></span><span class="opacity-50">›</span></button>`}).join('')
+        :'<div class="card text-center text-sm opacity-75 py-8">아직 등록된 장비 자료가 없어요.</div>'}`;
+  }
+  hydrate(P);
+  if(eqLast&&eqLast.mode==='find'){const h=eqMatch(eqLast.ai);if((h&&h.id)!==(eqLast.hit&&eqLast.hit.id)||h){eqLast.hit=h;renderScanResult()}}
+}
+/* ---- 아래에서 올라오는 창 ---- */
+function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.remove('hidden');document.body.style.overflow='hidden';hydrate($('#eqSheetBody'))}
+function eqClose(){$('#eqSheet').classList.add('hidden');document.body.style.overflow='';eqTDocs=[]}
+$('#eqSheet').addEventListener('click',e=>{if(e.target.closest('[data-eqclose]'))eqClose()});
+/* 장비 자료 팝업: 등록된 자료 + AI 참고 설명 + 이 종류의 장비 */
+function eqDocPop(kind,ai,eid){
+  const t=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(kind))||null,list=(D.equips||[]).filter(e=>kind&&eqN(e.kind)===eqN(kind)),one=eid&&D.equips.find(x=>x.id===eid);
+  eqOpen(`<div class="flex items-center gap-2 pr-10"><span class="text-3xl">${eqEmoji(kind)}</span><div class="min-w-0"><div class="text-[11px] font-bold opacity-65">장비 자료</div><h2 class="text-lg font-black break-words">${esc(kind||'알 수 없는 장비')}</h2></div></div>
+    ${one?`<div class="text-xs opacity-80 mt-1">${esc(one.name)} · 🔢 ${esc(one.no||'번호 없음')}</div>`:''}
+    ${t?`${t.desc?`<div class="eq-sec">📘 어떤 장비인가요</div><div class="eq-txt">${esc(t.desc)}</div>`:''}
+      ${t.howto?`<div class="eq-sec">🛠️ 사용 방법</div><div class="eq-txt">${esc(t.howto)}</div>`:''}
+      ${t.check?`<div class="eq-sec">⚠️ 점검·주의 사항</div><div class="eq-txt">${esc(t.check)}</div>`:''}
+      ${t.files&&t.files.length?`<div class="eq-sec">📎 설명서·자료</div>${atList(t.files,'e',t.id)}`:''}
+      <div class="text-[11px] opacity-60 mt-2">자료 등록: ${esc(nmFull(t.by))}${t.editedAt?' · '+ago(t.editedAt)+' 수정':''}</div>`
+     :`<div class="card !p-3 mt-3 text-[13px]">아직 지사에 올라온 <b>${esc(kind||'이 장비')}</b> 자료가 없어요.<br>설명서나 사용 요령을 올려 두면 다음부터 바로 떠요.</div>`}
+    ${ai&&ai.guide&&ai.guide.length?`<div class="eq-sec">🤖 AI 참고 설명</div><div class="eq-ai">${ai.guide.map(g=>'• '+esc(g)).join('<br>')}<div class="text-[10.5px] opacity-70 mt-1">AI가 사진을 보고 쓴 일반 설명이에요. 정확한 사용법은 설명서를 확인해 주세요.</div></div>`:''}
+    ${list.length?`<div class="eq-sec">🧰 지사에 있는 ${esc(kind)} ${list.length}대</div>${list.map(e=>`<button type="button" data-eqgo="${e.id}" class="block w-full text-left text-[13px] py-2 border-b border-purple-400/20">${esc(e.name)} · 🔢 ${esc(e.no||'-')} ${eqBadges(e)}</button>`).join('')}`:''}
+    <button type="button" ${t?`data-eqtedit="${t.id}"`:`data-eqtnew="${esc(kind||'')}"`} class="mt-4 w-full min-h-[48px] rounded-xl border border-purple-400/50 text-sm font-bold">${t?'✏️ 이 자료 고치기':'➕ 이 장비 자료 등록하기'}</button>`)}
+/* 장비 등록·고치기 */
+function eqForm(e,pre){e=e||{};pre=pre||{};const v=k=>esc(e[k]??pre[k]??'');
+  const kinds=[...new Set([...(D.equipTypes||[]).map(t=>t.name),...(D.equips||[]).map(x=>x.kind).filter(Boolean)])];
+  eqOpen(`<h2 class="text-lg font-black pr-10">${e.id?'✏️ 장비 고치기':'➕ 장비 등록'}</h2>
+  ${pre.ai?'<div class="eq-ai mt-2">🤖 AI가 사진에서 읽은 내용을 채워 뒀어요. 틀린 곳이 없는지 꼭 확인해 주세요.</div>':''}
+  <div class="flex items-center gap-3 mt-2">${e.photo?`<img data-ph="${e.photo}" class="eq-th" id="efImg">`:pre.img?`<img src="${pre.img}" class="eq-th" id="efImg">`:`<span class="eq-th eq-ph" id="efImg">${eqEmoji(v('kind'))}</span>`}<label class="eq-b px-4 flex items-center cursor-pointer">📸 사진 ${e.photo||pre.img?'바꾸기':'넣기'}<input id="efPh" type="file" accept="image/*" capture="environment" class="sr-only"></label></div>
+  <label class="eq-lbl" for="efName">장비 이름 *</label><input id="efName" class="inp" maxlength="40" value="${v('name')}" placeholder="예: 절연저항계 1호">
+  <label class="eq-lbl" for="efKind">장비 종류</label><input id="efKind" class="inp" maxlength="30" list="efKinds" value="${v('kind')}" placeholder="예: 절연저항계"><datalist id="efKinds">${kinds.map(k=>`<option value="${esc(k)}">`).join('')}</datalist>
+  <label class="eq-lbl" for="efNo">기기번호 (관리번호) *</label><input id="efNo" class="inp" maxlength="40" value="${v('no')}" placeholder="장비 이름표에 적힌 번호 (예: KE-2023-015)">
+  <div class="grid grid-cols-2 gap-2"><div><label class="eq-lbl" for="efModel">모델명</label><input id="efModel" class="inp" maxlength="40" value="${v('model')}"></div><div><label class="eq-lbl" for="efMaker">제조사</label><input id="efMaker" class="inp" maxlength="30" value="${v('maker')}"></div></div>
+  <label class="eq-lbl" for="efSerial">제조번호 (S/N)</label><input id="efSerial" class="inp" maxlength="40" value="${v('serial')}">
+  <label class="eq-lbl" for="efPlace">보관 위치</label><input id="efPlace" class="inp" maxlength="40" value="${v('place')}" placeholder="예: 2층 장비실 3번 선반">
+  <label class="eq-lbl" for="efCalib">교정 만료일 (다음 교정일)</label><input id="efCalib" type="date" class="inp" value="${v('calib')}">
+  <label class="eq-lbl" for="efMgr">담당자 (교정 알림을 받는 사람)</label><select id="efMgr" class="inp">${(D.members||[]).map(m=>`<option value="${m.id}"${(e.mgr||e.by||myId)===m.id?' selected':''}>${esc(m.name)} ${esc(m.rank||'')}</option>`).join('')}</select>
+  <label class="eq-lbl" for="efMemo">메모</label><textarea id="efMemo" class="inp" rows="2" maxlength="200">${v('memo')}</textarea>
+  <button type="button" id="efSave" data-id="${e.id||''}" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">💾 ${e.id?'고친 내용 저장':'장비 등록'}</button>
+  ${e.id&&(canDel(e.by))?`<button type="button" id="efDel" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 장비 삭제</button>`:''}`);
+  eqPhoto=pre.img||null;
+  $('#efPh').onchange=async ev=>{const f=ev.target.files[0];ev.target.value='';if(!f)return;try{eqPhoto=await compress(f,1024,.72);const im=$('#efImg');if(im.tagName==='IMG')im.src=eqPhoto;else im.outerHTML=`<img src="${eqPhoto}" class="eq-th" id="efImg">`}catch(_){toast('사진을 읽지 못했어요.','error')}};
+}
+let eqPhoto=null;
+async function eqSave(id){
+  const g=k=>$('#ef'+k).value.trim(),name=g('Name'),no=g('No');
+  if(!name)return toast('장비 이름을 적어 주세요.','error');if(!no)return toast('기기번호를 적어 주세요. 재고 조사에 써요.','error');
+  const dup=(D.equips||[]).find(x=>x.id!==id&&eqN(x.no)===eqN(no));if(dup)return toast(`같은 기기번호(${dup.no})가 이미 있어요: ${dup.name}`,'error');
+  const row={name,kind:g('Kind'),no,model:g('Model'),maker:g('Maker'),serial:g('Serial'),place:g('Place'),calib:g('Calib'),mgr:$('#efMgr').value||myId,memo:g('Memo')};
+  const b=$('#efSave');if(b.disabled)return;b.disabled=true;b.textContent='저장하는 중…';
+  try{const old=id&&D.equips.find(x=>x.id===id);
+    if(eqPhoto){row.photo=await photoPut(eqPhoto);if(old&&old.photo)photoDel(old.photo)}
+    if(id)await patch('equips',id,{...row,editedAt:Date.now()});else await put('equips',{...row,use:null,inv:null,by:myId,at:Date.now()});
+    eqPhoto=null;eqClose();toast(id?'장비 정보를 고쳤어요.':'장비를 등록했어요.','ok');eqResultClear()}
+  catch(err){toast(atErr(err),'error');b.disabled=false;b.textContent='💾 다시 저장'}}
+/* 장비 자료(종류) 등록·고치기 */
+let eqTDocs=[];
+function eqTForm(t,preName){t=t||{};eqTDocs=[];const v=k=>esc(t[k]??'');
+  eqOpen(`<h2 class="text-lg font-black pr-10">${t.id?'✏️ 장비 자료 고치기':'➕ 장비 자료 등록'}</h2>
+  <label class="eq-lbl" for="tfName">장비 종류 이름 *</label><input id="tfName" class="inp" maxlength="30" value="${t.id?v('name'):esc(preName||'')}" placeholder="예: 절연저항계">
+  <label class="eq-lbl" for="tfDesc">어떤 장비인가요 (용도)</label><textarea id="tfDesc" class="inp" rows="3" maxlength="1000">${v('desc')}</textarea>
+  <label class="eq-lbl" for="tfHow">사용 방법</label><textarea id="tfHow" class="inp" rows="5" maxlength="2000" placeholder="1. 전원을 켜고…&#10;2. …">${v('howto')}</textarea>
+  <label class="eq-lbl" for="tfChk">점검·주의 사항</label><textarea id="tfChk" class="inp" rows="3" maxlength="1000">${v('check')}</textarea>
+  <span class="eq-lbl">설명서·자료 파일</span>
+  ${(t.files||[]).map((f,i)=>{const[x,c]=atIcon(f.n);return `<div class="at-row mb-1.5"><span class="at-ext" style="--c:${c}">${x}</span><span class="at-nm">${esc(f.n)}</span><span class="at-sz">${atSize(f.s)}</span><label class="text-[11px] font-bold flex items-center gap-1 shrink-0"><input type="checkbox" data-tfrm="${i}"> 빼기</label></div>`}).join('')}
+  <label class="at-pick">📎 자료 첨부 <small>(PDF·한글·엑셀 등 · 10MB)</small><input id="tfDoc" type="file" multiple class="sr-only"></label><div id="tfDocs" class="at-list"></div>
+  <button type="button" id="tfSave" data-id="${t.id||''}" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">💾 저장</button>
+  ${t.id&&canDel(t.by)?`<button type="button" id="tfDel" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 자료 삭제</button>`:''}`);
+  const draw=()=>{$('#tfDocs').innerHTML=eqTDocs.map((f,i)=>atRowIn(f,'e:'+i)).join('')};
+  $('#tfDoc').onchange=ev=>{atAdd(eqTDocs,[...ev.target.files]);ev.target.value='';draw()};
+  $('#tfDocs').onclick=ev=>{const b=ev.target.closest('[data-atrm]');if(b){eqTDocs.splice(+b.dataset.atrm.split(':')[1],1);draw()}};
+}
+async function eqTSave(id){
+  const name=$('#tfName').value.trim();if(!name)return toast('장비 종류 이름을 적어 주세요.','error');
+  const dup=(D.equipTypes||[]).find(x=>x.id!==id&&eqN(x.name)===eqN(name));if(dup)return toast('같은 이름의 자료가 이미 있어요. 그 자료를 고쳐 주세요.','error');
+  const old=id&&D.equipTypes.find(x=>x.id===id),rm=[...document.querySelectorAll('[data-tfrm]:checked')].map(x=>+x.dataset.tfrm);
+  const keep=((old&&old.files)||[]).filter((_,i)=>!rm.includes(i));
+  if(keep.length+eqTDocs.length>5)return toast('자료 파일은 5개까지 둘 수 있어요.','error');
+  if(eqTDocs.length&&!db)return toast('자료는 로그인한 뒤에 올릴 수 있어요.','error');
+  const b=$('#tfSave');if(b.disabled)return;b.disabled=true;const files=[];
+  try{for(let j=0;j<eqTDocs.length;j++){const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      const m=await atUpload(eqTDocs[j],'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}),(a,n)=>{b.textContent=`자료 올리는 중… (${j+1}/${eqTDocs.length}) ${Math.round(a/n*100)}%`});files.push({id:fid,...m})}
+    const row={name,desc:$('#tfDesc').value.trim(),howto:$('#tfHow').value.trim(),check:$('#tfChk').value.trim(),files:[...keep,...files]};
+    if(id)await patch('equipTypes',id,{...row,editedAt:Date.now()});else await put('equipTypes',{...row,by:myId,at:Date.now()});
+    ((old&&old.files)||[]).filter((_,i)=>rm.includes(i)).forEach(f=>atDelV({files:[f]}));
+    eqTDocs=[];eqClose();toast('장비 자료를 저장했어요.','ok')}
+  catch(err){atDelV({files});toast(atErr(err),'error');b.disabled=false;b.textContent='💾 다시 저장'}}
+/* 사용 시작 · 반납 */
+function eqUseForm(e){const at=h=>{const d=new Date();d.setHours(h,0,0,0);return d},t18=at(18),m18=new Date(t18.getTime()+864e5),local=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,16);
+  eqOpen(`<h2 class="text-lg font-black pr-10">🔧 사용 시작</h2><div class="text-sm opacity-80 mt-1">${esc(e.name)} · 🔢 ${esc(e.no||'-')}</div>
+  <span class="eq-lbl">언제 반납하나요?</span>
+  <div class="grid grid-cols-3 gap-1.5">${[[Date.now()<t18.getTime()?t18:m18,Date.now()<t18.getTime()?'오늘 18시':'내일 18시'],[new Date(Date.now()+2*36e5),'2시간 뒤'],[new Date(m18.getTime()+(Date.now()<t18.getTime()?0:864e5)),Date.now()<t18.getTime()?'내일 18시':'모레 18시']].map(([d,l])=>`<button type="button" data-ufq="${local(d)}" class="eq-b">${l}</button>`).join('')}</div>
+  <input id="ufDue" type="datetime-local" class="inp mt-2" value="${local(Date.now()<t18.getTime()?t18:m18)}">
+  <label class="eq-lbl" for="ufWhere">어디서 쓰나요 (선택)</label><input id="ufWhere" class="inp" maxlength="40" placeholder="예: 센텀 OO빌딩 정기검사">
+  <p class="text-[11.5px] opacity-75 mt-2">반납 시간이 지나면 알림이 가요.</p>
+  <button type="button" id="ufGo" data-id="${e.id}" class="mt-2 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">🔧 사용 시작</button>`);
+  $('#eqSheetBody').onclick=ev=>{const q=ev.target.closest('[data-ufq]');if(q)$('#ufDue').value=q.dataset.ufq};
+}
+function eqResultClear(){}
+/* ---- 사진 → AI ---- */
+async function eqAI(img){
+  const u=recUrl(),fu=(()=>{try{return firebase.auth().currentUser}catch(e){return null}})();if(!u||!fu)throw {code:'noai'};
+  const tk=await fu.getIdToken();
+  const r=await fetchO(u.replace(/\/$/,'')+'/equip',{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({img:img.split(',')[1],types:(D.equipTypes||[]).map(t=>t.name).slice(0,80)})},45000);
+  const j=await r.json().catch(()=>({}));
+  if(r.status===415||r.status===404)throw {code:'noep'};
+  if(!r.ok||j.error)throw {code:j.code||'ai',message:j.error||('HTTP '+r.status)};return j}
+const eqAIErr=err=>err&&err.code==='noep'?'AI 서버 업데이트가 아직 안 됐어요. 관리자에게 알려 주세요.':err&&err.code==='noai'?'AI 서버가 연결되지 않았어요.':err&&err.code==='quota'?'오늘 AI 무료 사용량을 다 썼어요. 번호를 직접 입력해 주세요.':err&&err.name==='AbortError'?'AI 응답이 늦어요. 다시 찍어 주세요.':'AI가 사진을 읽지 못했어요. '+(err&&err.message?'('+err.message+')':'');
+function eqMatch(ai){const c=[ai.no,ai.serial,...(ai.texts||[])].map(eqN).filter(x=>x.length>=3);if(!c.length)return null;const E=D.equips||[];
+  return E.find(e=>c.includes(eqN(e.no))||(e.serial&&c.includes(eqN(e.serial))))||E.find(e=>{const n=eqN(e.no);return n.length>=4&&c.some(x=>x.length>=4&&(x.includes(n)||n.includes(x)))})||null}
+async function eqScan(file,mode){
+  if(eqBusy)return;eqBusy=true;const box=mode==='inv'?$('#eqInvRes'):$('#eqResult');
+  let img='';try{img=await compress(file,1280,.75)}catch(_){eqBusy=false;return toast('사진을 읽지 못했어요.','error')}
+  box.innerHTML=`<div class="flex items-center gap-3 mt-3"><img src="${img}" class="eq-th" alt="찍은 사진"><div class="text-sm font-bold">🤖 AI가 사진을 살펴보는 중…<div class="text-[11.5px] opacity-70 font-normal mt-0.5">5~15초쯤 걸려요</div></div></div>`;
+  try{const ai=await eqAI(img),hit=eqMatch(ai);eqLast={mode,ai,img,hit};
+    if(mode==='inv'){
+      if(hit&&!eqChecked(hit)){await patch('equips',hit.id,{inv:{r:eqInv().id,by:myId,at:Date.now()}});box.innerHTML=`<div class="eq-ai mt-3 !bg-green-50 !border-green-300 dark:!bg-green-950">✅ <b>${esc(hit.name)}</b> (${esc(hit.no)}) 확인했어요!</div>`;toast('✅ '+hit.name+' 확인','ok')}
+      else if(hit)box.innerHTML=`<div class="eq-ai mt-3">이미 확인된 장비예요: <b>${esc(hit.name)}</b> (${esc(hit.no)})</div>`;
+      else box.innerHTML=`<div class="eq-ai mt-3 !bg-red-50 !border-red-300 dark:!bg-red-950">❓ 읽은 번호 <b>${esc(ai.no||ai.serial||'없음')}</b>${ai.kind?' · '+esc(ai.kind):''}<br>장비 목록에 없는 번호예요. 번호가 잘 보이게 다시 찍거나 아래에 직접 입력해 주세요.<button type="button" data-eqreg class="eq-b mt-2 w-full">➕ 이 장비 새로 등록</button></div>`;
+    }else{renderScanResult();if(ai.kind||hit)eqDocPop(hit&&hit.kind?hit.kind:(ai.match||ai.kind),ai,hit&&hit.id)}
+  }catch(err){eqLast=null;box.innerHTML=`<div class="eq-ai mt-3 !bg-red-50 !border-red-300 dark:!bg-red-950">${esc(eqAIErr(err))}</div>`}
+  finally{eqBusy=false}}
+function renderScanResult(){const L=eqLast;if(!L)return;const{ai,img}=L,hit=L.hit&&D.equips.find(x=>x.id===L.hit.id);
+  const conf={high:'높음',mid:'보통',low:'낮음'}[ai.conf]||'';
+  $('#eqResult').innerHTML=`<div class="mt-3 card !p-3"><div class="flex gap-3"><img src="${img}" class="eq-th" alt="찍은 사진"><div class="flex-1 min-w-0 text-[13px]">
+    <div>🔎 AI가 본 장비: <b>${esc(ai.kind||'잘 모르겠어요')}</b>${conf?` <span class="eq-bd eq-gry">확신 ${conf}</span>`:''}</div>
+    <div class="mt-0.5">🔢 읽은 번호: <b>${esc(ai.no||ai.serial||'못 읽음')}</b></div>
+    ${ai.model||ai.maker?`<div class="mt-0.5 opacity-80">${esc([ai.maker,ai.model].filter(Boolean).join(' · '))}</div>`:''}
+    ${ai.calib?`<div class="mt-0.5 opacity-80">🗓️ 교정 스티커: ${esc(ai.calib)}</div>`:''}</div></div>
+    ${hit?`<div class="mt-2 text-[13px] font-bold text-green-600 dark:text-green-400">✅ 등록된 장비예요: ${esc(hit.name)}</div>${eqCard(hit)}`
+       :`<div class="mt-2 text-[13px] font-bold opacity-80">등록되지 않은 장비예요.</div><button type="button" data-eqreg class="mt-2 w-full min-h-[46px] rounded-xl bg-[#6D28D9] text-white text-sm font-bold">➕ 이 정보로 장비 등록</button>`}
+    <button type="button" data-eqdock class="mt-2 w-full min-h-[44px] rounded-xl border border-purple-400/50 text-sm font-bold">📄 ${esc(ai.match||ai.kind||'장비')} 자료 보기</button></div>`;
+  hydrate($('#eqResult'))}
+/* ---- 클릭 처리 ---- */
+document.addEventListener('change',e=>{const id=e.target.id;
+  if(id==='eqCam'||id==='eqPic'||id==='eqInvCam'){const f=e.target.files[0];e.target.value='';if(f)eqScan(f,id==='eqInvCam'?'inv':'find')}});
+document.addEventListener('click',async e=>{
+  if(!e.target.closest('#p-equip,#eqSheet'))return;
+  const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
+  const d=b.dataset,E=id=>(D.equips||[]).find(x=>x.id===id);
+  if(d.eqtab){eqTab=d.eqtab;renderEquip();return}
+  if(d.eqf){eqF=d.eqf;renderEquip();return}
+  if(d.eqnew!==undefined){eqForm(null,{});return}
+  if(d.eqedit){eqForm(E(d.eqedit));return}
+  if(d.eqdoc){const x=E(d.eqdoc);eqDocPop(x&&x.kind||'',null,d.eqdoc);return}
+  if(d.eqgo){eqClose();eqTab='list';eqF='전체';eqQ='';renderEquip();setTimeout(()=>{const c=document.querySelector(`[data-eqid="${d.eqgo}"]`);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.animate([{boxShadow:'0 0 0 4px #F59E0B'},{boxShadow:'0 0 0 0 transparent'}],{duration:1600})}},80);return}
+  if(d.eqtype){const t=D.equipTypes.find(x=>x.id===d.eqtype);if(t)eqDocPop(t.name,null);return}
+  if(d.eqtnew!==undefined){eqTForm(null,d.eqtnew);return}
+  if(d.eqtedit){eqTForm(D.equipTypes.find(x=>x.id===d.eqtedit));return}
+  if(d.eqdock!==undefined){if(eqLast)eqDocPop(eqLast.hit&&eqLast.hit.kind?eqLast.hit.kind:(eqLast.ai.match||eqLast.ai.kind),eqLast.ai,eqLast.hit&&eqLast.hit.id);return}
+  if(d.eqreg!==undefined){const a=(eqLast&&eqLast.ai)||{};eqForm(null,{ai:1,img:eqLast&&eqLast.img,name:a.kind?a.kind+' '+((D.equips||[]).filter(x=>eqN(x.kind)===eqN(a.match||a.kind)).length+1)+'호':'',kind:a.match||a.kind||'',no:a.no||'',serial:a.serial||'',model:a.model||'',maker:a.maker||'',calib:/^\d{4}-\d{2}-\d{2}$/.test(a.calib||'')?a.calib:''});return}
+  if(b.id==='efSave'){eqSave(d.id||'');return}
+  if(b.id==='efDel'){if(!d.arm){d.arm=1;b.textContent='한 번 더 누르면 삭제돼요';return}const x=E($('#efSave').dataset.id);if(!x)return;
+    try{await del('equips',x.id);if(x.photo)photoDel(x.photo);eqClose();toast('장비를 삭제했어요.')}catch(err){toast(errMsg(err),'error')}return}
+  if(b.id==='tfSave'){eqTSave(d.id||'');return}
+  if(b.id==='tfDel'){if(!d.arm){d.arm=1;b.textContent='한 번 더 누르면 삭제돼요';return}const t=D.equipTypes.find(x=>x.id===$('#tfSave').dataset.id);if(!t)return;
+    try{await del('equipTypes',t.id);atDelV(t);eqClose();toast('장비 자료를 삭제했어요.')}catch(err){toast(errMsg(err),'error')}return}
+  if(d.equse){const x=E(d.equse);if(!x)return;
+    if(x.use&&x.use.by){if(x.use.by!==myId&&!d.arm){d.arm=1;b.textContent='한 번 더 누르면 반납 처리';setTimeout(()=>{if(b.isConnected){delete d.arm;b.textContent='대신 반납'}},3000);return}
+      try{await patch('equips',x.id,{use:null,lastUse:{by:x.use.by,at:x.use.at,back:Date.now(),backBy:myId}});toast('반납했어요. 수고하셨어요!','ok')}catch(err){toast(errMsg(err),'error')}return}
+    eqUseForm(x);return}
+  if(b.id==='ufGo'){const due=new Date($('#ufDue').value).getTime();if(!due||due<Date.now()-6e4)return toast('반납 시간을 지금보다 뒤로 골라 주세요.','error');
+    try{await patch('equips',d.id,{use:{by:myId,at:Date.now(),due,where:$('#ufWhere').value.trim()}});eqClose();toast('사용 시작! 반납 시간 전에 반납해 주세요.','ok')}catch(err){toast(errMsg(err),'error')}return}
+  if(d.eqchk){try{await patch('equips',d.eqchk,{inv:{r:eqInv().id,by:myId,at:Date.now()}});toast('✅ 확인했어요.','ok')}catch(err){toast(errMsg(err),'error')}return}
+  if(d.equnchk){try{await patch('equips',d.equnchk,{inv:null})}catch(err){toast(errMsg(err),'error')}return}
+  if(d.eqinvno!==undefined){const n=eqN($('#eqInvNo').value);if(!n)return toast('번호를 입력해 주세요.','error');
+    const x=(D.equips||[]).find(y=>eqN(y.no)===n||eqN(y.serial)===n)||(D.equips||[]).find(y=>eqN(y.no).includes(n)&&n.length>=3);
+    if(!x)return toast('그 번호의 장비가 목록에 없어요.','error');if(eqChecked(x))return toast('이미 확인된 장비예요: '+x.name);
+    try{await patch('equips',x.id,{inv:{r:eqInv().id,by:myId,at:Date.now()}});$('#eqInvNo').value='';toast('✅ '+x.name+' 확인','ok')}catch(err){toast(errMsg(err),'error')}return}
+  if(d.eqinvstart!==undefined){if(!db)return toast('로그인한 뒤에 쓸 수 있어요.','error');if(!(D.equips||[]).length)return toast('먼저 장비를 등록해 주세요.','error');
+    const title=($('#eqInvT').value.trim()||'장비 재고 조사').slice(0,40);
+    try{await db.doc('settings/main').set({inv:{id:'r'+Date.now().toString(36),title,at:Date.now(),by:myId,done:false}},{merge:true});toast('재고 조사를 시작했어요. 장비 이름표를 찍어 보세요!','ok')}catch(err){toast(errMsg(err),'error')}return}
+  if(d.eqinvend!==undefined){const r=eqInv();if(!r)return;const all=D.equips||[],ok=all.filter(eqChecked).length;
+    if(!d.arm){d.arm=1;b.textContent=`한 번 더 누르면 끝내요 (확인 ${ok}/${all.length})`;return}
+    const m=D.settings.find(x=>x.id==='main')||{},sum={title:r.title,at:r.at,by:r.by,end:Date.now(),endBy:myId,total:all.length,ok,miss:all.filter(e=>!eqChecked(e)).map(e=>e.name+' ('+(e.no||'-')+')').slice(0,50)};
+    try{await db.doc('settings/main').set({inv:{...r,done:true,end:Date.now()},invHist:[...(m.invHist||[]).slice(-9),sum]},{merge:true});toast(`재고 조사를 끝냈어요. 확인 ${ok}/${all.length}대`,'ok')}catch(err){toast(errMsg(err),'error')}return}
+});
 
 /* ===== 현장목소리 ===== */
 const VCATS=[{k:'위험',c:'#FF3B30',i:'⚠️'},{k:'조치요청',c:'#EA580C',i:'🛠️'},{k:'개선제안',c:'#2563EB',i:'💡'},{k:'칭찬',c:'#16A34A',i:'👏'},{k:'현장공유',c:'#7C3AED',i:'📷'}];
@@ -1646,7 +1955,7 @@ document.addEventListener('change',e=>{if(!e.target||e.target.id!=='recFile')ret
   recSend(new Blob([f],{type}))});
 /* ===== 🔔 푸시 알림 (Firebase 클라우드 메시징 + Cloudflare 서버) =====
    이 휴대폰의 알림 주소(토큰)를 pushTokens/{내 uid} 에 저장 → 서버가 지사 멤버에게 보냄 */
-const PUSH_KINDS=[['brief','📢 브리핑 전달사항'],['sos','🚨 긴급 SOS'],['notice','📌 새 공지'],['hazard','⚠️ 긴급 위험현장'],['voice','📣 긴급 현장 Information']];
+const PUSH_KINDS=[['brief','📢 브리핑 전달사항'],['sos','🚨 긴급 SOS'],['notice','📌 새 공지'],['hazard','⚠️ 긴급 위험현장'],['voice','📣 긴급 현장 Information'],['equip','🧰 장비 알림 (교정 만료·반납)']];
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const pushOK=()=>'Notification' in window&&'serviceWorker' in navigator&&'PushManager' in window;
 let pushBusy=false,pushPrefs=null;
@@ -3601,7 +3910,7 @@ async function init(){
   if((mine.status||'active')==='pending')return lockWith(`<b>${esc(mine.name||'')}</b>님, 가입 신청이 접수됐어요.<br>지사 관리자가 승인하면 바로 들어올 수 있어요.<br><button onclick="location.reload()" class="mt-3 px-4 min-h-[40px] rounded-xl bg-white/20 text-sm font-bold">승인됐는지 다시 확인</button>`);
   try{const a=await db.doc('settings/access').get();isAdmin=true;ACC=a.exists?a.data():{}}catch(e){isAdmin=false}
   setSync();setTimeout(pushRefresh,4000);setTimeout(()=>touchSeen(true),2500);setTimeout(permAsk,3500);
-  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30,talks:300,talkCmts:2000},got=new Set();
+  const t0=Date.now(),lim={settings:5,foods:500,foodLikes:3000,members:300,events:500,notices:100,noticeReads:1000,voices:150,comments:800,reacts:2000,hazards:100,alerts:30,talks:300,talkCmts:2000,equips:500,equipTypes:200},got=new Set();
   /* settings 는 컬렉션 전체가 아니라 main 문서만 구독 (access 문서는 관리자만 읽을 수 있어 전체 조회가 거부됨) */
   db.doc('settings/main').onSnapshot(sn=>{D.settings=sn.exists?[{id:'main',...sn.data()}]:[];changed()},()=>{});
   COLS.filter(c=>c!=='settings').forEach(c=>db.collection(c).orderBy('at','desc').limit(lim[c]).onSnapshot(sn=>{

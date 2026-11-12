@@ -3,6 +3,8 @@
    ---------------------------------------------------------------------
    하는 일 ① 앱이 보낸 녹음 파일을 Gemini 에 보내 "대화 정리 + 회의록"으로 돌려줌
           ② /push : 브리핑·SOS·공지 등을 지사 멤버 휴대폰에 푸시 알림으로 보냄 (Firebase 클라우드 메시징)
+          ③ /equip : 장비 사진을 Gemini 로 보고 장비 종류·기기번호·교정일을 읽어 줌 (사진은 저장하지 않음)
+          ④ 매일 아침 8시·저녁 6시 반(한국 시간) 자동 실행: 장비 교정 만료·반납 늦음 알림 (Cron 트리거)
    보안:
      · Gemini 키는 이 코드에 없음 → Cloudflare 의 비밀 변수 GEMINI_KEY 에만 저장
      · 푸시용 Firebase 서비스 계정 키도 비밀 변수 FIREBASE_SA 에만 저장
@@ -43,6 +45,8 @@ const SCHEMA = {
 };
 
 export default {
+  // Cron 트리거: "0 23 * * *"(한국 아침 8시) · "30 9 * * *"(한국 저녁 6시 30분)
+  async scheduled(ev, env, ctx) { ctx.waitUntil(equipReminders(env, new Date(ev.scheduledTime).getUTCHours() === 23).catch(e => console.log('equip remind', e && e.message))); },
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
     const okOrigin = ORIGINS.includes(origin);
@@ -55,7 +59,7 @@ export default {
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return out({ ok: true, name: 'MOA 녹음 정리·알림·장소 검색 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA, place: !!env.KAKAO_KEY, colo: (req.cf && req.cf.colo) || '' });
+    if (req.method === 'GET') return out({ ok: true, name: 'MOA 녹음 정리·알림·장소 검색·장비 인식 서버', key: !!env.GEMINI_KEY, push: !!env.FIREBASE_SA, place: !!env.KAKAO_KEY, equip: true, colo: (req.cf && req.cf.colo) || '' });
     if (req.method !== 'POST') return out({ error: '지원하지 않는 요청이에요.' }, 405);
     if (!okOrigin) return out({ error: '허용되지 않은 주소에서 온 요청이에요.' }, 403);
 
@@ -88,6 +92,22 @@ export default {
     }
 
     if (!env.GEMINI_KEY) return out({ error: '서버에 Gemini 키(GEMINI_KEY)가 아직 등록되지 않았어요.' }, 500);
+
+    // ── 장비 사진 인식 ──
+    if (new URL(req.url).pathname === '/equip') {
+      let q = {}; try { q = await req.json(); } catch (e) {}
+      const img = String(q.img || '');
+      if (!img || img.length > 4_000_000) return out({ error: '사진이 없거나 너무 커요.' }, 400);
+      const types = (Array.isArray(q.types) ? q.types : []).map(t => String(t).slice(0, 30)).slice(0, 80);
+      const prompt = EQ_PROMPT + '\n\n[지사에 등록된 장비 종류]\n' + (types.length ? types.join(', ') : '(없음)');
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: img } }] }],
+        generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: EQ_SCHEMA }
+      };
+      const r = await gemini(env, body);
+      if (r.error) return out(r, r.status || 502);
+      return out({ ok: true, ...r.data });
+    }
 
     // 2) 녹음 받기
     const type = (req.headers.get('Content-Type') || 'audio/webm').split(';')[0].trim();
@@ -131,6 +151,90 @@ export default {
   }
 };
 
+/* Gemini 호출 (모델 이름이 바뀌면 다음 모델로) */
+async function gemini(env, body) {
+  let last = '';
+  for (const m of (env.MODEL ? [env.MODEL, ...MODELS] : MODELS)) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
+    });
+    if (r.status === 404) { last = `모델 ${m} 없음`; continue; }
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 429) return { error: '오늘 AI 무료 사용량을 다 썼어요.', code: 'quota', status: 429 };
+    if (!r.ok) {
+      last = (j.error && j.error.message) || ('HTTP ' + r.status); if (r.status >= 500) continue;
+      if (/location is not supported/i.test(last)) return { error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요.', code: 'location', status: 502 };
+      return { error: last, status: 502 };
+    }
+    const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
+    try { return { data: JSON.parse(txt), model: m }; } catch (e) { return { error: 'AI 응답을 읽지 못했어요.', status: 502 }; }
+  }
+  return { error: last || 'AI 호출 실패', status: 502 };
+}
+
+/* ===================== 장비 사진 인식 ===================== */
+const EQ_PROMPT = `너는 한국승강기안전공단 검사원이 쓰는 측정·점검 장비 전문가야. 사진 속 장비(또는 장비에 붙은 이름표·스티커)를 보고 한국어 JSON으로 답해.
+- kind: 장비 종류를 흔히 쓰는 한국어 이름으로 (예: 절연저항계, 접지저항계, 디지털 멀티미터, 클램프미터, 검전기, 회전계(타코미터), 소음계, 조도계, 진동측정기, 레이저 거리측정기, 버니어 캘리퍼스, 하중계, 로프 테스터, 수평계, 온습도계). 모르겠으면 "".
+- match: [지사에 등록된 장비 종류] 목록 중 같은 종류가 있으면 그 이름을 목록 글자 그대로. 없으면 "".
+- no: 지사 관리 스티커·자산 라벨의 관리번호/기기번호/자산번호 (예: KE-2023-015). 사진에 보이는 글자 그대로. 없으면 "".
+- serial: 제조번호(S/N, Serial No.). 없으면 "".
+- model: 모델명, maker: 제조사. 안 보이면 "".
+- calib: 교정 스티커의 '차기 교정일'·'유효기간'을 YYYY-MM-DD 로. 교정한 날짜만 있으면 "". 없으면 "".
+- conf: 장비 종류 판단 확신 정도 high / mid / low.
+- guide: 이 종류 장비의 용도·기본 사용 순서·안전 주의를 아주 짧은 문장 3~5개로 (일반 상식 수준, 확실하지 않으면 빈 배열).
+- texts: 사진에서 읽은 라벨 글자들 (최대 10개).
+규칙: 보이지 않는 글자·번호는 절대 지어내지 마. 0과 O, 1과 I 처럼 헷갈리면 사진에 보이는 대로 적어.`;
+const EQ_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    kind: { type: 'STRING' }, match: { type: 'STRING' }, no: { type: 'STRING' }, serial: { type: 'STRING' },
+    model: { type: 'STRING' }, maker: { type: 'STRING' }, calib: { type: 'STRING' }, conf: { type: 'STRING' },
+    guide: { type: 'ARRAY', items: { type: 'STRING' } }, texts: { type: 'ARRAY', items: { type: 'STRING' } }
+  },
+  required: ['kind', 'match', 'no', 'serial', 'model', 'maker', 'calib', 'conf', 'guide', 'texts']
+};
+
+/* ===================== 장비 알림 (Cron 트리거: 매일 2번) =====================
+   아침(한국 8시): 담당자에게 교정 만료 30·7·1일 전, 당일, 지난 뒤 매주 / 사용자에게 반납 늦음
+   저녁(한국 18시 30분): 반납 늦음만 */
+async function equipReminders(env, morning) {
+  if (!env.FIREBASE_SA) return { skip: 'no FIREBASE_SA' };
+  const H = { Authorization: 'Bearer ' + await googleToken(env) };
+  const fv = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? Number(v.integerValue) : 'doubleValue' in v ? v.doubleValue
+    : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : 'mapValue' in v ? obj(v.mapValue.fields || {}) : 'arrayValue' in v ? (v.arrayValue.values || []).map(fv) : null;
+  const obj = f => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, fv(v)]));
+  const eqs = ((await (await fetch(`${FS}/equips?pageSize=500`, { headers: H })).json()).documents || []).map(d => obj(d.fields || {}));
+  const k = new Date(Date.now() + 9 * 3600e3), today = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate());
+  const msgs = {};   // uid → [문장]
+  const add = (uid, t) => { if (uid) (msgs[uid] = msgs[uid] || []).push(t); };
+  for (const e of eqs) {
+    const nm = `${e.name || '장비'}(${e.no || '-'})`;
+    if (morning && /^\d{4}-\d{2}-\d{2}$/.test(e.calib || '')) {
+      const d = Math.round((Date.parse(e.calib + 'T00:00:00Z') - today) / 864e5);
+      if ([30, 7, 1].includes(d)) add(e.mgr || e.by, `🗓️ ${nm} 교정 만료 D-${d} (${e.calib})`);
+      else if (d === 0) add(e.mgr || e.by, `🗓️ ${nm} 오늘 교정 만료예요`);
+      else if (d < 0 && (-d) % 7 === 0) add(e.mgr || e.by, `🔴 ${nm} 교정 기한이 ${-d}일 지났어요`);
+    }
+    if (e.use && e.use.by && e.use.due && e.use.due < Date.now()) add(e.use.by, `⏰ ${nm} 반납 시간이 지났어요`);
+  }
+  const uids = Object.keys(msgs); if (!uids.length) return { sent: 0 };
+  const list = await (await fetch(`${FS}/pushTokens?pageSize=300`, { headers: H })).json();
+  let ok = 0, n = 0;
+  for (const d of (list.documents || [])) {
+    const uid = d.name.split('/').pop(), f = d.fields || {}; if (!msgs[uid]) continue;
+    if (f.on && f.on.booleanValue === false) continue;
+    const off = (f.off && f.off.arrayValue && f.off.arrayValue.values || []).map(v => v.stringValue); if (off.includes('equip')) continue;
+    const m = msgs[uid], title = m.length > 1 ? `🧰 장비 알림 ${m.length}건` : '🧰 장비 알림', body = m.slice(0, 4).join('\n');
+    for (const v of (f.tokens && f.tokens.arrayValue && f.tokens.arrayValue.values || [])) {
+      if (!v.stringValue || n >= 40) continue; n++;
+      const r = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: { token: v.stringValue, data: { kind: 'equip', title, body, url: '#equip', at: String(Date.now()) }, webpush: { headers: { Urgency: 'normal', TTL: '21600' } } } }) });
+      if (r.ok) ok++;
+    }
+  }
+  return { sent: ok, people: uids.length };
+}
+
 /* ArrayBuffer → base64 (큰 파일도 안전하게 조각으로) */
 function b64(buf) {
   const u = new Uint8Array(buf); let s = '';
@@ -162,7 +266,7 @@ function ub64(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length 
 
 /* ===================== 푸시 알림 (Firebase 클라우드 메시징) ===================== */
 const FS = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
-const KINDS = { brief: 1, sos: 1, notice: 1, hazard: 1, voice: 1, test: 1 };
+const KINDS = { brief: 1, sos: 1, notice: 1, hazard: 1, voice: 1, equip: 1, test: 1 };
 async function sendPush(env, user, msg) {
   const kind = String(msg.kind || ''); if (!KINDS[kind]) throw new Error('알 수 없는 알림 종류');
   const title = String(msg.title || '').slice(0, 80), body = String(msg.body || '').slice(0, 200), url = String(msg.url || '#home').slice(0, 100);

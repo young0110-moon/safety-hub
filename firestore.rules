@@ -130,18 +130,19 @@ service cloud.firestore {
     // notices 공지 / noticeReads 공지 읽음 / events 공용 일정 / voices 현장목소리
     // comments 댓글 / reacts 좋아요 / hazards 위험현장 / alerts SOS·긴급 알림
     // foods 맛집 / foodLikes 맛집 추천 / photos 사진 / fileChunks 현장 첨부 자료 조각(700KB씩)
+    // equips 장비 목록(사용·반납·재고 확인은 다른 멤버도 기록) / equipTypes 장비별 자료
     match /{col}/{doc} {
       // 읽기: 지사 멤버만
-      allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks'];
+      allow read: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks','equips','equipTypes'];
 
       // 쓰기: 지사 멤버만, 작성자(by)는 반드시 본인으로 기록
-      allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks']
+      allow create: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks','equips','equipTypes']
                     && request.resource.data.by == request.auth.uid;
 
       // 수정: 작성자 본인 또는 관리자
       //   현장목소리·위험현장·공지·일정은 다른 멤버도 수정 가능(좋아요 수, 위치 추가 등)
-      allow update: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks']
-                    && (resource.data.by == request.auth.uid || isAdmin() || col in ['voices','hazards','notices','events']);
+      allow update: if isMember() && col in ['notices','noticeReads','events','voices','comments','reacts','hazards','alerts','foods','foodLikes','photos','fileChunks','equips','equipTypes']
+                    && (resource.data.by == request.auth.uid || isAdmin() || col in ['voices','hazards','notices','events','equips','equipTypes']);
 
       // 삭제: 작성자 본인 또는 관리자
       allow delete: if isMember() && (resource.data.by == request.auth.uid || isAdmin());
