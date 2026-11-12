@@ -257,6 +257,17 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .tk-btn{border-radius:12px;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--ta2),var(--ta))}
 .tk-ph{min-height:46px;border-radius:12px;border:1px dashed var(--tln);font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ttx);background:transparent}
 .tk-phbg{background:var(--tln)}
+.at-pick{min-height:46px;border-radius:12px;border:1.5px dashed #A78BFA;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;width:100%;flex-wrap:wrap;padding:6px 10px;text-align:center}
+.at-pick small{font-weight:600;opacity:.7}
+.at-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.at-list:empty{display:none}
+.at-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 10px;border-radius:12px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.18);min-height:48px}
+.at-ext{flex-shrink:0;width:38px;height:30px;border-radius:7px;background:var(--c);color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;letter-spacing:.3px}
+.at-nm{flex:1;min-width:0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.at-sz{flex-shrink:0;font-size:11px;opacity:.65;font-weight:700}
+.at-go{flex-shrink:0;font-size:12px;font-weight:900;color:#fff;background:#7C3AED;border-radius:99px;padding:5px 10px;min-width:46px;text-align:center}
+.at-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px}
+.dark .at-row{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.25)}
 .tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--tln);background:transparent;color:var(--ttx)}
 .tk-like.on.tip{background:#E3F5F1;color:#0F766E;border-color:#99E2D4}.tk-like.on.ask{background:#FFF0E5;color:#C2410C;border-color:#FDBA8C}.tk-like.on.chat{background:#F1ECFD;color:#6D28D9;border-color:#C4B5FD}
 .tk-del{min-height:40px;padding:0 12px;border-radius:12px;font-size:12px;font-weight:800;color:#DC2626;border:1px solid rgba(220,38,38,.35)}
@@ -643,6 +654,8 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <label class="min-h-[48px] rounded-xl border border-purple-400/50 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer">🖼️ 앨범에서 선택<input id="wFile" type="file" accept="image/*" multiple class="sr-only"></label>
     </div>
     <div id="wPrev" class="grid grid-cols-4 gap-2"></div>
+    <label class="at-pick">📎 자료 첨부 <small>(PDF·한글·엑셀 등 · 10MB · 3개까지)</small><input id="wDoc" type="file" multiple class="sr-only"></label>
+    <div id="wDocs" class="at-list"></div>
     <label class="flex items-start gap-3 p-3 rounded-xl bg-[#FFF5F5] dark:bg-red-500/10 border border-[#FF3B30]/50 cursor-pointer">
       <input id="wUrgent" type="checkbox" class="w-5 h-5 mt-0.5 accent-[#FF3B30] shrink-0">
       <span class="text-sm"><b class="text-[#FF3B30]">🚨 지사 전체 긴급 전파</b><br><span class="text-xs opacity-80">체크하면 접속 중인 모든 멤버 화면에 사진과 내용이 팝업으로 뜹니다.</span></span>
@@ -877,7 +890,9 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <textarea id="tkText" rows="5" maxlength="1000" class="inp" placeholder="내용을 편하게 적어 주세요. (최대 1,000자)"></textarea>
     <div class="grid grid-cols-2 gap-2"><label class="tk-ph">📸 촬영<input id="tkCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="tk-ph">🖼️ 사진 첨부<input id="tkFile" type="file" accept="image/*" multiple class="sr-only"></label></div>
     <div id="tkPrev" class="grid grid-cols-3 gap-2"></div>
-    <p class="text-[11px] opacity-70 leading-snug">사진 속 이름표·얼굴·차량번호·고객 정보가 보이지 않게 해 주세요. 비방·욕설·개인정보가 담긴 글은 관리자가 지울 수 있어요.</p>
+    <label class="at-pick">📎 자료 첨부 <small>(PDF·한글·엑셀 등 · 10MB · 3개까지)</small><input id="tkDoc" type="file" multiple class="sr-only"></label>
+    <div id="tkDocs" class="at-list"></div>
+    <p class="text-[11px] opacity-70 leading-snug">사진·자료 속 이름표·얼굴·차량번호·고객 정보가 보이지 않게 해 주세요. 파일 이름이나 문서 속 작성자 정보로 누군지 드러날 수 있으니 한 번 확인해 주세요. 비방·욕설·개인정보가 담긴 글은 관리자가 지울 수 있어요.</p>
     <button id="tkSend" type="button" class="tk-btn w-full min-h-[48px] text-sm">🕶️ 익명으로 올리기</button>
   </div>
   <div id="tkCats" class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1 pb-0.5"></div>
@@ -1447,10 +1462,53 @@ function renderHome(){
   hydrate($('#homeFeed'));
 }
 
+/* ===== 자료 첨부(PDF·한글·엑셀 등) =====
+   파일을 700KB 조각으로 나눠 Firestore에 저장하고, 받을 때 다시 합침 (현장: fileChunks / 슬쩍 물어봐: talkFiles, 작성자 정보 없음) */
+const AT_MAX=10*1024*1024,AT_N=3,AT_CH=700*1024,AT_BLOCK=/\.(exe|msi|bat|cmd|com|scr|ps1|vbs|js|mjs|jar|apk|ipa|sh|dll|lnk|reg|html?|xhtml|svg)$/i;
+const atIcon=n=>{const e=((n||'').split('.').pop()||'').toLowerCase();return /^pdf$/.test(e)?['PDF','#DC2626']:/^hwpx?$/.test(e)?['HWP','#2563EB']:/^docx?$/.test(e)?['DOC','#1D4ED8']:/^(xlsx?|csv)$/.test(e)?['XLS','#15803D']:/^pptx?$/.test(e)?['PPT','#EA580C']:/^(png|jpe?g|gif|webp|heic)$/.test(e)?['IMG','#9333EA']:/^(mp4|mov|avi|m4v)$/.test(e)?['VID','#DB2777']:/^(mp3|m4a|wav|aac)$/.test(e)?['AUD','#0891B2']:/^(zip|7z|rar)$/.test(e)?['ZIP','#78716C']:/^txt$/.test(e)?['TXT','#475569']:[(e||'FILE').slice(0,4).toUpperCase(),'#64748B']};
+const atSize=b=>b<1024?b+'B':b<1048576?Math.max(1,Math.round(b/1024))+'KB':(b/1048576).toFixed(1)+'MB';
+const atB64=buf=>{let s='';const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)};
+function atAdd(list,files){for(const f of files){
+  if(list.length>=AT_N){toast(`자료는 ${AT_N}개까지 붙일 수 있어요.`,'error');break}
+  if(AT_BLOCK.test(f.name)){toast('실행 파일·웹 파일은 보안상 올릴 수 없어요.','error');continue}
+  if(!f.size){toast('빈 파일은 올릴 수 없어요.','error');continue}
+  if(f.size>AT_MAX){toast(`10MB 이하 파일만 올릴 수 있어요. (${f.name} · ${atSize(f.size)})`,'error');continue}
+  if(list.some(x=>x.name===f.name&&x.size===f.size))continue;
+  list.push(f)}}
+const atRowIn=(f,rm)=>{const[t,c]=atIcon(f.name);return `<div class="at-row"><span class="at-ext" style="--c:${c}">${t}</span><span class="at-nm">${esc(f.name)}</span><span class="at-sz">${atSize(f.size)}</span><button type="button" data-atrm="${rm}" aria-label="자료 빼기" class="at-x">✕</button></div>`};
+/* 글에 붙은 자료 목록 (누르면 내려받기) — scope: v(현장) / t(슬쩍 물어봐) */
+function atList(files,scope,pid){if(!files||!files.length)return '';
+  return `<div class="at-list">${files.map((f,i)=>{const[t,c]=atIcon(f.n);return `<button type="button" class="at-row" data-atd="${scope}|${pid}|${i}" aria-label="${esc(f.n)} 내려받기"><span class="at-ext" style="--c:${c}">${t}</span><span class="at-nm">${esc(f.n)}</span><span class="at-sz">${atSize(f.s)}</span><span class="at-go">받기</span></button>`}).join('')}</div>`}
+/* 올리기: 조각을 차례로 저장, 실패하면 올린 조각을 지움 */
+async function atUpload(f,col,cidOf,extra,prog){
+  const buf=await f.arrayBuffer(),n=Math.max(1,Math.ceil(f.size/AT_CH)),done=[];
+  try{for(let i=0;i<n;i++){const cid=cidOf(i);await put(col,{data:atB64(buf.slice(i*AT_CH,(i+1)*AT_CH)),...(await extra(cid))},cid);done.push(cid);prog&&prog(i+1,n)}}
+  catch(err){done.forEach(c=>del(col,c).catch(()=>{}));if(err&&/permission/i.test(String(err.code||err.message||'')))err={code:'atrules'};throw err}
+  return {n:f.name.slice(0,120),t:f.type||'application/octet-stream',s:f.size,c:n}}
+const atErr=err=>err&&err.code==='atrules'?'자료 첨부가 아직 준비 중이에요. 관리자에게 보안 규칙 업데이트를 요청해 주세요.':errMsg(err);
+const atBusy=new Set();
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-atd]');if(!b)return;e.preventDefault();e.stopPropagation();
+  const key=b.dataset.atd,[scope,pid,ix]=key.split('|'),i=+ix;if(atBusy.has(key))return;
+  const post=scope==='v'?D.voices.find(x=>x.id===pid):D.talks.find(x=>x.id===pid),f=post&&post.files&&post.files[i];
+  if(!f||!db)return toast('자료를 찾을 수 없어요.','error');
+  const col=scope==='v'?'fileChunks':'talkFiles',cid=k=>scope==='v'?f.id+'_'+k:`${pid}_f${i}_${k}`;
+  atBusy.add(key);const go=b.querySelector('.at-go'),t0=go.textContent;
+  try{const parts=[];for(let k=0;k<f.c;k++){go.textContent=Math.round(k/f.c*100)+'%';
+      const sn=await db.doc(col+'/'+cid(k)).get();const dd=sn.exists&&sn.data();if(!dd||dd.gone||!dd.data)throw {code:'missing'};
+      const bin=atob(dd.data),u=new Uint8Array(bin.length);for(let q=0;q<bin.length;q++)u[q]=bin.charCodeAt(q);parts.push(u)}
+    const blob=new Blob(parts,{type:f.t||'application/octet-stream'}),file=new File([blob],f.n,{type:blob.type});
+    if(isIOS&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]})}catch(_){}}
+    else{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=f.n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);toast('내려받았어요. 휴대폰의 "다운로드"(내 파일)에서 열 수 있어요.','ok')}
+  }catch(err){toast(err&&err.code==='missing'?'자료가 지워져 받을 수 없어요.':'내려받지 못했어요. 잠시 후 다시 시도해 주세요.','error')}
+  finally{atBusy.delete(key);go.textContent=t0}
+},true);
+const atDelV=v=>((v&&v.files)||[]).forEach(f=>{for(let k=0;k<f.c;k++)del('fileChunks',f.id+'_'+k).catch(()=>{})});
+
 /* ===== 현장목소리 ===== */
 const VCATS=[{k:'위험',c:'#FF3B30',i:'⚠️'},{k:'조치요청',c:'#EA580C',i:'🛠️'},{k:'개선제안',c:'#2563EB',i:'💡'},{k:'칭찬',c:'#16A34A',i:'👏'},{k:'현장공유',c:'#7C3AED',i:'📷'}];
 const cOf=k=>VCATS.find(x=>x.k===k)||VCATS[4];
-let vf='전체',wcat='현장공유',pending=[];
+let vf='전체',wcat='현장공유',pending=[],wDocs=[];
 const voicesSorted=()=>D.voices.slice().sort((a,b)=>b.at-a.at);
 const likes=id=>D.reacts.filter(r=>r.post===id);
 const cmts=id=>D.comments.filter(c=>c.post===id).sort((a,b)=>a.at-b.at);
@@ -1466,7 +1524,7 @@ function postCard(v,compact,hq,full){
     <div class="flex items-center gap-2">${avatar(v.by,40)}<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">${esc(nmFull(v.by))}</div><div class="text-[11px] opacity-60 truncate">${ago(v.at)}${v.editedAt?' · 수정됨':''}${v.place?' · 📍 '+esc(v.place):''}</div></div>${canDel(v.by)?`<button data-pmenu="${v.id}" aria-label="글 메뉴" class="w-9 h-9 shrink-0 rounded-full text-lg leading-none opacity-70 hover:bg-purple-500/10">⋯</button>`:''}${v.urgent?'<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF3B30] text-white shrink-0">긴급전파</span>':''}</div>
     <div class="flex items-center gap-1.5 mt-2"><span class="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style="background:${c.c}">${c.i} ${esc(c.k)}</span></div>
     <button data-open="${v.id}" class="block w-full text-left"><p class="text-sm mt-2 break-words whitespace-pre-line ${full?'':'fold'}" ${compact?'style="--fl:3"':''} data-fk="v${v.id}">${hq?sbHL(v.text,hq):esc(v.text)}</p></button>${hq&&v._why?`<div class="text-[10px] font-bold mt-1 opacity-70">🔎 ${esc(v._why)}</div>`:''}
-    ${photoGrid(v.photos,v.id)}
+    ${photoGrid(v.photos,v.id)}${atList(v.files,'v',v.id)}
     <div class="flex items-center gap-1 mt-2 pt-2 border-t border-purple-400/30 text-xs font-bold">
       <button data-like="${v.id}" class="flex-1 min-h-[40px] rounded-lg ${liked?'text-[#7C3AED]':'opacity-80'}">${liked?'💜':'🤍'} 공감 ${lk.length||''}</button>
       <button data-open="${v.id}" class="flex-1 min-h-[40px] rounded-lg opacity-80">💬 댓글 ${cm||''}</button>
@@ -1745,21 +1803,30 @@ $('#wFile').onchange=async e=>{
   renderWrite();
 };
 $('#wCam').onchange=$('#wFile').onchange;
+const wDocsDraw=()=>{$('#wDocs').innerHTML=wDocs.map((f,i)=>atRowIn(f,'w:'+i)).join('')};
+$('#wDoc').onchange=e=>{atAdd(wDocs,[...e.target.files]);e.target.value='';wDocsDraw()};
+$('#wDocs').onclick=e=>{const b=e.target.closest('[data-atrm]');if(b){wDocs.splice(+b.dataset.atrm.split(':')[1],1);wDocsDraw()}};
 $('#wGps').onclick=async()=>{toast('위치를 확인하는 중…');const p=await getPos();if(!p){toast('위치를 확인하지 못했어요. 아래 안내를 확인해 주세요.','error');$('#wPlace').placeholder='📍 위치를 직접 적어 주세요';const h=document.createElement('p');h.className='text-[11px] opacity-80 leading-relaxed';h.innerHTML=geoHelp();$('#wPlace').after(h);setTimeout(()=>h.remove(),15000);return}const a=await revGeo(p);$('#wPlace').value=($('#wPlace').value?$('#wPlace').value+' ':'')+(a||`(${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`);toast('현재 위치를 넣었어요.','ok')};
 let sending=false;
 $('#wSend').onclick=async()=>{
   if(sending)return;
-  const text=$('#wText').value.trim();if(!text&&!pending.length)return toast('내용이나 사진을 넣어 주세요.','error');
+  const text=$('#wText').value.trim();if(!text&&!pending.length&&!wDocs.length)return toast('내용이나 사진·자료를 넣어 주세요.','error');
+  if(wDocs.length&&!db)return toast('자료는 로그인한 뒤에 올릴 수 있어요.','error');
   sending=true;$('#wSend').textContent='전파하는 중…';
   try{
     const ids=[];for(const d of pending)ids.push(await photoPut(d));
+    const files=[];
+    try{for(let j=0;j<wDocs.length;j++){const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      const m=await atUpload(wDocs[j],'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}),(a,n)=>{$('#wSend').textContent=`자료 올리는 중… (${j+1}/${wDocs.length}) ${Math.round(a/n*100)}%`});files.push({id:fid,...m})}}
+    catch(err){atDelV({files});ids.forEach(photoDel);throw err}
+    $('#wSend').textContent='전파하는 중…';
     const urgent=$('#wUrgent').checked,place=$('#wPlace').value.trim();
-    const id=await put('voices',{text,cat:wcat,place,photos:ids,urgent,by:myId,at:Date.now()});
-    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||'사진 전파').slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()});pushSend('voice','📣 긴급 현장 Information',(text||'사진 전파').slice(0,60),'#voice')}catch(e){}
-    pending=[];$('#wText').value=$('#wPlace').value='';$('#wUrgent').checked=false;wcat='현장공유';
+    const id=await put('voices',{text,cat:wcat,place,photos:ids,...(files.length?{files}:{}),urgent,by:myId,at:Date.now()});
+    if(urgent)try{await put('alerts',{kind:'voice',msg:(text||(files.length?'자료 공유':'사진 전파')).slice(0,50)+(place?` (${place})`:''),post:id,photo:ids[0]||'',by:myId,at:Date.now()});pushSend('voice','📣 긴급 현장 Information',(text||(files.length?'자료 공유':'사진 전파')).slice(0,60),'#voice')}catch(e){}
+    pending=[];wDocs=[];wDocsDraw();$('#wText').value=$('#wPlace').value='';$('#wUrgent').checked=false;wcat='현장공유';
     toast(urgent?(db?'지사 전체에 긴급 전파했습니다.':'저장했습니다. (공유 연결 시 지사 전체에 팝업 전파)'):'현장 Information을 전파했습니다.','ok');
     navStack.pop();location.replace('#voice');
-  }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':errMsg(err),'error')}
+  }catch(err){toast(err&&err.code==='quota'?'기기 저장 공간이 부족해 사진을 저장하지 못했습니다.':atErr(err),'error')}
   finally{sending=false;$('#wSend').textContent='📣 지사에 전파하기'}
 };
 
@@ -1787,14 +1854,14 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('#pmEdit')){openPm(pmId,'edit');return}
   const d=e.target.closest('#pmDel');if(d){if(!d.dataset.arm){d.dataset.arm=1;d.innerHTML='한 번 더 누르면 삭제돼요';return}
     const v=D.voices.find(x=>x.id===pmId);if(!v)return closePm();
-    try{await del('voices',v.id);(v.photos||[]).forEach(photoDel);D.reacts.filter(r=>r.post===v.id&&r.by===myId).forEach(r=>del('reacts',r.id).catch(()=>{}));toast('글을 삭제했어요.','ok');closePm();if(cur==='post'){curPost=null;navStack.pop();location.replace('#voice')}}catch(err){toast(errMsg(err),'error')}return}
+    try{await del('voices',v.id);(v.photos||[]).forEach(photoDel);atDelV(v);D.reacts.filter(r=>r.post===v.id&&r.by===myId).forEach(r=>del('reacts',r.id).catch(()=>{}));toast('글을 삭제했어요.','ok');closePm();if(cur==='post'){curPost=null;navStack.pop();location.replace('#voice')}}catch(err){toast(errMsg(err),'error')}return}
   if(e.target.closest('#pmSave')){const t=$('#pmText').value.trim();if(!t)return toast('내용을 입력해 주세요.','error');
     try{await patch('voices',pmId,{text:t,place:$('#pmPlace').value.trim(),editedAt:Date.now()});toast('수정했어요.','ok');closePm()}catch(err){toast(errMsg(err),'error')}}
 });
 $('#postBox').onclick=async e=>{
   if(e.target.closest('#postDel')){
     const b=e.target.closest('#postDel');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='한 번 더 누르면 삭제됩니다';return}
-    const v=D.voices.find(x=>x.id===curPost);try{await del('voices',curPost);(v.photos||[]).forEach(photoDel);toast('글을 삭제했습니다.');curPost=null;navStack.pop();location.replace('#voice')}catch(err){toast(errMsg(err),'error')}
+    const v=D.voices.find(x=>x.id===curPost);try{await del('voices',curPost);(v.photos||[]).forEach(photoDel);atDelV(v);toast('글을 삭제했습니다.');curPost=null;navStack.pop();location.replace('#voice')}catch(err){toast(errMsg(err),'error')}
   }
 };
 let replyTo=null;
@@ -1886,7 +1953,7 @@ $('#hAdd').onclick=async()=>{
    작성자 정보(by)를 저장하지 않음. 대신 이 휴대폰에만 있는 비밀값(SK)으로
    - tag: 글마다 다른 익명 표시값 (같은 글 안에서 '글쓴이'·'익명1' 구분용)
    - kh : 지우기 열쇠의 지문. 지울 때 열쇠(key)를 내면 서버 규칙이 지문과 맞는지 확인 */
-var curTalk=null;let tkCat='전체',tkNewCat='💡 꿀팁 공유',tkPending=[],tkBusy=false;
+var curTalk=null;let tkCat='전체',tkNewCat='💡 꿀팁 공유',tkPending=[],tkDocsP=[],tkBusy=false;
 const TK_CATS=['💡 꿀팁 공유','🙋 궁금해요','☕ 수다'];
 const TK_OLD={'💡 정보공유':'💡 꿀팁 공유','❓ 질문':'🙋 궁금해요','💬 자유':'☕ 수다'};
 const tkC=c=>TK_OLD[c]||c, tkCls=c=>({'💡 꿀팁 공유':'tip','🙋 궁금해요':'ask','☕ 수다':'chat'})[tkC(c)]||'chat';
@@ -1912,7 +1979,7 @@ function renderTalk(){
     <div class="tk-tt">${esc(t.title)}</div>
     <div class="tk-tx tk-clip">${esc(t.text)}</div>
     ${t.photos?`<div class="tk-thumb"><img data-tkp="${t.id}_0" alt="첨부 사진"></div>`:''}
-    <div class="tk-ft"><span>익명 · ${ago(t.at)}</span><span class="flex gap-3"><b class="${k}">${tkReact(t.cat)} ${t.likes||0}</b><b>댓글 ${n}</b></span></div></button>`}).join('')
+    <div class="tk-ft"><span>익명 · ${ago(t.at)}${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span><span class="flex gap-3"><b class="${k}">${tkReact(t.cat)} ${t.likes||0}</b><b>댓글 ${n}</b></span></div></button>`}).join('')
     :`<div class="tk-card text-center text-sm opacity-75 py-8">${tkCat==='전체'?'아직 글이 없어요.<br>첫 이야기를 익명으로 시작해 보세요!':'이 주제에는 아직 글이 없어요.'}</div>`;
   document.querySelectorAll('#tkList img[data-tkp]').forEach(async im=>{const d=await tkPhoto(im.dataset.tkp);if(d)im.src=d;else im.parentElement.remove()});
   tkCheckMine(all).then(nw=>{if(nw&&cur==='talk')renderTalk()});
@@ -1928,6 +1995,7 @@ function renderTalkV(){
     <h2 class="text-[17px] font-black mt-2 leading-snug break-words">${esc(t.title)}</h2>
     <div class="text-[14px] leading-relaxed mt-2 whitespace-pre-wrap break-words fold" style="--fl:10" data-fk="t${t.id}">${esc(t.text)}</div>
     ${t.photos?`<div class="grid grid-cols-3 gap-2 mt-3">${Array.from({length:t.photos},(_,i)=>`<button type="button" data-tkimg="${t.id}_${i}" class="aspect-square rounded-xl overflow-hidden tk-phbg"><img data-tkp="${t.id}_${i}" alt="첨부 사진 ${i+1}" class="w-full h-full object-cover"></button>`).join('')}</div>`:''}
+    ${atList(t.files,'t',t.id)}
     <div class="flex gap-2 mt-3"><button type="button" id="tvLike" class="tk-like ${tkCls(t.cat)}${liked?' on':''}">${liked?'✔ ':''}${tkReact(t.cat)} ${t.likes||0}</button>${canDel(t.id)?`<button type="button" data-tkdel="${t.id}" class="tk-del">${tkMine.get(t.id)?'내 글 지우기':'관리자 삭제'}</button>`:''}</div></div>`;
   $('#tvCmtHd').textContent=`💬 댓글 ${cs.length}`;
   $('#tvCmts').innerHTML=cs.length?cs.map(c=>{const who=c.tag===t.tag?'글쓴이':label.get(c.tag);return `<div class="tk-cmt${c.tag===t.tag?' op':''}"><div class="flex items-center gap-1.5 text-[11px] font-black"><span>${who}</span>${tkMine.get(c.id)?'<span class="tk-me">나</span>':''}<span class="opacity-55 font-bold">${ago(c.at)}</span>${canDel(c.id)?`<button type="button" data-tkcdel="${c.id}" class="ml-auto text-[11px] font-bold text-red-600 min-h-[28px] px-1">삭제</button>`:''}</div><div class="text-[13.5px] mt-0.5 whitespace-pre-wrap break-words leading-relaxed fold" data-fk="k${c.id}">${esc(c.text)}</div></div>`}).join(''):'<div class="text-xs opacity-60 py-2">첫 댓글을 익명으로 남겨 보세요.</div>';
@@ -1939,6 +2007,9 @@ $('#tkPrev').onclick=e=>{const b=e.target.closest('[data-tkrm]');if(b){tkPending
 $('#tkFile').onchange=async e=>{const fs=[...e.target.files].slice(0,3-tkPending.length);e.target.value='';if(!fs.length)return toast('사진은 3장까지 붙일 수 있어요.','error');
   for(const f of fs){try{tkPending.push(await compress(f,1280,.7))}catch(err){toast('이 파일은 사진으로 읽을 수 없어요.','error')}}tkPrev()};
 $('#tkCam').onchange=$('#tkFile').onchange;
+const tkDocsDraw=()=>{$('#tkDocs').innerHTML=tkDocsP.map((f,i)=>atRowIn(f,'t:'+i)).join('')};
+$('#tkDoc').onchange=e=>{atAdd(tkDocsP,[...e.target.files]);e.target.value='';tkDocsDraw()};
+$('#tkDocs').onclick=e=>{const b=e.target.closest('[data-atrm]');if(b){tkDocsP.splice(+b.dataset.atrm.split(':')[1],1);tkDocsDraw()}};
 $('#tkNew').onclick=()=>{$('#tkForm').classList.remove('hidden');$('#tkNew').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>$('#tkTitle').focus({preventScroll:true}),350)};
 const tkClose=()=>{$('#tkForm').classList.add('hidden');$('#tkNew').classList.remove('hidden')};
 $('#tkCancel').onclick=tkClose;
@@ -1953,10 +2024,13 @@ $('#tkSend').onclick=async()=>{
   const id=tkNid('t');
   try{
     for(let i=0;i<tkPending.length;i++){const pid=id+'_'+i;await put('talkPhotos',{data:tkPending[i],kh:await sha(await tkKey(pid)),at:Date.now()},pid);tkPh.set(pid,Promise.resolve(tkPending[i]))}
-    await put('talks',{cat:tkNewCat,title,text,photos:tkPending.length,tag:await tkTag(id),kh:await sha(await tkKey(id)),likes:0,at:Date.now()},id);
+    const files=[];
+    try{for(let j=0;j<tkDocsP.length;j++)files.push(await atUpload(tkDocsP[j],'talkFiles',k=>`${id}_f${j}_${k}`,async cid=>({kh:await sha(await tkKey(cid)),at:Date.now()}),(a,n)=>{$('#tkSend').textContent=`자료 올리는 중… (${j+1}/${tkDocsP.length}) ${Math.round(a/n*100)}%`}))}
+    catch(err){files.forEach((m,j)=>{for(let k=0;k<m.c;k++)del('talkFiles',`${id}_f${j}_${k}`).catch(()=>{})});throw err}
+    await put('talks',{cat:tkNewCat,title,text,photos:tkPending.length,...(files.length?{files}:{}),tag:await tkTag(id),kh:await sha(await tkKey(id)),likes:0,at:Date.now()},id);
     tkMine.set(id,true);store.set('koelsa_talk_seen',Date.now()+1000);
-    $('#tkTitle').value=$('#tkText').value='';tkPending=[];tkPrev();tkClose();toast('익명으로 올렸어요.','ok');
-  }catch(err){toast(errMsg(err),'error')}
+    $('#tkTitle').value=$('#tkText').value='';tkPending=[];tkPrev();tkDocsP=[];tkDocsDraw();tkClose();toast('익명으로 올렸어요.','ok');
+  }catch(err){toast(atErr(err),'error')}
   finally{tkBusy=false;$('#tkSend').textContent='🕶️ 익명으로 올리기'}
 };
 $('#tvSend').onclick=async()=>{
@@ -1978,7 +2052,8 @@ document.addEventListener('click',async e=>{
   const pd=e.target.closest('[data-tkdel]'),cd=e.target.closest('[data-tkcdel]'),b=pd||cd;if(!b)return;
   if(!b.dataset.arm){b.dataset.arm=1;const t0=b.textContent;b.textContent='한 번 더 누르면 삭제';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent=t0}},3000);return}
   try{
-    if(pd){const t=D.talks.find(x=>x.id===pd.dataset.tkdel);await tkRemove('talks',t.id,{title:'',text:''});
+    if(pd){const t=D.talks.find(x=>x.id===pd.dataset.tkdel);await tkRemove('talks',t.id,{title:'',text:'',...(t.files&&t.files.length?{files:[]}:{})});
+      (t.files||[]).forEach((f,j)=>{for(let k=0;k<f.c;k++){const cid=`${t.id}_f${j}_${k}`;(async()=>tkMine.get(t.id)?patch('talkFiles',cid,{gone:true,key:await tkKey(cid),data:''}):del('talkFiles',cid))().catch(()=>{})}});
       for(let i=0;i<(t.photos||0);i++){const pid=t.id+'_'+i;tkPh.delete(pid);(tkMine.get(t.id)?patch('talkPhotos',pid,{gone:true,key:await tkKey(pid),data:''}):del('talkPhotos',pid)).catch(()=>{})}
       if(isAdmin&&!tkMine.get(t.id))tkCmtsOf(t.id).forEach(c=>del('talkCmts',c.id).catch(()=>{}));
       toast('글을 지웠어요.');curTalk=null;go('talk')}
