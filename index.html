@@ -1595,7 +1595,7 @@ const atDelV=v=>((v&&v.files)||[]).forEach(f=>{for(let k=0;k<f.c;k++)del('fileCh
 let eqTab='list',eqF='전체',eqQ='',eqSet='',eqAlOpen=false,eqLast=null,eqBusy=false;
 const EQ_CERT_HELP=`① 성적서번호: 교정기관이 붙인 번호예요. 장비 목록 검색 칸에 넣으면 그 장비가 나와요.
 ② 측정기(기기명·제작회사 및 형식·기기번호): 장비 이름표의 번호와 같은지 꼭 확인해요. 다르면 다른 장비 성적서예요.
-③ 교정일자: 교정한 날이에요. 앱에서는 이 날짜에 1년을 더해 '교정 만료일'로 보여 줘요.
+③ 교정일자: 교정한 날이에요. 앱에서는 이 날짜에 교정 주기(장비 종류별 1년 또는 2년)를 더해 '교정 만료일'로 보여 줘요.
 ④ 교정환경·교정장소: 고정표준실(교정기관 안)에서 했는지, 현장에서 했는지 적혀 있어요.
 ⑤ 측정표준의 소급성: 국가 표준(KRISS)까지 이어진 표준기로 교정했다는 뜻이에요. KOLAS 마크가 있으면 공인 교정이에요.
 ⑥ 교정결과(2쪽): 표준값과 장비 지시값을 비교한 표예요. '보정인자'는 지시값에 곱하면 참값에 가까워지는 수(1.000에 가까울수록 정확)예요.
@@ -1689,6 +1689,11 @@ function renderEquip(){
     const T=(D.equipTypes||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
     P.innerHTML=`<button type="button" data-eqtnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 자료 등록하기</button>
       <p class="text-[12px] opacity-75 px-1 leading-relaxed">장비 종류마다 설명·사용 방법·점검 요령과 설명서(PDF 등)를 올려 두면, 사진으로 장비를 찍었을 때 이 자료가 바로 떠요.</p>
+      <details class="card !p-3" id="eqCycBox"${eqCycOpen?' open':''}><summary class="font-black text-sm cursor-pointer">⏱️ 교정 주기 (1년 · 2년)</summary>
+        <div class="text-[12px] opacity-75 mt-1.5 leading-relaxed">장비 종류마다 교정 주기를 정해요. 바꾸면 그 종류 장비의 <b>교정 만료일이 바로 다시 계산</b>돼요 (마지막 교정일 + 주기).</div>
+        ${[...new Set(all.map(e=>e.kind).filter(Boolean))].sort().map(k=>{const y=eqCyc(k),n=all.filter(e=>e.kind===k).length;return `<div class="flex items-center gap-2 mt-2"><span class="text-lg">${eqEmoji(k)}</span><span class="flex-1 min-w-0 text-[13px] font-bold break-words">${esc(k)} <span class="font-normal opacity-60">${n}대</span></span>
+          ${[1,2].map(v=>`<button type="button" ${isAdmin?`data-eqcyc="${esc(k)}" data-v="${v}"`:'disabled'} class="min-h-[40px] px-3 rounded-xl text-[13px] font-black border ${y===v?'bg-[#6D28D9] text-white border-[#6D28D9]':'border-purple-400/40 opacity-70'}">${v}년</button>`).join('')}</div>`}).join('')||'<div class="text-[12px] opacity-60 mt-2">등록된 장비가 없어요.</div>'}
+        ${isAdmin?'':'<div class="text-[11px] opacity-60 mt-2">주기는 관리자가 바꿀 수 있어요.</div>'}</details>
       <details class="card !p-3" id="eqBdBox"><summary class="font-black text-sm cursor-pointer">📺 장비 사용법 모음 (게시판 QR)</summary><div id="eqBdList" class="grid grid-cols-2 gap-1.5 mt-2 text-[13px] opacity-70">불러오는 중…</div></details>
       <details class="card !p-3"><summary class="font-black text-sm cursor-pointer">📑 교정성적서 이렇게 읽어요</summary><div class="eq-txt mt-2 text-[13px]">${esc(EQ_CERT_HELP)}</div></details>
       ${T.length?T.map(t=>{const n=all.filter(e=>eqN(e.kind)===eqN(t.name)).length;return `<button type="button" data-eqtype="${t.id}" class="card !p-3 w-full text-left flex items-center gap-3"><span class="eq-th eq-ph !w-12 !h-12 !text-2xl">${eqEmoji(t.name)}</span><span class="flex-1 min-w-0"><b class="text-[15px] block break-words">${esc(t.name)}</b><span class="text-xs opacity-75 block truncate">${esc(t.desc||'설명 없음')}</span><span class="text-[11px] opacity-65">등록 장비 ${n}대${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span></span><span class="opacity-50">›</span></button>`}).join('')
@@ -1710,10 +1715,10 @@ async function eqZip(file){
   for(let k=0;k<n;k++){if(dv.getUint32(o,true)!==0x02014b50)break;
     const fl=dv.getUint16(o+8,true),meth=dv.getUint16(o+10,true),csz=dv.getUint32(o+20,true),nl=dv.getUint16(o+28,true),xl=dv.getUint16(o+30,true),cl=dv.getUint16(o+32,true),lo=dv.getUint32(o+42,true);
     const raw=buf.subarray(o+46,o+46+nl),name=(fl&0x800?u8:kr).decode(raw);o+=46+nl+xl+cl;if(name.endsWith('/'))continue;
-    const parts=name.split('/'),key=parts.slice(-2).join('/');
-    out[key]=async()=>{const ln=dv.getUint16(lo+26,true),lx=dv.getUint16(lo+28,true),s=lo+30+ln+lx,data=buf.slice(s,s+csz);
+    const parts=name.split('/'),key=parts.slice(-2).join('/'),base='@'+parts[parts.length-1];
+    const fn=async()=>{const ln=dv.getUint16(lo+26,true),lx=dv.getUint16(lo+28,true),s=lo+30+ln+lx,data=buf.slice(s,s+csz);
       if(meth===0)return new Blob([data]);if(meth!==8)throw new Error('지원하지 않는 압축');
-      return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()}}
+      return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()};out[key]=fn;out[base]=base in out?null:fn}
   return out}
 async function eqImportOpen(){
   let J;try{const r=await fetch('data/calib-2026-10-28.json?v='+DATAV,{cache:'no-store'});J=await r.json()}catch(e){return toast('교정 자료를 불러오지 못했어요.','error')}
@@ -1722,7 +1727,7 @@ async function eqImportOpen(){
   eqOpen(`<h2 class="text-lg font-black pr-10">📥 교정성적서 불러오기</h2>
     <div class="eq-ai mt-2">2026.10.28 기준 교정성적서 ${J.equips.reduce((a,x)=>a+x.certs.length,0)}장을 읽어 정리한 내용이에요.<br>
     장비 <b>${J.equips.length}대</b> (세트 ${new Set(J.equips.map(x=>x.set).filter(Boolean)).size}개 + 단독 ${J.equips.filter(x=>!x.set).length}대) · 장비 종류 <b>${J.types.length}가지</b><br>
-    교정일 + 1년을 교정 만료일로 넣어요 → 이미 지남 <b class="text-red-500">${over}대</b> · 30일 안 <b class="text-amber-600">${soon}대</b></div>
+    교정일 + 교정 주기(종류별 1년·2년, 📄 장비별 자료 탭에서 정함)를 교정 만료일로 넣어요 → 이미 지남 <b class="text-red-500">${over}대</b> · 30일 안 <b class="text-amber-600">${soon}대</b></div>
     <label class="flex items-start gap-2 mt-3 text-[13px]"><input id="imE" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비 목록 등록</b><br><span class="opacity-75">이미 있는 기기번호(${ex}대)는 교정일·성적서 정보만 새로 고쳐요. 담당자는 나로 들어가요.</span></span></label>
     <label class="flex items-start gap-2 mt-2 text-[13px]"><input id="imT" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비별 자료 ${J.types.length}가지 등록</b><br><span class="opacity-75">용도·사용 방법·주의·교정 항목. 이미 있는 종류는 비어 있는 칸만 채워요.</span></span></label>
     <span class="eq-lbl mt-3">성적서 파일도 붙이기 (선택)</span>
@@ -1731,7 +1736,7 @@ async function eqImportOpen(){
     <div id="imProg" class="hidden mt-3"><div class="eq-prog"><i style="width:0"></i></div><div id="imProgTx" class="text-[12px] font-bold mt-1"></div></div>
     <button type="button" id="imGo" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#D97706] text-white font-black text-sm">📥 불러오기</button>`);
   let zip=null;
-  $('#imZip').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;$('#imZipTx').textContent='zip 읽는 중…';try{zip=await eqZip(f);const want=J.equips.flatMap(x=>x.certs.map(c=>c.f)),got=want.filter(k=>zip[k]).length;$('#imZipTx').innerHTML=`🗜️ ${esc(f.name)} · 성적서 <b>${got}/${want.length}</b>장 찾음`}catch(e){zip=null;$('#imZipTx').textContent='zip을 읽지 못했어요: '+(e.message||e)}};
+  $('#imZip').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;$('#imZipTx').textContent='zip 읽는 중…';try{zip=await eqZip(f);const want=J.equips.flatMap(x=>x.certs.map(c=>c.f)),got=want.filter(k=>zip[k]||zip['@'+k.split('/').pop()]).length;$('#imZipTx').innerHTML=`🗜️ ${esc(f.name)} · 성적서 <b>${got}/${want.length}</b>장 찾음`}catch(e){zip=null;$('#imZipTx').textContent='zip을 읽지 못했어요: '+(e.message||e)}};
   $('#imGo').onclick=async()=>{const b=$('#imGo');if(b.disabled)return;if(!db)return toast('로그인한 뒤에 할 수 있어요.','error');
     const doE=$('#imE').checked,doT=$('#imT').checked;if(!doE&&!doT&&!zip)return toast('할 일을 하나 이상 골라 주세요.','error');
     b.disabled=true;$('#imProg').classList.remove('hidden');const bar=$('#imProg i'),tx=$('#imProgTx');let n=0,add=0,upd=0,fil=0,err=0;
@@ -1745,11 +1750,11 @@ async function eqImportOpen(){
         /* 성적서는 종류(소음·진동 등)마다 가장 최근 1부만 */
         const xc=eqLatest({certs:[...((o&&o.certs)||[]),...x.certs]}).certs,keepC=new Set(xc.map(c=>c.c)),newC=x.certs.filter(c=>keepC.has(c.c));
         try{
-          if(doE){const info={kind:x.kind,set:x.set,cdate:x.cdate,calib:x.calib,certs:xc.map(c=>({n:c.n,c:c.c,d:c.d,lab:c.lab}))};
+          if(doE){const info={kind:x.kind,set:x.set,cdate:x.cdate,calib:cuYear(x.cdate,x.kind)||x.calib,certs:xc.map(c=>({n:c.n,c:c.c,d:c.d,lab:c.lab}))};
             if(o){const fill={};['maker','model','serial','place','memo'].forEach(k=>{if(!o[k]&&x[k])fill[k]=x[k]});await patch('equips',o.id,{...info,...fill,editedAt:Date.now()});upd++}
             else{id=await put('equips',{name:x.name,no:x.no,serial:x.serial,maker:x.maker,model:x.model,place:x.place,memo:x.memo,...info,mgr:myId,use:null,inv:null,by:myId,at:Date.now()});add++}}
           if(zip&&id){const old=((o&&o.files)||[]),files=old.filter(f=>{const c=((o&&o.certs)||[]).find(c=>f.n&&f.n.startsWith(c.c+' '));return !c||keepC.has(c.c)}),have=new Set(files.map(f=>f.n));let ch=files.length!==old.length;
-            for(const c of newC){const get=zip[c.f];const fn=c.c+' '+c.n.replace(/[\\/:*?"<>|]/g,'_')+'.'+(c.f.split('.').pop()||'pdf');if(!get||have.has(fn))continue;
+            for(const c of newC){const get=zip[c.f]||zip['@'+c.f.split('/').pop()];const fn=c.c+' '+c.n.replace(/[\\/:*?"<>|]/g,'_')+'.'+(c.f.split('.').pop()||'pdf');if(!get||have.has(fn))continue;
               const blob=await get(),f=new File([blob],fn,{type:/\.jpe?g$/i.test(c.f)?'image/jpeg':'application/pdf'});
               const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);files.push({id:fid,...await atUpload(f,'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}))});ch=true;fil++}
             if(ch)await patch('equips',id,{files})}
@@ -1762,7 +1767,9 @@ async function eqImportOpen(){
 /* ---- 새 교정성적서 올리기: PDF·사진 여러 장 → AI가 기기번호·교정일 읽기 → 확인 → 저장 (측정 종류마다 최신 1부만 남김) ---- */
 let cuRows=[];
 const cuKey=n=>{n=String(n||'');const h=['소음','진동','감속','각도','크리노','조도','절연','클램프','전류','전압','캘리퍼','줄자','틈새','회전','푸쉬','초시계','압력'].find(w=>n.includes(w));return h==='크리노'?'각도':h==='감속'?'진동':h||''};
-const cuYear=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${+m[1]+1}-${m[2]}-${m[3]==='29'&&m[2]==='02'?'28':m[3]}`:''};
+/* 교정 주기: 장비 종류마다 1년 또는 2년 (settings/main.cyc = {종류: 2}) */
+const eqCyc=k=>{const m=((D.settings.find(x=>x.id==='main')||{}).cyc)||{};return m[k]===2?2:1};
+const cuYear=(d,kind,yrs)=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${+m[1]+(yrs||eqCyc(kind))}-${m[2]}-${m[3]==='29'&&m[2]==='02'?'28':m[3]}`:''};
 function cuFind(it){const h=eqMatch({no:it.no,serial:it.serial,texts:[]});if(h)return h;const c=[it.no,it.serial].map(scC).filter(x=>x.length>=3);
   return (D.equips||[]).find(e=>c.includes(scC(e.no))||(e.serial&&c.includes(scC(e.serial))))||null}
 /* 이 장비에 새 성적서를 넣으면 어떻게 되는지: 바꿀 예전 성적서 / 이미 더 최신 */
@@ -1775,7 +1782,7 @@ async function cuAI(f){const u=recUrl(),fu=(()=>{try{return firebase.auth().curr
     body:JSON.stringify({mime:/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)?'application/pdf':(f.type||'image/jpeg'),data:atB64(await f.arrayBuffer())})},90000);
   const j=await r.json().catch(()=>({}));if(r.status===415||r.status===404)throw {code:'noep'};if(!r.ok||j.error)throw {code:j.code||'ai',message:j.error};return j.items||[]}
 function cuOpen(){cuRows=[];eqOpen(`<h2 class="text-lg font-black pr-10">📑 새 교정성적서 올리기</h2>
-  <p class="text-[13px] opacity-85 mt-1 leading-relaxed">교정 받고 온 <b>성적서 PDF(또는 사진)</b>를 고르세요. <b>여러 장 한 번에</b> 돼요.<br>AI가 기기번호·교정일을 읽어 <b>맞는 장비를 찾고</b>, 저장하면 그 장비의 <b>예전 성적서는 빠지고 새 것으로 바뀌어요</b>. 교정 만료일도 교정일+1년으로 자동으로 바뀌어요.</p>
+  <p class="text-[13px] opacity-85 mt-1 leading-relaxed">교정 받고 온 <b>성적서 PDF(또는 사진)</b>를 고르세요. <b>여러 장 한 번에</b> 돼요.<br>AI가 기기번호·교정일을 읽어 <b>맞는 장비를 찾고</b>, 저장하면 그 장비의 <b>예전 성적서는 빠지고 새 것으로 바뀌어요</b>. 교정 만료일도 교정일 + 교정 주기(1년·2년)로 자동으로 바뀌어요.</p>
   <label class="eq-btn pri mt-3">📂 성적서 파일 고르기<input id="cuPick" type="file" accept="application/pdf,image/*" multiple class="sr-only"></label>
   <div id="cuList" class="mt-2"></div><div id="cuFoot"></div>`)}
 function cuDraw(){const E=(D.equips||[]).slice().sort((a,b)=>a.name.localeCompare(b.name)),L=$('#cuList');if(!L)return;
@@ -1786,7 +1793,7 @@ function cuDraw(){const E=(D.equips||[]).slice().sort((a,b)=>a.name.localeCompar
       ${r.items.map((it,k)=>{const p=e?cuPlan(e,it):null;return `<div class="mt-2 p-2 rounded-xl bg-purple-500/5 text-[12.5px]"><div class="font-bold break-words">${esc(it.n||'성적서')} ${it.c?`<span class="opacity-70 font-normal">· ${esc(it.c)}</span>`:''}</div>
         <div class="flex items-center gap-2 mt-1"><span class="shrink-0 opacity-80">교정일</span><input type="date" data-cud="${i}_${k}" value="${esc(it.d||'')}" class="inp !min-h-[40px] !py-1 flex-1"></div>
         ${it.lab?`<div class="opacity-70 mt-0.5">🏢 ${esc(it.lab)}</div>`:''}
-        ${p?(p.same?'<div class="mt-1 opacity-70">이미 같은 성적서가 들어 있어요 (파일만 다시 붙여요)</div>':p.old?'<div class="mt-1 text-red-500 font-bold">⚠ 이 장비에 더 최신 성적서가 있어요 → 저장하지 않아요</div>':`<div class="mt-1 text-green-700 dark:text-green-300">→ ${p.rm.length?`예전 성적서 ${p.rm.map(c=>esc(c.c)+' ('+esc(c.d)+')').join(', ')} 를 바꿔요`:'새로 추가해요'} · 교정 만료 ${esc(cuYear(it.d)||'?')}</div>`):''}</div>`}).join('')}`}
+        ${p?(p.same?'<div class="mt-1 opacity-70">이미 같은 성적서가 들어 있어요 (파일만 다시 붙여요)</div>':p.old?'<div class="mt-1 text-red-500 font-bold">⚠ 이 장비에 더 최신 성적서가 있어요 → 저장하지 않아요</div>':`<div class="mt-1 text-green-700 dark:text-green-300">→ ${p.rm.length?`예전 성적서 ${p.rm.map(c=>esc(c.c)+' ('+esc(c.d)+')').join(', ')} 를 바꿔요`:'새로 추가해요'} · 교정 만료 ${esc(cuYear(it.d,e.kind)||'?')} (주기 ${eqCyc(e.kind)}년)</div>`):''}</div>`}).join('')}`}
     </div>`}).join('');
   const ready=cuRows.filter(r=>r.st==='ready'&&r.eq&&r.items.some(it=>it.d)).length,busy=cuRows.some(r=>r.st==='read');
   $('#cuFoot').innerHTML=cuRows.length?`<button type="button" id="cuSave" class="mt-2 w-full min-h-[52px] rounded-xl bg-[#6D28D9] text-white font-black text-sm"${ready&&!busy?'':' disabled style="opacity:.5"'}>💾 ${ready}건 저장하기${busy?' (읽는 중…)':''}</button>
@@ -1808,7 +1815,7 @@ async function cuSave(){const b=$('#cuSave');if(!b||b.disabled)return;b.disabled
       const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
       files.push({id:fid,...await atUpload(new File([r.f],fn,{type:r.f.type||'application/pdf'}),'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}))});
       const L=eqLatest({certs:C}).certs,cd=L.map(c=>c.d).filter(Boolean).sort()[0]||add[0].d;
-      await patch('equips',e.id,{certs:C,files,cdate:cd,calib:cuYear(cd),editedAt:Date.now()});r.st='done';ok++}
+      await patch('equips',e.id,{certs:C,files,cdate:cd,calib:cuYear(cd,e.kind),editedAt:Date.now()});r.st='done';ok++}
     catch(err){fail++;r.err=atErr(err)}}
   cuDraw();const f=$('#cuSave');if(f){f.outerHTML=`<button type="button" data-eqclose class="mt-2 w-full min-h-[52px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">✔ 닫기</button>`}
   toast(`📑 성적서 ${ok}건 바꿨어요${skip?` · 더 최신이 있어 건너뜀 ${skip}`:''}${fail?` · 실패 ${fail}`:''}`,fail?'error':'ok')}
@@ -1818,6 +1825,12 @@ document.addEventListener('change',e=>{const t=e.target;
   if(t.dataset&&t.dataset.cud){const [i,k]=t.dataset.cud.split('_').map(Number);const it=cuRows[i]&&cuRows[i].items[k];if(it){it.d=t.value;cuDraw()}}});
 document.addEventListener('click',e=>{const d=e.target.closest('[data-cudel],#cuSave,[data-certup]');if(!d)return;e.preventDefault();
   if(d.id==='cuSave')return cuSave();if(d.dataset.certup!==undefined)return cuOpen();cuRows.splice(+d.dataset.cudel,1);cuDraw()});
+
+let eqCycOpen=false;
+async function eqCycSet(kind,v){eqCycOpen=true;try{await db.doc('settings/main').set({cyc:{[kind]:v}},{merge:true});const m=D.settings.find(x=>x.id==='main');if(m){m.cyc={...(m.cyc||{}),[kind]:v}}
+    const L=(D.equips||[]).filter(e=>e.kind===kind&&e.cdate);let n=0;for(const e of L){const c=cuYear(e.cdate,kind,v);if(c&&c!==e.calib){await patch('equips',e.id,{calib:c});n++}}
+    toast(`⏱️ ${kind}: 교정 주기 ${v}년 · 만료일 ${n}대 다시 계산했어요`,'ok');renderEquip()}catch(err){toast(errMsg(err),'error')}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-eqcyc]');if(b){e.preventDefault();eqCycSet(b.dataset.eqcyc,+b.dataset.v)}});
 /* ---- 아래에서 올라오는 창 ---- */
 function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.remove('hidden');document.body.style.overflow='hidden';hydrate($('#eqSheetBody'))}
 function eqClose(){$('#eqSheet').classList.add('hidden');document.body.style.overflow='';eqTDocs=[]}
@@ -1873,7 +1886,7 @@ function eqForm(e,pre){e=e||{};pre=pre||{};const v=k=>esc(e[k]??pre[k]??'');
   <button type="button" id="efSave" data-id="${e.id||''}" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">💾 ${e.id?'고친 내용 저장':'장비 등록'}</button>
   ${e.id&&(canDel(e.by))?`<button type="button" id="efDel" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 장비 삭제</button>`:''}`);
   eqPhoto=pre.img||null;
-  $('#efCdate').onchange=()=>{const c=$('#efCdate').value;if(c&&!$('#efCalib').value){const d=new Date(c+'T00:00:00');d.setFullYear(d.getFullYear()+1);$('#efCalib').value=d.toISOString().slice(0,10)}};
+  $('#efCdate').onchange=()=>{const c=$('#efCdate').value;if(c)$('#efCalib').value=cuYear(c,($('#efKind')||{}).value||'')};
   $('#efPh').onchange=async ev=>{const f=ev.target.files[0];ev.target.value='';if(!f)return;try{eqPhoto=await compress(f,1024,.72);const im=$('#efImg');if(im.tagName==='IMG')im.src=eqPhoto;else im.outerHTML=`<img src="${eqPhoto}" class="eq-th" id="efImg">`}catch(_){toast('사진을 읽지 못했어요.','error')}};
 }
 let eqPhoto=null;
@@ -2245,7 +2258,7 @@ function repMake(p){const R=repData(p);repLast=R;eqClose();const today=new Date(
     ${R.cal.length?`<table class="rep-t"><tr><th>장비</th><th>기기번호</th><th>세트</th><th>최근 교정일</th><th>교정 만료일</th><th>남은 날</th><th>성적서</th></tr>${R.cal.map(e=>{const d=eqDays(e.calib),c=eqLatest(e).certs[0];return `<tr><td class="l">${esc(e.name)}</td><td>${esc(e.no)}</td><td>${esc(e.set||'-')}</td><td>${esc(e.cdate||'-')}</td><td>${esc(e.calib)}</td><td class="${d<0?'red':'amb'}">${eqDday(d)}</td><td>${c?esc(c.c):'-'}</td></tr>`}).join('')}</table>`:'<p>30일 안에 교정이 필요한 장비가 없어요.</p>'}
     <h2>5. 의견</h2><div class="rep-box">${miss.length?`확인되지 않은 장비 ${miss.length}대는 보관 위치·사용·교정 반출 여부를 확인할 필요가 있음. `:''}${R.over?`교정 기한이 지난 장비 ${R.over}대는 사용을 중지하고 교정을 의뢰해야 함. `:''}${R.soon?`30일 안에 만료되는 ${R.soon}대는 교정 일정을 잡아야 함.`:''}${!miss.length&&!R.over&&!R.soon?'특이 사항 없음.':''}</div>
     <table class="rep-sign"><tr><th>점검자</th><td></td><th>확인자</th><td></td></tr></table>
-    <div class="rep-foot">MOA 「나의 장비 관리는?」에서 만든 보고서 · 교정 만료일은 교정일 + 1년 기준</div></div>`,
+    <div class="rep-foot">MOA 「나의 장비 관리는?」에서 만든 보고서 · 교정 만료일은 교정일 + 교정 주기(1년·2년) 기준</div></div>`,
     `<button type="button" data-pvprint class="pv-b pri">🖨️ 인쇄·PDF</button><button type="button" id="repCsv" class="pv-b">📊 엑셀</button>`)}
 function repCsv(){const R=repLast;if(!R)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const lines=[['세트','장비 이름','종류','기기번호','확인','확인 방법','마지막 확인','확인자','최근 교정일','교정 만료일','남은 날','최신 성적서','보관 위치'].map(q).join(',')];
