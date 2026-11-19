@@ -1741,12 +1741,14 @@ async function eqImportOpen(){
         step('장비 자료: '+t.name)}
       for(const x of (doE||zip?J.equips:[])){
         let o=(D.equips||[]).find(e=>eqN(e.no)===eqN(x.no));let id=o&&o.id;
+        /* 성적서는 종류(소음·진동 등)마다 가장 최근 1부만 */
+        const xc=eqLatest({certs:[...((o&&o.certs)||[]),...x.certs]}).certs,keepC=new Set(xc.map(c=>c.c)),newC=x.certs.filter(c=>keepC.has(c.c));
         try{
-          if(doE){const info={kind:x.kind,set:x.set,cdate:x.cdate,calib:x.calib,certs:x.certs.map(c=>({n:c.n,c:c.c,d:c.d,lab:c.lab}))};
+          if(doE){const info={kind:x.kind,set:x.set,cdate:x.cdate,calib:x.calib,certs:xc.map(c=>({n:c.n,c:c.c,d:c.d,lab:c.lab}))};
             if(o){const fill={};['maker','model','serial','place','memo'].forEach(k=>{if(!o[k]&&x[k])fill[k]=x[k]});await patch('equips',o.id,{...info,...fill,editedAt:Date.now()});upd++}
             else{id=await put('equips',{name:x.name,no:x.no,serial:x.serial,maker:x.maker,model:x.model,place:x.place,memo:x.memo,...info,mgr:myId,use:null,inv:null,by:myId,at:Date.now()});add++}}
-          if(zip&&id){const have=new Set(((o&&o.files)||[]).map(f=>f.n)),files=[...((o&&o.files)||[])];let ch=false;
-            for(const c of x.certs){const get=zip[c.f];const fn=c.c+' '+c.n.replace(/[\\/:*?"<>|]/g,'_')+'.'+(c.f.split('.').pop()||'pdf');if(!get||have.has(fn))continue;
+          if(zip&&id){const old=((o&&o.files)||[]),files=old.filter(f=>{const c=((o&&o.certs)||[]).find(c=>f.n&&f.n.startsWith(c.c+' '));return !c||keepC.has(c.c)}),have=new Set(files.map(f=>f.n));let ch=files.length!==old.length;
+            for(const c of newC){const get=zip[c.f];const fn=c.c+' '+c.n.replace(/[\\/:*?"<>|]/g,'_')+'.'+(c.f.split('.').pop()||'pdf');if(!get||have.has(fn))continue;
               const blob=await get(),f=new File([blob],fn,{type:/\.jpe?g$/i.test(c.f)?'image/jpeg':'application/pdf'});
               const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);files.push({id:fid,...await atUpload(f,'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}))});ch=true;fil++}
             if(ch)await patch('equips',id,{files})}
