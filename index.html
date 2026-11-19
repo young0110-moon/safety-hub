@@ -2078,7 +2078,7 @@ async function certView(eid,idx){
   const tabs=L.all.length>1?`<div class="flex gap-1.5 overflow-x-auto hscroll px-3 pt-2">${L.all.map(x=>`<button type="button" data-certv="${e.id}" data-ci="${x.i}" class="eq-chip shrink-0${cur&&x.i===cur.i?' on':''}">${esc(x.c?x.c.n.replace(/\s*\/.*$/,'').replace(/\(.*\)/,'').trim()+' '+x.c.d.slice(2):x.f.n)}${L.files.includes(x)?' ★':''}</button>`).join('')}</div>`:'';
   const dd=eqDays(e.calib);
   pvOpen('📑 '+e.name,`${tabs}<div class="px-3 pt-2 text-[12.5px] leading-relaxed"><b>${esc(e.kind||'')}</b> · 🔢 ${esc(e.no||'-')}${e.set?' · 📦 '+esc(e.set):''}<br>
-    ${c?`성적서 <b>${esc(c.c)}</b> · 교정일 <b>${esc(c.d)}</b> · ${esc(c.lab||'')}`:''}${e.calib?`<br>교정 만료 <b class="${dd<0?'text-red-500':dd<=30?'text-amber-600':''}">${esc(e.calib)} (${eqDday(dd)})</b>`:''}
+    ${c?`성적서 <b>${esc(c.c)}</b> · 교정일 <b>${esc(c.d)}</b> · ${esc(c.lab||'')}`:''}${e.calib?`<br>교정 만료 <b class="${dd<0?'text-red-500':dd<=30?'text-amber-600':''}">${esc(e.calib)} (${eqDday(dd)})</b> · 교정 주기 <b>${eqCyc(e.kind)}년</b>`:eqCyc(e.kind)===0?'<br>🚫 교정 제외 장비':''}
     ${L.files.length&&cur&&!L.files.includes(cur)?'<br><span class="text-amber-600 font-bold">※ 예전 성적서예요. ★ 표시가 최신이에요.</span>':''}</div>
     <div id="pvDoc" class="pv-doc"><div class="text-center text-sm opacity-70 py-16">${cur?'📑 성적서를 불러오는 중…':'아직 이 장비에 성적서 파일이 올라오지 않았어요.<br>관리자가 \'교정성적서 불러오기\'에서 zip을 고르면 붙어요.'}</div></div>`,
     cur?`<button type="button" data-pvz="-1" class="pv-b">－</button><button type="button" data-pvz="1" class="pv-b">＋</button><button type="button" data-pvsave class="pv-b">⬇️ 저장</button>`:'');
