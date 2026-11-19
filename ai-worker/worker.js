@@ -128,7 +128,10 @@ export default {
       const img = String(q.img || '');
       if (!img || img.length > 4_000_000) return out({ error: '사진이 없거나 너무 커요.' }, 400);
       const types = (Array.isArray(q.types) ? q.types : []).map(t => String(t).slice(0, 30)).slice(0, 80);
-      const prompt = EQ_PROMPT + '\n\n[지사에 등록된 장비 종류]\n' + (types.length ? types.join(', ') : '(없음)');
+      const nos = (Array.isArray(q.nos) ? q.nos : []).map(t => String(t).slice(0, 40)).filter(Boolean).slice(0, 600);
+      const prompt = EQ_PROMPT + '\n\n[지사에 등록된 장비 종류]\n' + (types.length ? types.join(', ') : '(없음)')
+        + (nos.length ? '\n\n[우리 지사 기기번호 목록 — 지사 장비 번호는 이 목록에만 있어요]\n' + nos.join(', ')
+          + '\n- picks: 사진에 보이는 번호가 위 목록의 어떤 번호와 같은 장비로 보이면(0/O, 1/I, 5/S, 8/B, 하이픈·공백 차이 정도만) 그 목록 번호를 글자 그대로. 장비가 여러 대 보이면 모두. 숫자가 여러 자리 다르면 넣지 마. 없으면 빈 배열.' : '');
       const body = {
         contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: img } }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: EQ_SCHEMA }
@@ -238,7 +241,8 @@ const EQ_SCHEMA = {
   properties: {
     kind: { type: 'STRING' }, match: { type: 'STRING' }, no: { type: 'STRING' }, serial: { type: 'STRING' },
     model: { type: 'STRING' }, maker: { type: 'STRING' }, calib: { type: 'STRING' }, conf: { type: 'STRING' },
-    guide: { type: 'ARRAY', items: { type: 'STRING' } }, texts: { type: 'ARRAY', items: { type: 'STRING' } }
+    guide: { type: 'ARRAY', items: { type: 'STRING' } }, texts: { type: 'ARRAY', items: { type: 'STRING' } },
+    picks: { type: 'ARRAY', items: { type: 'STRING' } }
   },
   required: ['kind', 'match', 'no', 'serial', 'model', 'maker', 'calib', 'conf', 'guide', 'texts']
 };

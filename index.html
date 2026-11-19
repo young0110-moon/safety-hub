@@ -1945,16 +1945,17 @@ function eqUseForm(e){const at=h=>{const d=new Date();d.setHours(h,0,0,0);return
 }
 function eqResultClear(){}
 /* ---- 사진 → AI ---- */
-async function eqAI(img){
+async function eqAI(img,nos){
   const u=recUrl(),fu=(()=>{try{return firebase.auth().currentUser}catch(e){return null}})();if(!u||!fu)throw {code:'noai'};
   const tk=await fu.getIdToken();
-  const r=await fetchO(u.replace(/\/$/,'')+'/equip',{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({img:img.split(',')[1],types:(D.equipTypes||[]).map(t=>t.name).slice(0,80)})},45000);
+  const r=await fetchO(u.replace(/\/$/,'')+'/equip',{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({img:img.split(',')[1],types:(D.equipTypes||[]).map(t=>t.name).slice(0,80),nos:(nos||(D.equips||[]).flatMap(e=>[e.no,e.serial])).filter(Boolean).slice(0,600)})},45000);
   const j=await r.json().catch(()=>({}));
   if(r.status===415||r.status===404)throw {code:'noep'};
   if(!r.ok||j.error)throw {code:j.code||'ai',message:j.error||('HTTP '+r.status)};return j}
 const eqAIErr=err=>err&&err.code==='location'?'지금 연결된 AI 서버 위치(홍콩)에서는 Gemini를 쓸 수 없어요. 와이파이를 끄고 휴대폰 데이터로 다시 해 보세요.':err&&err.code==='noep'?'AI 서버 업데이트가 아직 안 됐어요. 관리자에게 알려 주세요.':err&&err.code==='noai'?'AI 서버가 연결되지 않았어요.':err&&err.code==='quota'?'오늘 AI 무료 사용량을 다 썼어요. 번호를 직접 입력해 주세요.':err&&err.name==='AbortError'?'AI 응답이 늦어요. 다시 찍어 주세요.':'AI가 사진을 읽지 못했어요. '+(err&&err.message?'('+err.message+')':'');
 function eqMatch(ai){const c=[ai.no,ai.serial,...(ai.texts||[])].map(eqN).filter(x=>x.length>=3);if(!c.length)return null;const E=D.equips||[];
-  return E.find(e=>c.includes(eqN(e.no))||(e.serial&&c.includes(eqN(e.serial))))||E.find(e=>{const n=eqN(e.no);return n.length>=4&&c.some(x=>x.length>=4&&(x.includes(n)||n.includes(x)))})||null}
+  const cc=c.map(scC),pk=(ai.picks||[]).map(scC).find(k=>cc.some(x=>scLev(x,k)<=1||(x.length>=5&&(x.includes(k)||k.includes(x))))),pe=pk&&E.find(e=>scC(e.no)===pk||(e.serial&&scC(e.serial)===pk));
+  return E.find(e=>c.includes(eqN(e.no))||(e.serial&&c.includes(eqN(e.serial))))||pe||E.find(e=>{const n=eqN(e.no);return n.length>=4&&c.some(x=>x.length>=4&&(x.includes(n)||n.includes(x)))})||null}
 async function eqScan(file,mode){
   if(eqBusy)return;eqBusy=true;const box=mode==='inv'?$('#eqInvRes'):$('#eqResult');
   let img='';try{img=await compress(file,1280,.75)}catch(_){eqBusy=false;return toast('사진을 읽지 못했어요.','error')}
@@ -2042,6 +2043,7 @@ const scDone=e=>scOk.has(e.id)||!!(e.seen&&e.seen.at>=scToday()&&e.seen.set===sc
 /* AI가 읽은 글자들 → 장비 찾기: ① 전체에서 똑같은 번호 ② 이 세트 안에서 비슷한 번호(1~2글자 틀림 허용) */
 function scMatch(ai,items){
   const cands=[...new Set([ai.no,ai.serial,...(ai.texts||[])].map(scC).filter(x=>x.length>=3))],E=D.equips||[],hits=new Map();
+  for(const pk of (ai.picks||[])){const k=scC(pk),e=E.find(x=>scC(x.no)===k||(x.serial&&scC(x.serial)===k));if(e&&!hits.has(e.id)&&cands.some(c=>scLev(c,k)<=1||(c.length>=5&&(c.includes(k)||k.includes(c)))))hits.set(e.id,{e,how:'near'})}
   for(const c of cands){const ex=E.find(e=>scC(e.no)===c||(e.serial&&scC(e.serial)===c));if(ex){hits.set(ex.id,{e:ex,how:'exact'});continue}
     let best=null,bd=9;for(const e of items){const n=scC(e.no),lim=n.length>=7?2:n.length>=4?1:0;let dd=scLev(c,n);
       if(dd>lim&&c.length>=5&&n.length>=5&&(c.includes(n)||n.includes(c)))dd=lim;if(dd<=lim&&dd<bd){bd=dd;best=e}}
@@ -2128,7 +2130,7 @@ async function scPhoto(file){
   try{img=await compress(file,1280,.75)}catch(_){scBusy=false;return toast('사진을 읽지 못했어요.','error')}
   if(res)res.innerHTML=`<div class="flex items-center gap-3 mt-3"><img src="${img}" class="eq-th" alt="찍은 사진"><div class="text-sm font-bold">🤖 AI가 번호를 읽는 중…<div class="text-[11.5px] opacity-70 font-normal">5~15초쯤 걸려요</div></div></div>`;
   const items=scItems(scSet);let html='';
-  try{const ai=await eqAI(img),hits=scMatch(ai,items),mine=hits.filter(h=>h.e.set===scSet||(scSet==='_'&&!h.e.set)),other=hits.filter(h=>!mine.includes(h));
+  try{const ai=await eqAI(img,items.flatMap(e=>[e.no,e.serial])),hits=scMatch(ai,items),mine=hits.filter(h=>h.e.set===scSet||(scSet==='_'&&!h.e.set)),other=hits.filter(h=>!mine.includes(h));
     let ph='';if(mine.length){try{ph=await photoPut(await compress(file,800,.6))}catch(_){}}
     for(const h of mine)await scCheck(h.e,h.how==='exact'?'ai':'near',ph);
     html+=mine.map(h=>`<div class="sc-hit">✅ <b>${esc(h.e.kind.replace(/\(.*\)/,''))}</b> (${esc(h.e.no)}) 확인!${h.how==='near'?' <span class="text-[11px] opacity-75">· 비슷한 번호로 찾음</span>':''}${eqCertBtn(h.e)}</div>`).join('');
