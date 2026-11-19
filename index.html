@@ -1637,6 +1637,7 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
     ${edit?`<button type="button" data-eqedit="${e.id}" class="eq-b">✏️ 고치기</button>`:''}
   </div></div>`}
 function renderEquip(){
+  setqSeed();
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
   $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
     ${my.slice(0,eqAlOpen?999:3).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}${my.length>3?`<button type="button" data-eqalt class="mt-1.5 text-[12.5px] font-black text-purple-600 dark:text-purple-300 min-h-[36px]">${eqAlOpen?'▲ 접기':`▼ 나머지 ${my.length-3}개 더 보기`}</button>`:''}
@@ -2039,7 +2040,7 @@ function scDraw(){
       <div class="flex flex-col gap-1 shrink-0">${eqLatest(e).certs.length||(e.files||[]).length?`<button type="button" data-certv="${e.id}" class="sc-mini">📑 성적서</button>`:''}<button type="button" data-eqdoc="${e.id}" class="sc-mini">📘 설명서</button>${done?'':`<button type="button" data-scman="${e.id}" class="sc-mini">👀 확인</button>`}</div></div>`};
   eqOpen(`<div class="pr-10"><div class="text-[11px] font-bold opacity-65">세트 점검${inv?' · 재고 조사 「'+esc(inv.title)+'」에도 기록돼요':''}</div><h2 class="text-lg font-black">📦 ${esc(code==='_'?'세트 아닌 장비':code)}</h2>
     ${last?`<div class="text-[11.5px] opacity-70">마지막 점검: ${tstr(last.at)} · ${esc(nmFull(last.by))} · ${last.ok}/${last.total}</div>`:''}
-    ${code!=='_'?`<div class="text-[12px] mt-1"><span class="opacity-75">👤 세트 사용자:</span> <b>${(((m.setOwner||{})[code])||[]).map(u=>esc(nm(u))).join(', ')||'<span class="opacity-60 font-normal">아직 없음</span>'}</b> <button type="button" data-scown class="text-[11.5px] font-black text-purple-600 dark:text-purple-300 min-h-[32px] px-1">✏️ 정하기</button></div>
+    ${code!=='_'?`<div class="text-[12px] mt-1"><span class="opacity-75">👤 세트 사용자:</span> <b>${(((m.setOwner||{})[code])||[]).map(u=>esc(nm(u))).join(', ')||`<span class="opacity-60 font-normal">${SETQ&&SETQ[code]?'라벨 운용자: '+esc(SETQ[code].user)+' (앱 멤버와 연결 안 됨)':'아직 없음'}</span>`}</b> <button type="button" data-scown class="text-[11.5px] font-black text-purple-600 dark:text-purple-300 min-h-[32px] px-1">✏️ 정하기</button></div>
       <div class="text-[10.5px] opacity-60">세트 사용자는 이 세트 장비의 교정 만료 알림을 함께 받아요.</div><div id="scOwnBox"></div>`:''}</div>
     <div class="flex items-center justify-between mt-2 text-sm font-black"><span>확인 ${ok.length} / ${items.length}개</span><span>${pct}%</span></div><div class="eq-prog mt-1"><i style="width:${pct}%"></i></div>
     <div class="grid grid-cols-[1fr_auto] gap-2 mt-3"><label class="eq-btn pri">📸 장비 기기번호 찍기<input id="scCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="eq-btn px-3">🖼️<input id="scPic" type="file" accept="image/*" multiple class="sr-only"></label></div>
@@ -2074,8 +2075,25 @@ document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='eqQr'){const f=e.target.files[0];e.target.value='';if(!f)return;toast('QR을 읽는 중…');
     qrRead(f).then(async t=>{if(!t)return toast('QR을 찾지 못했어요. QR이 화면 가운데 크게 나오게 다시 찍어 주세요.','error');
       await eqManLoad();const bk=eqBdKey(t),bd=bk&&EQBOARD.find(x=>eqBdKey(x.u)===bk);if(bd){toast('📘 '+bd.n+' 사용법이에요','ok');return eqDocPop(bd.n)}
+      const sq0=await setqFind(t),sq=sq0.filter(c=>scItems(c).length);if(sq.length===1)return scOpen(sq[0]);if(sq.length>1)return setqPick(sq);if(sq0.length)return scOpen(sq0[0]);
       const k=await scQrKey(t),m=((D.settings.find(x=>x.id==='main')||{}).qrMap||{})[k];if(m&&m.set)return scOpen(m.set);
       const c=scCodeOf(t);if(c&&scItems(c).length)return scOpen(c);scQrLink(t,k)}).catch(()=>toast('QR을 읽지 못했어요.','error'))}});
+
+/* 세트 가방에 붙은 QR (data/sets.json) → 바로 세트 점검. 라벨 운용자 = 기본 세트 사용자 */
+let SETQ=null;
+async function setqLoad(){if(SETQ)return SETQ;try{const r=await fetch('data/sets.json?v='+DATAV);SETQ=(await r.json()).sets||{}}catch(e){SETQ={}}return SETQ}
+async function setqFind(t){const k=eqBdKey(t);if(!k)return [];const S=await setqLoad();return Object.keys(S).filter(c=>S[c].qr===k).sort()}
+function setqPick(codes){eqOpen(`<h2 class="text-lg font-black pr-10">📦 어느 세트인가요?</h2>
+  <p class="text-[13px] opacity-85 mt-1 leading-relaxed">이 QR은 <b>${codes.map(esc).join(', ')}</b> 가방에 똑같이 붙어 있어요. 가방 번호를 보고 골라 주세요.</p>
+  ${codes.map(c=>`<button type="button" data-setqgo="${esc(c)}" class="mt-2 w-full min-h-[54px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-base">📦 ${esc(c)}</button>`).join('')}
+  <div class="text-[11px] opacity-60 mt-2">두 가방 QR이 같은 링크로 인쇄돼 있어요. 라벨을 다시 뽑을 때 고치면 바로 열려요.</div>`)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-setqgo]');if(b){e.preventDefault();eqClose();scOpen(b.dataset.setqgo)}});
+/* 관리자가 장비 화면을 열면: 세트 사용자가 비어 있는 세트에 라벨 운용자(멤버 이름이 같은 사람)를 한 번 채워 둠 → 교정 알림도 받게 */
+let setqSeeded=false;
+async function setqSeed(){if(setqSeeded||!isAdmin||!db||!(D.members||[]).length)return;setqSeeded=true;
+  const S=await setqLoad(),cur=((D.settings.find(x=>x.id==='main')||{}).setOwner)||{},up={};
+  for(const c in S){if((cur[c]||[]).length)continue;const ms=(D.members||[]).filter(m=>eqN(m.name)===eqN(S[c].user));if(ms.length===1)up[c]=[ms[0].id]}
+  if(Object.keys(up).length)try{await db.doc('settings/main').set({setOwner:up},{merge:true})}catch(e){}}
 /* 지사에 원래 붙어 있던 QR: 처음 한 번 '어느 세트인지' 연결해 두면 다음부터 바로 열림 (settings/main.qrMap) */
 const scQrKey=async t=>'q'+(await sha(String(t).trim())).slice(0,20);
 function scQrLink(t,k){const sets=[...new Set((D.equips||[]).map(e=>e.set).filter(Boolean))].sort();
