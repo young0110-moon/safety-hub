@@ -2683,7 +2683,8 @@ function renderMembers(){
 }
 $('#mSearch').oninput=renderMembers;
 /* 명함 QR: settings/main.cards = {이름: 명함 링크}. 이름 옆 🪪 → 큰 QR + 명함 열기 */
-const mbCards=()=>((D.settings.find(x=>x.id==='main')||{}).cards)||{};
+let MBC0=null;fetch('data/cards.json?v='+DATAV).then(r=>r.json()).then(j=>{MBC0=j.cards||{};if(cur==='members')renderMembers()}).catch(()=>{MBC0={}});
+const mbCards=()=>({...(MBC0||{}),...(((D.settings.find(x=>x.id==='main')||{}).cards)||{})});
 const mbCard=n=>{const c=mbCards();return c[n]||c[String(n||'').replace(/\s/g,'')]||''};
 async function mbCardOpen(name,url,title){url=url||mbCard(name);if(!url)return;
   try{await loadScript('lib/qrcode.js')}catch(e){return window.open(url,'_blank','noopener')}
