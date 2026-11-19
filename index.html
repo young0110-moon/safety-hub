@@ -1659,7 +1659,7 @@ function renderEquip(){
     const scBox=`<div class="card !p-4"><b class="text-sm">📦 세트로 점검하기</b><p class="text-[12.5px] opacity-80 mt-1 leading-relaxed">가방의 <b>세트 QR</b>을 찍으면 그 세트 장비 목록이 열려요. 장비 기기번호를 찍으면 그 세트 안에서 맞춰 ✔ 확인하고, <b>최신 성적서</b>도 바로 볼 수 있어요.</p>
       <label class="eq-btn sc-qr mt-2.5">📦 세트 가방 QR 찍기<input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
       ${sets.length?`<div class="flex gap-2 mt-2"><select id="scPickSel" class="inp flex-1" aria-label="세트 고르기"><option value="">QR 없이 세트 고르기</option>${sets.map(s=>`<option value="${esc(s)}">${esc(s)}${sc[s]?' · 점검 '+sc[s].ok+'/'+sc[s].total+' ('+ago(sc[s].at)+')':' · 점검 기록 없음'}</option>`).join('')}<option value="_">세트 아닌 장비</option></select><button type="button" data-scpick class="eq-b pri px-4 shrink-0">열기</button></div>`:''}
-      <div class="grid ${isAdmin?'grid-cols-2':'grid-cols-1'} gap-2 mt-2"><button type="button" data-eqrep class="eq-b">📄 보고서 만들기</button>${isAdmin?'<button type="button" data-eqlabel class="eq-b">🏷️ 세트 QR 라벨</button>':''}</div></div>`;
+      <div class="grid ${isAdmin?'grid-cols-2':'grid-cols-1'} gap-2 mt-2"><button type="button" data-eqrep class="eq-b">📄 보고서 만들기</button>${isAdmin?'<button type="button" data-eqlabel class="eq-b">🏷️ 새 QR 라벨 만들기</button>':''}</div></div>`;
     if(!inv){P.innerHTML=`<div class="card !p-4"><b class="text-sm">📋 재고 조사란?</b><p class="text-[13px] opacity-85 mt-1 leading-relaxed">지사 장비가 제자리에 다 있는지 한 번에 확인하는 기능이에요. 조사를 시작한 뒤 장비 이름표(기기번호)를 사진으로 찍으면 AI가 번호를 읽어 <b>자동으로 ✔ 확인</b>해 줘요.</p>
       <label class="eq-lbl" for="eqInvT">조사 이름</label><input id="eqInvT" class="inp" maxlength="40" value="${new Date().getFullYear()}년 ${new Date().getMonth()+1}월 장비 재고 조사">
       <button type="button" data-eqinvstart class="mt-3 w-full min-h-[50px] rounded-xl bg-[#16A34A] text-white font-black text-sm">▶ 재고 조사 시작</button></div>${scBox}
@@ -1998,7 +1998,7 @@ async function qrRead(file){
   const bmp=await createImageBitmap(file);
   try{if('BarcodeDetector' in window){const r=await new BarcodeDetector({formats:['qr_code']}).detect(bmp);if(r&&r[0])return r[0].rawValue}}catch(_){}
   await loadScript('lib/jsQR.js');const W=Math.min(1600,bmp.width),H=Math.round(bmp.height*W/bmp.width),cv=document.createElement('canvas');cv.width=W;cv.height=H;
-  const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0,W,H);const d=cx.getImageData(0,0,W,H),q=window.jsQR(d.data,W,H,{inversionAttempts:'attemptBoth'});return q?q.data:''}
+  const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0,W,H);const d=cx.getImageData(0,0,W,H),q=window.jsQR(d.data,W,H,{inversionAttempts:'attemptBoth'});return q?(q.data||(q.binaryData&&q.binaryData.length?'BIN:'+q.binaryData.join('.'):'')):''}
 const scCodeOf=t=>{t=String(t||'');const m=t.match(/[?&]set=([A-Za-z0-9_-]+)/)||t.match(/\b(SEB-\d{4}-\d{2})\b/i);return m?m[1].toUpperCase():''};
 
 /* ---- 세트 점검 창 ---- */
@@ -2044,9 +2044,23 @@ async function scCheck(e,m,ph){
 document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='scCam'||id==='scPic'){const fs=[...e.target.files];e.target.value='';(async()=>{for(const f of fs)await scPhoto(f)})()}
   if(id==='eqQr'){const f=e.target.files[0];e.target.value='';if(!f)return;toast('QR을 읽는 중…');
-    qrRead(f).then(t=>{const c=scCodeOf(t);if(!c)return toast('세트 QR을 찾지 못했어요. QR이 화면 가운데 크게 나오게 다시 찍어 주세요.','error');scOpen(c)}).catch(()=>toast('QR을 읽지 못했어요.','error'))}});
+    qrRead(f).then(async t=>{if(!t)return toast('QR을 찾지 못했어요. QR이 화면 가운데 크게 나오게 다시 찍어 주세요.','error');
+      const k=await scQrKey(t),m=((D.settings.find(x=>x.id==='main')||{}).qrMap||{})[k];if(m&&m.set)return scOpen(m.set);
+      const c=scCodeOf(t);if(c&&scItems(c).length)return scOpen(c);scQrLink(t,k)}).catch(()=>toast('QR을 읽지 못했어요.','error'))}});
+/* 지사에 원래 붙어 있던 QR: 처음 한 번 '어느 세트인지' 연결해 두면 다음부터 바로 열림 (settings/main.qrMap) */
+const scQrKey=async t=>'q'+(await sha(String(t).trim())).slice(0,20);
+function scQrLink(t,k){const sets=[...new Set((D.equips||[]).map(e=>e.set).filter(Boolean))].sort();
+  if(!sets.length)return toast('세트 장비가 아직 없어요. 교정성적서 불러오기를 먼저 해 주세요.','error');
+  const guess=sets.find(s=>String(t).toUpperCase().includes(s))||sets.find(s=>String(t).replace(/\D/g,'').endsWith(s.replace(/\D/g,'').slice(-2)))||'';
+  eqOpen(`<h2 class="text-lg font-black pr-10">🔗 처음 보는 QR이에요</h2>
+    <p class="text-[13px] opacity-85 mt-1 leading-relaxed">이 가방 QR이 <b>어느 세트</b>인지 한 번만 알려 주세요. 다음부터는 찍으면 바로 그 세트 점검이 열려요.</p>
+    <div class="eq-ai mt-2 break-all text-[12px]">QR 내용: ${esc(String(t).slice(0,160))}</div>
+    <label class="eq-lbl" for="qrSet">이 QR은</label><select id="qrSet" class="inp"><option value="">세트를 골라 주세요</option>${sets.map(s=>`<option value="${esc(s)}"${s===guess?' selected':''}>${esc(s)} (${scItems(s).length}개)</option>`).join('')}</select>
+    <button type="button" id="qrLinkGo" data-k="${k}" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">🔗 이 세트로 연결하고 점검 시작</button>`);
+  scQrTxt=String(t).slice(0,200)}
+let scQrTxt='';
 document.addEventListener('click',async e=>{
-  const g=e.target.closest('[data-scguess],[data-scman],#scEnd,[data-scpick],[data-eqrep],[data-eqlabel],#repGo,#repCsv');if(!g||!e.target.closest('#eqSheet,#p-equip,#pvView'))return;
+  const g=e.target.closest('[data-scguess],[data-scman],#scEnd,[data-scpick],[data-eqrep],[data-eqlabel],#repGo,#repCsv,#qrLinkGo');if(!g||!e.target.closest('#eqSheet,#p-equip,#pvView'))return;
   if(g.dataset.scguess){const x=D.equips.find(y=>y.id===g.dataset.scguess);if(!x)return;let ph='';try{if(scLastImg)ph=await photoPut(scLastImg)}catch(_){}
     await scCheck(x,'guess',ph);scLast=`<div class="mt-3"><div class="sc-hit">✅ <b>${esc(x.kind.replace(/\(.*\)/,''))}</b> (${esc(x.no)}) 확인!${eqCertBtn(x)}</div></div>`;scDraw();return}
   if(g.dataset.scman){const x=D.equips.find(y=>y.id===g.dataset.scman);if(!x)return;if(!g.dataset.arm){g.dataset.arm=1;g.textContent='한 번 더';setTimeout(()=>{if(g.isConnected){delete g.dataset.arm;g.textContent='👀 확인'}},3000);return}
@@ -2056,6 +2070,9 @@ document.addEventListener('click',async e=>{
     try{await db.doc('settings/main').set({setChk:{[scSet]:{at:Date.now(),by:myId,ok:ok.length,total:items.length,miss:miss.map(x=>({id:x.id,k:(x.kind||'').replace(/\(.*\)/,''),no:x.no}))}}},{merge:true})}catch(err){toast(errMsg(err),'error')}
     eqClose();toast(miss.length?`세트 점검 끝 · ${ok.length}/${items.length}개 · 없음: ${miss.map(x=>(x.kind||'').replace(/\(.*\)/,'')).join(', ')}`:`세트 점검 끝 · ${items.length}개 모두 확인! 👏`,miss.length?'error':'ok');scSet='';scLast=null;return}
   if(g.dataset.scpick!==undefined){const v=$('#scPickSel').value;if(v)scOpen(v);return}
+  if(g.id==='qrLinkGo'){const s=$('#qrSet').value;if(!s)return toast('세트를 골라 주세요.','error');
+    try{await db.doc('settings/main').set({qrMap:{[g.dataset.k]:{set:s,txt:scQrTxt,by:myId,at:Date.now()}}},{merge:true})}catch(err){return toast(errMsg(err),'error')}
+    toast(`QR을 ${s}에 연결했어요.`,'ok');scOpen(s);return}
   if(g.dataset.eqrep!==undefined){repForm();return}
   if(g.dataset.eqlabel!==undefined){labelsView();return}
   if(g.id==='repGo'){repMake($('#repP').value);return}
