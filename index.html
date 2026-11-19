@@ -1799,7 +1799,7 @@ async function cuAdd(fs){for(const f of fs){if(f.size>AT_MAX)toast(f.name+' 은 
   for(const r of cuRows.filter(r=>r.st==='read')){
     try{const its=(await cuAI(r.f)).filter(it=>it&&(it.c||it.d||it.no));r.items=its.length?its:[{n:'',c:'',d:'',lab:''}];
       const h=its.map(cuFind).find(Boolean);r.eq=h?h.id:'';if(!its.length)r.err='AI가 성적서 내용을 못 읽었어요. 장비와 교정일을 직접 넣어 주세요.';else if(!h)r.err=`기기번호 ${its[0].no||'?'} 와 맞는 장비가 없어요. 골라 주세요.`}
-    catch(err){r.items=[{n:'',c:'',d:'',lab:''}];r.err=err&&err.code==='noep'?'AI 서버(worker.js) 업데이트 전이라 직접 넣어 주세요.':err&&err.code==='big'?'6MB가 넘어 AI가 못 읽어요. 직접 넣어 주세요.':err&&err.code==='quota'?'오늘 AI 사용량을 다 썼어요. 직접 넣어 주세요.':'AI가 못 읽었어요. 장비와 교정일을 직접 넣어 주세요.'}
+    catch(err){r.items=[{n:'',c:'',d:'',lab:''}];r.err=err&&err.code==='location'?'AI 서버 위치(홍콩) 문제로 못 읽었어요. 휴대폰 데이터로 다시 하거나 직접 넣어 주세요.':err&&err.code==='noep'?'AI 서버(worker.js) 업데이트 전이라 직접 넣어 주세요.':err&&err.code==='big'?'6MB가 넘어 AI가 못 읽어요. 직접 넣어 주세요.':err&&err.code==='quota'?'오늘 AI 사용량을 다 썼어요. 직접 넣어 주세요.':'AI가 못 읽었어요. 장비와 교정일을 직접 넣어 주세요.'}
     r.st='ready';cuDraw()}}
 async function cuSave(){const b=$('#cuSave');if(!b||b.disabled)return;b.disabled=true;let ok=0,skip=0,fail=0;
   for(const r of cuRows){if(r.st!=='ready'||!r.eq)continue;const e=(D.equips||[]).find(x=>x.id===r.eq);if(!e)continue;b.textContent=`저장하는 중… ${esc(e.name)}`;
@@ -1953,7 +1953,7 @@ async function eqAI(img){
   const j=await r.json().catch(()=>({}));
   if(r.status===415||r.status===404)throw {code:'noep'};
   if(!r.ok||j.error)throw {code:j.code||'ai',message:j.error||('HTTP '+r.status)};return j}
-const eqAIErr=err=>err&&err.code==='noep'?'AI 서버 업데이트가 아직 안 됐어요. 관리자에게 알려 주세요.':err&&err.code==='noai'?'AI 서버가 연결되지 않았어요.':err&&err.code==='quota'?'오늘 AI 무료 사용량을 다 썼어요. 번호를 직접 입력해 주세요.':err&&err.name==='AbortError'?'AI 응답이 늦어요. 다시 찍어 주세요.':'AI가 사진을 읽지 못했어요. '+(err&&err.message?'('+err.message+')':'');
+const eqAIErr=err=>err&&err.code==='location'?'지금 연결된 AI 서버 위치(홍콩)에서는 Gemini를 쓸 수 없어요. 와이파이를 끄고 휴대폰 데이터로 다시 해 보세요.':err&&err.code==='noep'?'AI 서버 업데이트가 아직 안 됐어요. 관리자에게 알려 주세요.':err&&err.code==='noai'?'AI 서버가 연결되지 않았어요.':err&&err.code==='quota'?'오늘 AI 무료 사용량을 다 썼어요. 번호를 직접 입력해 주세요.':err&&err.name==='AbortError'?'AI 응답이 늦어요. 다시 찍어 주세요.':'AI가 사진을 읽지 못했어요. '+(err&&err.message?'('+err.message+')':'');
 function eqMatch(ai){const c=[ai.no,ai.serial,...(ai.texts||[])].map(eqN).filter(x=>x.length>=3);if(!c.length)return null;const E=D.equips||[];
   return E.find(e=>c.includes(eqN(e.no))||(e.serial&&c.includes(eqN(e.serial))))||E.find(e=>{const n=eqN(e.no);return n.length>=4&&c.some(x=>x.length>=4&&(x.includes(n)||n.includes(x)))})||null}
 async function eqScan(file,mode){
