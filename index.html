@@ -299,7 +299,12 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .dark .eq-ai{background:#082F49;border-color:#0C4A6E}
 .eq-prog{height:12px;border-radius:99px;background:rgba(124,58,237,.12);overflow:hidden}.eq-prog>i{display:block;height:100%;background:linear-gradient(90deg,#22C55E,#16A34A);border-radius:99px;transition:width .4s}
 .sc-qr{width:100%;background:#1E1B4B;color:#FDE68A;border-color:#1E1B4B}.dark .sc-qr{background:#FDE68A;color:#1E1B4B}
-.pv-view{position:fixed;inset:0;z-index:135;background:#E5E7EB;display:flex;flex-direction:column}.pv-view.hidden{display:none}.dark .pv-view{background:#0F0C29}
+.pv-view{position:fixed;inset:0;z-index:135;background:#E5E7EB;display:flex;flex-direction:column}.pv-view.hidden{display:none}
+.man{max-width:720px;margin:0 auto;padding:14px 14px 30px;font-size:14px}.man-hd{display:flex;gap:12px;align-items:center}
+.man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
+.man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
+.man-sec>summary{font-size:15px;font-weight:900;min-height:46px;display:flex;align-items:center;cursor:pointer;list-style:none}.man-sec>summary::-webkit-details-marker{display:none}
+.man-sec>summary:after{content:'▾';margin-left:auto;opacity:.5}.man-sec[open]>summary:after{content:'▴'}.man-sec .eq-txt{font-size:14.5px;line-height:1.85;padding-bottom:12px}.dark .pv-view{background:#0F0C29}
 .pv-bar{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;background:#1E1B4B;color:#fff;flex-shrink:0}
 .pv-t{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-b{min-height:40px;padding:0 11px;border-radius:10px;background:rgba(255,255,255,.16);font-size:13px;font-weight:800;color:#fff;white-space:nowrap}.pv-b.pri{background:#7C3AED}
@@ -1607,7 +1612,7 @@ const eqMgr=e=>e.mgr||e.by;
 /* 내가 챙겨야 할 알림: 내가 쓰는 장비 반납 늦음 + 내가 담당인 장비 교정 30일 이내/지남 */
 function eqMyAlerts(){const out=[];(D.equips||[]).forEach(e=>{
   if(e.use&&e.use.by===myId&&eqUseLate(e))out.push({e,k:'late'});
-  const d=eqDays(e.calib);if(d!==null&&d<=30&&eqMgr(e)===myId)out.push({e,k:d<0?'over':'soon',d})});return out}
+  const d=eqDays(e.calib),own=e.set&&((((D.settings.find(x=>x.id==='main')||{}).setOwner||{})[e.set])||[]).includes(myId);if(d!==null&&d<=30&&(eqMgr(e)===myId||own))out.push({e,k:d<0?'over':'soon',d})});return out}
 function eqBadges(e){const b=[],d=eqDays(e.calib);
   if(d!==null&&d<0)b.push(`<span class="eq-bd eq-red">교정 지남 ${eqDday(d)}</span>`);else if(d!==null&&d<=30)b.push(`<span class="eq-bd eq-amb">교정 ${eqDday(d)}</span>`);
   if(e.use&&e.use.by)b.push(`<span class="eq-bd ${eqUseLate(e)?'eq-red':'eq-pur'}">${eqUseLate(e)?'반납 늦음':'사용 중'}</span>`);
@@ -1627,14 +1632,15 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
   ${eqCertBtn(e)}
   <div class="grid ${edit?'grid-cols-3':'grid-cols-2'} gap-1.5 mt-2.5">
     <button type="button" data-equse="${e.id}" class="eq-b ${mine?'amb':other?'':'pri'}">${mine?'↩️ 반납하기':other?'대신 반납':'🔧 사용 시작'}</button>
-    <button type="button" data-eqdoc="${e.id}" class="eq-b">📄 장비 자료</button>
+    <button type="button" data-eqdoc="${e.id}" class="eq-b">📘 설명서</button>
     ${edit?`<button type="button" data-eqedit="${e.id}" class="eq-b">✏️ 고치기</button>`:''}
   </div></div>`}
 function renderEquip(){
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
   $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
     ${my.slice(0,eqAlOpen?999:3).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}${my.length>3?`<button type="button" data-eqalt class="mt-1.5 text-[12.5px] font-black text-purple-600 dark:text-purple-300 min-h-[36px]">${eqAlOpen?'▲ 접기':`▼ 나머지 ${my.length-3}개 더 보기`}</button>`:''}
-    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon} · 반납 늦음 ${late}</div></div>`:'';
+    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon} · 반납 늦음 ${late}</div>
+    ${isAdmin?'<button type="button" data-eqremind class="mt-2 w-full min-h-[44px] rounded-xl bg-[#B45309] text-white text-[13px] font-black">📣 교정 만료 알림 지금 보내기</button>':''}</div>`:'';
   const inv=eqInv();
   $('#eqTabs').innerHTML=[['list','🧰 장비 목록'],['inv','📋 재고 조사'+(inv?' ●':'')],['doc','📄 장비별 자료']].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===eqTab}" data-eqtab="${k}" class="eq-tab${k===eqTab?' on':''}">${l}</button>`).join('');
   const P=$('#eqPane');
@@ -1751,20 +1757,32 @@ function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.r
 function eqClose(){$('#eqSheet').classList.add('hidden');document.body.style.overflow='';eqTDocs=[]}
 $('#eqSheet').addEventListener('click',e=>{if(e.target.closest('[data-eqclose]'))eqClose()});
 /* 장비 자료 팝업: 등록된 자료 + AI 참고 설명 + 이 종류의 장비 */
-function eqDocPop(kind,ai,eid){
-  const t=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(kind))||null,list=(D.equips||[]).filter(e=>kind&&eqN(e.kind)===eqN(kind)),one=eid&&D.equips.find(x=>x.id===eid);
-  eqOpen(`<div class="flex items-center gap-2 pr-10"><span class="text-3xl">${eqEmoji(kind)}</span><div class="min-w-0"><div class="text-[11px] font-bold opacity-65">장비 자료</div><h2 class="text-lg font-black break-words">${esc(kind||'알 수 없는 장비')}</h2></div></div>
-    ${one?`<div class="text-xs opacity-80 mt-1">${esc(one.name)} · 🔢 ${esc(one.no||'번호 없음')}</div>`:''}
-    ${t?`${t.desc?`<div class="eq-sec">📘 어떤 장비인가요</div><div class="eq-txt">${esc(t.desc)}</div>`:''}
-      ${t.howto?`<div class="eq-sec">🛠️ 사용 방법</div><div class="eq-txt">${esc(t.howto)}</div>`:''}
-      ${t.check?`<div class="eq-sec">⚠️ 점검·주의 사항</div><div class="eq-txt">${esc(t.check)}</div>`:''}
-      ${t.cal?`<div class="eq-sec">📑 교정 정보</div><div class="eq-txt">${esc(t.cal)}</div>`:''}
-      ${t.files&&t.files.length?`<div class="eq-sec">📎 설명서·자료</div>${atList(t.files,'e',t.id)}`:''}
-      <div class="text-[11px] opacity-60 mt-2">자료 등록: ${esc(nmFull(t.by))}${t.editedAt?' · '+ago(t.editedAt)+' 수정':''}</div>`
-     :`<div class="card !p-3 mt-3 text-[13px]">아직 지사에 올라온 <b>${esc(kind||'이 장비')}</b> 자료가 없어요.<br>설명서나 사용 요령을 올려 두면 다음부터 바로 떠요.</div>`}
-    ${ai&&ai.guide&&ai.guide.length?`<div class="eq-sec">🤖 AI 참고 설명</div><div class="eq-ai">${ai.guide.map(g=>'• '+esc(g)).join('<br>')}<div class="text-[10.5px] opacity-70 mt-1">AI가 사진을 보고 쓴 일반 설명이에요. 정확한 사용법은 설명서를 확인해 주세요.</div></div>`:''}
-    ${list.length?`<div class="eq-sec">🧰 지사에 있는 ${esc(kind)} ${list.length}대</div>${list.map(e=>`<button type="button" data-eqgo="${e.id}" class="block w-full text-left text-[13px] py-2 border-b border-purple-400/20">${esc(e.name)} · 🔢 ${esc(e.no||'-')} ${eqBadges(e)}</button>`).join('')}`:''}
-    <button type="button" ${t?`data-eqtedit="${t.id}"`:`data-eqtnew="${esc(kind||'')}"`} class="mt-4 w-full min-h-[48px] rounded-xl border border-purple-400/50 text-sm font-bold">${t?'✏️ 이 자료 고치기':'➕ 이 장비 자료 등록하기'}</button>`)}
+/* 장비 사용 설명서 (data/equip-manual.json) + 지사 자료(equipTypes) + AI 참고 + 지사에 있는 같은 장비 */
+let EQMAN=null;
+async function eqManLoad(){if(EQMAN)return EQMAN;try{const r=await fetch('data/equip-manual.json?v='+DATAV);EQMAN=(await r.json()).types||{}}catch(e){EQMAN={}}return EQMAN}
+function eqManFind(M,kind){if(!kind)return [null,''];const k=Object.keys(M).find(x=>eqN(x)===eqN(kind))||Object.keys(M).find(x=>scKindKey(x)&&scKindKey(x)===scKindKey(kind));return k?[M[k],k]:[null,'']}
+function eqStd(kw){pvClose();eqClose();go('insp');setTimeout(()=>{try{sbSubmit(kw)}catch(e){}},500)}
+async function eqDocPop(kind,ai,eid){
+  const M=await eqManLoad(),[man,mk]=eqManFind(M,kind),name=mk||kind||'알 수 없는 장비';
+  const t=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(kind)||eqN(x.name)===eqN(mk))||null,one=eid&&(D.equips||[]).find(x=>x.id===eid);
+  const list=(D.equips||[]).filter(e=>e.kind&&(eqN(e.kind)===eqN(kind)||eqN(e.kind)===eqN(mk)));
+  const ic={'이런 장비예요':'🔎','구성품':'🧩','쓰기 전 점검':'✅','측정 순서':'🛠️','결과 읽기':'📊','안전·주의':'⚠️','보관·관리':'🧼','이럴 땐':'❓','교정':'📑'};
+  pvOpen('📘 '+name+' 사용 설명서',`<div class="man">
+    <div class="man-hd"><span class="text-4xl">${eqEmoji(name)}</span><div class="min-w-0"><div class="text-[11px] font-bold opacity-65">장비 사용 설명서</div><h2 class="text-xl font-black break-words">${esc(name)}</h2>
+      ${man&&man.models.length?`<div class="text-[12px] opacity-75 mt-0.5">우리 지사 모델: ${esc(man.models.join(', '))}</div>`:''}</div></div>
+    ${one?`<div class="man-one">🔢 <b>${esc(one.no)}</b>${one.set?' · 📦 '+esc(one.set):''}${one.calib?` · 교정 만료 ${esc(one.calib)} (${eqDday(eqDays(one.calib))})`:''}${eqCertBtn(one)}</div>`:''}
+    <div class="grid grid-cols-2 gap-2 mt-3">${man&&man.std?`<button type="button" data-eqstd="${esc(man.std)}" class="eq-b">🛡️ 관련 안전기준 찾기</button>`:''}<button type="button" ${t?`data-eqtedit="${t.id}"`:`data-eqtnew="${esc(name)}"`} class="eq-b">${t?'✏️ 지사 자료 고치기':'➕ 지사 자료·설명서 올리기'}</button></div>
+    ${man?man.sec.map(([h,b],i)=>`<details class="man-sec"${i<4||h==='안전·주의'?' open':''}><summary>${ic[h]||'•'} ${esc(h)}</summary><div class="eq-txt">${esc(b)}</div></details>`).join('')
+      :'<div class="card !p-3 mt-3 text-[13px]">이 장비의 설명서가 아직 없어요. 아래 \'지사 자료\'에 사용 요령이나 제조사 설명서(PDF)를 올려 두면 다음부터 여기에 보여요.</div>'}
+    ${t&&(t.desc||t.howto||t.check||(t.files||[]).length)?`<details class="man-sec" open><summary>🏢 지사 자료${t.files&&t.files.length?` · 📎 ${t.files.length}`:''}</summary>
+      ${t.desc?`<div class="eq-sec">용도</div><div class="eq-txt">${esc(t.desc)}</div>`:''}${t.howto?`<div class="eq-sec">사용 방법</div><div class="eq-txt">${esc(t.howto)}</div>`:''}${t.check?`<div class="eq-sec">점검·주의</div><div class="eq-txt">${esc(t.check)}</div>`:''}
+      ${t.files&&t.files.length?`<div class="eq-sec">설명서·자료 파일</div>${atList(t.files,'e',t.id)}`:''}</details>`:''}
+    ${ai&&ai.guide&&ai.guide.length?`<details class="man-sec"><summary>🤖 AI 참고 설명</summary><div class="eq-ai">${ai.guide.map(g=>'• '+esc(g)).join('<br>')}<div class="text-[10.5px] opacity-70 mt-1">AI가 사진을 보고 쓴 일반 설명이에요.</div></div></details>`:''}
+    ${list.length?`<details class="man-sec"><summary>🧰 지사에 있는 ${esc(name)} ${list.length}대</summary>${list.map(e=>`<button type="button" data-certv="${e.id}" class="block w-full text-left text-[13px] py-2 border-b border-purple-400/20">${esc(e.name)} · 🔢 ${esc(e.no||'-')} ${eqBadges(e)} <span class="opacity-60">📑</span></button>`).join('')}</details>`:''}
+    <div class="text-[11px] opacity-60 mt-4">이 설명서는 일반적인 사용 요령이에요. 장비마다 세부 조작이 다를 수 있으니 제조사 설명서를 함께 확인해 주세요.</div></div>`);
+}
+document.addEventListener('click',e=>{const s=e.target.closest('[data-eqstd]');if(s){e.preventDefault();eqStd(s.dataset.eqstd)}});
+
 /* 장비 등록·고치기 */
 function eqForm(e,pre){e=e||{};pre=pre||{};const v=k=>esc(e[k]??pre[k]??'');
   const kinds=[...new Set([...(D.equipTypes||[]).map(t=>t.name),...(D.equips||[]).map(x=>x.kind).filter(Boolean)])];
@@ -1864,7 +1882,7 @@ async function eqScan(file,mode){
       if(hit&&!eqChecked(hit)){await patch('equips',hit.id,{inv:{r:eqInv().id,by:myId,at:Date.now()}});box.innerHTML=`<div class="eq-ai mt-3 !bg-green-50 !border-green-300 dark:!bg-green-950">✅ <b>${esc(hit.name)}</b> (${esc(hit.no)}) 확인했어요!</div>`;toast('✅ '+hit.name+' 확인','ok')}
       else if(hit)box.innerHTML=`<div class="eq-ai mt-3">이미 확인된 장비예요: <b>${esc(hit.name)}</b> (${esc(hit.no)})</div>`;
       else box.innerHTML=`<div class="eq-ai mt-3 !bg-red-50 !border-red-300 dark:!bg-red-950">❓ 읽은 번호 <b>${esc(ai.no||ai.serial||'없음')}</b>${ai.kind?' · '+esc(ai.kind):''}<br>장비 목록에 없는 번호예요. 번호가 잘 보이게 다시 찍거나 아래에 직접 입력해 주세요.<button type="button" data-eqreg class="eq-b mt-2 w-full">➕ 이 장비 새로 등록</button></div>`;
-    }else{renderScanResult();if(ai.kind||hit)eqDocPop(hit&&hit.kind?hit.kind:(ai.match||ai.kind),ai,hit&&hit.id)}
+    }else{renderScanResult();if(hit){toast('✅ '+hit.name+' — 최신 성적서를 열어요','ok');certView(hit.id)}else if(ai.kind)eqDocPop(ai.match||ai.kind,ai)}
   }catch(err){eqLast=null;box.innerHTML=`<div class="eq-ai mt-3 !bg-red-50 !border-red-300 dark:!bg-red-950">${esc(eqAIErr(err))}</div>`}
   finally{eqBusy=false}}
 function renderScanResult(){const L=eqLast;if(!L)return;const{ai,img}=L,hit=L.hit&&D.equips.find(x=>x.id===L.hit.id);
@@ -1876,13 +1894,13 @@ function renderScanResult(){const L=eqLast;if(!L)return;const{ai,img}=L,hit=L.hi
     ${ai.calib?`<div class="mt-0.5 opacity-80">🗓️ 교정 스티커: ${esc(ai.calib)}</div>`:''}</div></div>
     ${hit?`<div class="mt-2 text-[13px] font-bold text-green-600 dark:text-green-400">✅ 등록된 장비예요: ${esc(hit.name)}</div>${eqCard(hit)}`
        :`<div class="mt-2 text-[13px] font-bold opacity-80">등록되지 않은 장비예요.</div><button type="button" data-eqreg class="mt-2 w-full min-h-[46px] rounded-xl bg-[#6D28D9] text-white text-sm font-bold">➕ 이 정보로 장비 등록</button>`}
-    <button type="button" data-eqdock class="mt-2 w-full min-h-[44px] rounded-xl border border-purple-400/50 text-sm font-bold">📄 ${esc(ai.match||ai.kind||'장비')} 자료 보기</button></div>`;
+    <button type="button" data-eqdock class="mt-2 w-full min-h-[44px] rounded-xl border border-purple-400/50 text-sm font-bold">📘 ${esc(ai.match||ai.kind||'장비')} 사용 설명서</button></div>`;
   hydrate($('#eqResult'))}
 /* ---- 클릭 처리 ---- */
 document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='eqCam'||id==='eqPic'||id==='eqInvCam'){const f=e.target.files[0];e.target.value='';if(f)eqScan(f,id==='eqInvCam'?'inv':'find')}});
 document.addEventListener('click',async e=>{
-  if(!e.target.closest('#p-equip,#eqSheet'))return;
+  if(!e.target.closest('#p-equip,#eqSheet,#pvView'))return;
   const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqimp],[data-eqalt],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
   const d=b.dataset,E=id=>(D.equips||[]).find(x=>x.id===id);
   if(d.eqtab){eqTab=d.eqtab;renderEquip();return}
@@ -1894,8 +1912,8 @@ document.addEventListener('click',async e=>{
   if(d.eqdoc){const x=E(d.eqdoc);eqDocPop(x&&x.kind||'',null,d.eqdoc);return}
   if(d.eqgo){eqClose();eqTab='list';eqF='전체';eqQ='';renderEquip();setTimeout(()=>{const c=document.querySelector(`[data-eqid="${d.eqgo}"]`);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.animate([{boxShadow:'0 0 0 4px #F59E0B'},{boxShadow:'0 0 0 0 transparent'}],{duration:1600})}},80);return}
   if(d.eqtype){const t=D.equipTypes.find(x=>x.id===d.eqtype);if(t)eqDocPop(t.name,null);return}
-  if(d.eqtnew!==undefined){eqTForm(null,d.eqtnew);return}
-  if(d.eqtedit){eqTForm(D.equipTypes.find(x=>x.id===d.eqtedit));return}
+  if(d.eqtnew!==undefined){pvClose();eqTForm(null,d.eqtnew);return}
+  if(d.eqtedit){pvClose();eqTForm(D.equipTypes.find(x=>x.id===d.eqtedit));return}
   if(d.eqdock!==undefined){if(eqLast)eqDocPop(eqLast.hit&&eqLast.hit.kind?eqLast.hit.kind:(eqLast.ai.match||eqLast.ai.kind),eqLast.ai,eqLast.hit&&eqLast.hit.id);return}
   if(d.eqreg!==undefined){const a=(eqLast&&eqLast.ai)||{};eqForm(null,{ai:1,img:eqLast&&eqLast.img,name:a.kind?a.kind+' '+((D.equips||[]).filter(x=>eqN(x.kind)===eqN(a.match||a.kind)).length+1)+'호':'',kind:a.match||a.kind||'',no:a.no||'',serial:a.serial||'',model:a.model||'',maker:a.maker||'',calib:/^\d{4}-\d{2}-\d{2}$/.test(a.calib||'')?a.calib:''});return}
   if(b.id==='efSave'){eqSave(d.id||'');return}
@@ -2010,9 +2028,11 @@ function scDraw(){
   const row=e=>{const done=scDone(e),how=scOk.get(e.id)||(e.seen&&e.seen.at>=scToday()?e.seen.m:''),dd=eqDays(e.calib);
     return `<div class="sc-row${done?' ok':''}" data-scid="${e.id}"><span class="sc-st">${done?'✅':'⬜'}</span><div class="flex-1 min-w-0"><b class="text-[13.5px] break-words">${esc((e.kind||e.name).replace(/\(.*\)/,''))}</b> <span class="text-[11.5px] opacity-75">🔢 ${esc(e.no)}</span>
       <div class="text-[11px] mt-0.5 ${dd!==null&&dd<0?'text-red-500 font-bold':dd!==null&&dd<=30?'text-amber-600 font-bold':'opacity-65'}">${e.calib?'교정 만료 '+esc(e.calib)+' ('+eqDday(dd)+')':'교정 정보 없음'}${done&&how?' · '+({ai:'📸 번호 인식',near:'📸 번호 인식',guess:'🤔 종류로 확인',manual:'👀 눈으로 확인'}[how]||''):''}</div></div>
-      <div class="flex flex-col gap-1 shrink-0">${eqLatest(e).certs.length||(e.files||[]).length?`<button type="button" data-certv="${e.id}" class="sc-mini">📑 성적서</button>`:''}${done?'':`<button type="button" data-scman="${e.id}" class="sc-mini">👀 확인</button>`}</div></div>`};
+      <div class="flex flex-col gap-1 shrink-0">${eqLatest(e).certs.length||(e.files||[]).length?`<button type="button" data-certv="${e.id}" class="sc-mini">📑 성적서</button>`:''}<button type="button" data-eqdoc="${e.id}" class="sc-mini">📘 설명서</button>${done?'':`<button type="button" data-scman="${e.id}" class="sc-mini">👀 확인</button>`}</div></div>`};
   eqOpen(`<div class="pr-10"><div class="text-[11px] font-bold opacity-65">세트 점검${inv?' · 재고 조사 「'+esc(inv.title)+'」에도 기록돼요':''}</div><h2 class="text-lg font-black">📦 ${esc(code==='_'?'세트 아닌 장비':code)}</h2>
-    ${last?`<div class="text-[11.5px] opacity-70">마지막 점검: ${tstr(last.at)} · ${esc(nmFull(last.by))} · ${last.ok}/${last.total}</div>`:''}</div>
+    ${last?`<div class="text-[11.5px] opacity-70">마지막 점검: ${tstr(last.at)} · ${esc(nmFull(last.by))} · ${last.ok}/${last.total}</div>`:''}
+    ${code!=='_'?`<div class="text-[12px] mt-1"><span class="opacity-75">👤 세트 사용자:</span> <b>${(((m.setOwner||{})[code])||[]).map(u=>esc(nm(u))).join(', ')||'<span class="opacity-60 font-normal">아직 없음</span>'}</b> <button type="button" data-scown class="text-[11.5px] font-black text-purple-600 dark:text-purple-300 min-h-[32px] px-1">✏️ 정하기</button></div>
+      <div class="text-[10.5px] opacity-60">세트 사용자는 이 세트 장비의 교정 만료 알림을 함께 받아요.</div><div id="scOwnBox"></div>`:''}</div>
     <div class="flex items-center justify-between mt-2 text-sm font-black"><span>확인 ${ok.length} / ${items.length}개</span><span>${pct}%</span></div><div class="eq-prog mt-1"><i style="width:${pct}%"></i></div>
     <div class="grid grid-cols-[1fr_auto] gap-2 mt-3"><label class="eq-btn pri">📸 장비 기기번호 찍기<input id="scCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="eq-btn px-3">🖼️<input id="scPic" type="file" accept="image/*" multiple class="sr-only"></label></div>
     <div class="text-[11.5px] opacity-75 mt-1.5 leading-relaxed">💡 번호에 가까이 · 빛 반사는 비스듬히 피해서 · 2~3대를 번호가 보이게 나란히 놓고 한 번에 찍어도 돼요</div>
@@ -2060,7 +2080,7 @@ function scQrLink(t,k){const sets=[...new Set((D.equips||[]).map(e=>e.set).filte
   scQrTxt=String(t).slice(0,200)}
 let scQrTxt='';
 document.addEventListener('click',async e=>{
-  const g=e.target.closest('[data-scguess],[data-scman],#scEnd,[data-scpick],[data-eqrep],[data-eqlabel],#repGo,#repCsv,#qrLinkGo');if(!g||!e.target.closest('#eqSheet,#p-equip,#pvView'))return;
+  const g=e.target.closest('[data-scguess],[data-scman],#scEnd,[data-scpick],[data-eqrep],[data-eqlabel],#repGo,#repCsv,#qrLinkGo,[data-scown],#scOwnSave,[data-eqremind],#remGo');if(!g||!e.target.closest('#eqSheet,#p-equip,#pvView'))return;
   if(g.dataset.scguess){const x=D.equips.find(y=>y.id===g.dataset.scguess);if(!x)return;let ph='';try{if(scLastImg)ph=await photoPut(scLastImg)}catch(_){}
     await scCheck(x,'guess',ph);scLast=`<div class="mt-3"><div class="sc-hit">✅ <b>${esc(x.kind.replace(/\(.*\)/,''))}</b> (${esc(x.no)}) 확인!${eqCertBtn(x)}</div></div>`;scDraw();return}
   if(g.dataset.scman){const x=D.equips.find(y=>y.id===g.dataset.scman);if(!x)return;if(!g.dataset.arm){g.dataset.arm=1;g.textContent='한 번 더';setTimeout(()=>{if(g.isConnected){delete g.dataset.arm;g.textContent='👀 확인'}},3000);return}
@@ -2073,11 +2093,34 @@ document.addEventListener('click',async e=>{
   if(g.id==='qrLinkGo'){const s=$('#qrSet').value;if(!s)return toast('세트를 골라 주세요.','error');
     try{await db.doc('settings/main').set({qrMap:{[g.dataset.k]:{set:s,txt:scQrTxt,by:myId,at:Date.now()}}},{merge:true})}catch(err){return toast(errMsg(err),'error')}
     toast(`QR을 ${s}에 연결했어요.`,'ok');scOpen(s);return}
+  if(g.dataset.scown!==undefined){const box=$('#scOwnBox');if(box.innerHTML){box.innerHTML='';return}const cur=((D.settings.find(x=>x.id==='main')||{}).setOwner||{})[scSet]||[];
+    box.innerHTML=`<div class="card !p-3 mt-2"><div class="text-[12px] font-bold mb-1.5">이 세트를 쓰는 사람을 골라 주세요</div><div class="grid grid-cols-2 gap-1">${(D.members||[]).map(x=>`<label class="flex items-center gap-1.5 text-[13px] min-h-[36px]"><input type="checkbox" class="w-5 h-5" data-own="${x.id}"${cur.includes(x.id)?' checked':''}> ${esc(x.name)} ${esc(x.rank||'')}</label>`).join('')}</div><button type="button" id="scOwnSave" class="mt-2 w-full min-h-[44px] rounded-xl bg-[#6D28D9] text-white text-sm font-bold">💾 저장</button></div>`;return}
+  if(g.id==='scOwnSave'){const ids=[...document.querySelectorAll('[data-own]:checked')].map(x=>x.dataset.own);
+    try{await db.doc('settings/main').set({setOwner:{[scSet]:ids}},{merge:true});toast('세트 사용자를 저장했어요.','ok');setTimeout(scDraw,300)}catch(err){toast(errMsg(err),'error')}return}
+  if(g.dataset.eqremind!==undefined){eqRemindOpen();return}
+  if(g.id==='remGo'){eqRemindSend();return}
   if(g.dataset.eqrep!==undefined){repForm();return}
   if(g.dataset.eqlabel!==undefined){labelsView();return}
   if(g.id==='repGo'){repMake($('#repP').value);return}
   if(g.id==='repCsv'){repCsv();return}
 });
+
+
+/* ---- 교정 만료 알림 지금 보내기 (관리자) → 서버 /remind ---- */
+async function eqRemindApi(dry){const u=recUrl(),fu=(()=>{try{return firebase.auth().currentUser}catch(e){return null}})();if(!u||!fu)throw {code:'noai'};
+  const r=await fetchO(u.replace(/\/$/,'')+'/remind',{method:'POST',headers:{'Authorization':'Bearer '+await fu.getIdToken(),'Content-Type':'application/json'},body:JSON.stringify({dry})},30000);
+  const j=await r.json().catch(()=>({}));if(r.status===415||r.status===404||(j.error&&/녹음/.test(j.error)))throw {code:'noep'};if(!r.ok||j.error)throw {message:j.error||('HTTP '+r.status)};return j}
+async function eqRemindOpen(){eqOpen(`<h2 class="text-lg font-black pr-10">📣 교정 만료 알림 보내기</h2><div id="remBox" class="mt-2 text-sm opacity-75">보낼 내용을 정리하는 중…</div>`);
+  try{const j=await eqRemindApi(true),M=j.msgs||[];
+    $('#remBox').outerHTML=M.length?`<div class="eq-ai mt-2">교정 기한이 <b>지났거나 이번 달·다음 달</b>에 끝나는 장비를 <b>장비 담당자</b>와 <b>세트 사용자</b>에게 휴대폰 알림으로 보내요. (매월 1일 아침 9시에는 자동으로 가요)</div>
+      <div class="eq-sec">받는 사람 ${M.length}명</div>${M.map(x=>`<div class="card !p-3 mb-1.5"><b class="text-[13.5px]">${esc(nmFull(x.uid))}</b> <span class="text-[12px] opacity-75">· ${x.n}대 (지남 ${x.over} · 이번 달 ${x.now} · 다음 달 ${x.next})</span><div class="text-[11.5px] opacity-75 mt-1 whitespace-pre-line">${esc(x.body)}</div></div>`).join('')}
+      <button type="button" id="remGo" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#B45309] text-white font-black text-sm">📣 ${M.length}명에게 지금 보내기</button>
+      <div class="text-[11px] opacity-65 mt-1.5">휴대폰 알림을 켜지 않은 사람은 앱의 🧰 장비 알림에서만 보여요.</div>`
+      :'<div class="eq-ai mt-2">지금 알림을 보낼 장비가 없어요. (교정 기한이 지났거나 이번 달·다음 달에 끝나는 장비 없음)</div>'}
+  catch(err){const b=$('#remBox');if(b)b.outerHTML=`<div class="sc-warn mt-2">${err&&err.code==='noep'?'AI 서버(worker.js) 업데이트가 아직 안 됐어요. 새 worker.js를 Cloudflare에 넣어 주세요.':esc(err&&err.message||'알림 내용을 만들지 못했어요.')}</div>`}}
+async function eqRemindSend(){const b=$('#remGo');if(!b||b.disabled)return;b.disabled=true;b.textContent='보내는 중…';
+  try{const j=await eqRemindApi(false),np=(j.list||[]).filter(x=>!x.push).length;eqClose();toast(`📣 ${j.people}명에게 교정 알림을 보냈어요${np?` (알림 꺼진 ${np}명은 앱에서만 보여요)`:''}`,'ok')}
+  catch(err){b.disabled=false;b.textContent='📣 다시 보내기';toast(err&&err.message||'보내지 못했어요.','error')}}
 
 /* ---- 보고서 ---- */
 function repForm(){const inv=eqInv(),m=D.settings.find(x=>x.id==='main')||{},h=(m.invHist||[]).slice(-1)[0];

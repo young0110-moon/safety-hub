@@ -4,7 +4,8 @@
    하는 일 ① 앱이 보낸 녹음 파일을 Gemini 에 보내 "대화 정리 + 회의록"으로 돌려줌
           ② /push : 브리핑·SOS·공지 등을 지사 멤버 휴대폰에 푸시 알림으로 보냄 (Firebase 클라우드 메시징)
           ③ /equip : 장비 사진을 Gemini 로 보고 장비 종류·기기번호·교정일을 읽어 줌 (사진은 저장하지 않음)
-          ④ 매일 아침 8시·저녁 6시 반(한국 시간) 자동 실행: 장비 교정 만료·반납 늦음 알림 (Cron 트리거)
+          ④ 매월 1일 아침 9시: 교정 만료 알림(담당자·세트 사용자) / 매일 저녁 6시 반: 반납 늦음 알림 (Cron 트리거)
+          ⑤ /remind : 관리자가 교정 만료 알림을 지금 바로 보내기
    보안:
      · Gemini 키는 이 코드에 없음 → Cloudflare 의 비밀 변수 GEMINI_KEY 에만 저장
      · 푸시용 Firebase 서비스 계정 키도 비밀 변수 FIREBASE_SA 에만 저장
@@ -45,8 +46,8 @@ const SCHEMA = {
 };
 
 export default {
-  // Cron 트리거: "0 23 * * *"(한국 아침 8시) · "30 9 * * *"(한국 저녁 6시 30분)
-  async scheduled(ev, env, ctx) { ctx.waitUntil(equipReminders(env, new Date(ev.scheduledTime).getUTCHours() === 23).catch(e => console.log('equip remind', e && e.message))); },
+  // Cron 트리거: "0 0 1 * *"(매월 1일 한국 아침 9시: 교정 알림) · "30 9 * * *"(매일 한국 저녁 6시 30분: 반납 늦음)
+  async scheduled(ev, env, ctx) { const t = new Date(ev.scheduledTime); ctx.waitUntil(equipReminders(env, t.getUTCDate() === 1 && t.getUTCHours() === 0 ? 'month' : 'return').catch(e => console.log('equip remind', e && e.message))); },
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
     const okOrigin = ORIGINS.includes(origin);
@@ -82,6 +83,20 @@ export default {
         cat: (d.category_name || '').split('>').map(x => x.trim()).slice(1).join(' > '), url: d.place_url || ''
       }));
       return out({ places });
+    }
+
+    // ── 교정 만료 알림 지금 보내기 (관리자) ──
+    if (new URL(req.url).pathname === '/remind') {
+      if (!env.FIREBASE_SA) return out({ error: '서버에 FIREBASE_SA(서비스 계정 키)가 아직 등록되지 않았어요.' }, 500);
+      try {
+        const H = { Authorization: 'Bearer ' + await googleToken(env) };
+        if (!(await isAdminUser(H, user))) return out({ error: '관리자만 보낼 수 있어요.' }, 403);
+        let q = {}; try { q = await req.json(); } catch (e) {}
+        const msgs = await calibPlan(H);
+        if (q.dry) return out({ ok: true, dry: true, msgs });
+        const r = await pushTo(env, H, msgs, 'equip');
+        return out({ ok: true, msgs, ...r });
+      } catch (e) { return out({ error: '알림을 보내지 못했어요: ' + (e.message || e) }, 502); }
     }
 
     // ── 푸시 알림 보내기 ──
@@ -199,45 +214,64 @@ const EQ_SCHEMA = {
   required: ['kind', 'match', 'no', 'serial', 'model', 'maker', 'calib', 'conf', 'guide', 'texts']
 };
 
-/* ===================== 장비 알림 (Cron 트리거: 매일 2번) =====================
-   아침(한국 8시): 담당자에게 교정 만료 30·7·1일 전, 당일, 지난 뒤 매주 / 사용자에게 반납 늦음
-   저녁(한국 18시 30분): 반납 늦음만 */
-async function equipReminders(env, morning) {
+/* ===================== 장비 알림 =====================
+   · 매월 1일 아침 9시(한국 시간): 교정 기한 지남 + 이번 달·다음 달 만료 장비를 모아서 한 번
+     받는 사람 = 장비 담당자(mgr) + 그 세트 사용자(settings/main.setOwner[세트])
+   · 매일 저녁 6시 30분: 사용 중인 장비 반납 늦음 → 사용한 사람
+   · /remind (관리자): 교정 알림을 지금 바로 보내기 (dry:true 면 미리보기만) */
+const fsv = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? Number(v.integerValue) : 'doubleValue' in v ? v.doubleValue
+  : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : 'mapValue' in v ? fsObj(v.mapValue.fields || {}) : 'arrayValue' in v ? (v.arrayValue.values || []).map(fsv) : null;
+const fsObj = f => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, fsv(v)]));
+async function fsGet(H, path) { const j = await (await fetch(`${FS}/${path}`, { headers: H })).json(); return j.fields ? fsObj(j.fields) : null; }
+async function fsList(H, col) { const out = []; let tok = ''; for (let i = 0; i < 10; i++) { const j = await (await fetch(`${FS}/${col}?pageSize=300${tok ? '&pageToken=' + tok : ''}`, { headers: H })).json(); (j.documents || []).forEach(d => out.push({ id: d.name.split('/').pop(), ...fsObj(d.fields || {}) })); if (!j.nextPageToken) break; tok = j.nextPageToken; } return out; }
+async function calibPlan(H) {
+  const eqs = await fsList(H, 'equips'), main = (await fsGet(H, 'settings/main')) || {}, own = main.setOwner || {};
+  const k = new Date(Date.now() + 9 * 3600e3), y = k.getUTCFullYear(), m = k.getUTCMonth();
+  const today = Date.UTC(y, m, k.getUTCDate()), end1 = Date.UTC(y, m + 1, 1), end2 = Date.UTC(y, m + 2, 1);
+  const per = {};   // uid → {over:[], now:[], next:[]}
+  for (const e of eqs) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(e.calib || '')) continue;
+    const t = Date.parse(e.calib + 'T00:00:00Z'), g = t < today ? 'over' : t < end1 ? 'now' : t < end2 ? 'next' : '';
+    if (!g) continue;
+    const who = new Set([e.mgr || e.by, ...((e.set && own[e.set]) || [])].filter(Boolean));
+    for (const u of who) { const p = per[u] = per[u] || { over: [], now: [], next: [] }; p[g].push({ n: e.name || '장비', no: e.no || '', c: e.calib }); }
+  }
+  const mon = m + 1, nmon = (m + 1) % 12 + 1;
+  const msgs = Object.entries(per).map(([uid, p]) => {
+    const tot = p.over.length + p.now.length + p.next.length;
+    const head = [p.over.length ? `지남 ${p.over.length}` : '', p.now.length ? `${mon}월 ${p.now.length}` : '', p.next.length ? `${nmon}월 ${p.next.length}` : ''].filter(Boolean).join(' · ');
+    const lines = [...p.over.map(x => `🔴 ${x.n} ${x.c} 지남`), ...p.now.map(x => `🟡 ${x.n} ${x.c}`), ...p.next.map(x => `🗓️ ${x.n} ${x.c}`)];
+    return { uid, n: tot, over: p.over.length, now: p.now.length, next: p.next.length, title: `🗓️ ${mon}월 교정 알림 · ${tot}대 (${head})`, body: lines.slice(0, 4).join('\n') + (lines.length > 4 ? `\n… 외 ${lines.length - 4}대` : '') };
+  });
+  return msgs;
+}
+async function pushTo(env, H, msgs, kind) {
+  if (!msgs.length) return { sent: 0, people: 0, list: [] };
+  const toks = await fsList(H, 'pushTokens'), by = Object.fromEntries(toks.map(t => [t.id, t]));
+  let ok = 0, n = 0; const list = [];
+  for (const m of msgs) {
+    const t = by[m.uid], off = (t && t.off) || [], arr = (t && t.on !== false && !off.includes('equip') && t.tokens) || [];
+    let sent = 0;
+    for (const tk of arr) { if (!tk || n >= 45) continue; n++;
+      const r = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: { token: tk, data: { kind, title: m.title, body: m.body, url: '#equip', at: String(Date.now()) }, webpush: { headers: { Urgency: 'normal', TTL: '43200' } } } }) });
+      if (r.ok) { ok++; sent++; } }
+    list.push({ uid: m.uid, push: sent > 0 || (!!arr.length && n < 45) });
+  }
+  return { sent: ok, people: msgs.length, list };
+}
+async function equipReminders(env, kind) {
   if (!env.FIREBASE_SA) return { skip: 'no FIREBASE_SA' };
   const H = { Authorization: 'Bearer ' + await googleToken(env) };
-  const fv = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? Number(v.integerValue) : 'doubleValue' in v ? v.doubleValue
-    : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : 'mapValue' in v ? obj(v.mapValue.fields || {}) : 'arrayValue' in v ? (v.arrayValue.values || []).map(fv) : null;
-  const obj = f => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, fv(v)]));
-  const eqs = ((await (await fetch(`${FS}/equips?pageSize=500`, { headers: H })).json()).documents || []).map(d => obj(d.fields || {}));
-  const k = new Date(Date.now() + 9 * 3600e3), today = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate());
-  const msgs = {};   // uid → [문장]
-  const add = (uid, t) => { if (uid) (msgs[uid] = msgs[uid] || []).push(t); };
-  for (const e of eqs) {
-    const nm = `${e.name || '장비'}(${e.no || '-'})`;
-    if (morning && /^\d{4}-\d{2}-\d{2}$/.test(e.calib || '')) {
-      const d = Math.round((Date.parse(e.calib + 'T00:00:00Z') - today) / 864e5);
-      if ([30, 7, 1].includes(d)) add(e.mgr || e.by, `🗓️ ${nm} 교정 만료 D-${d} (${e.calib})`);
-      else if (d === 0) add(e.mgr || e.by, `🗓️ ${nm} 오늘 교정 만료예요`);
-      else if (d < 0 && (-d) % 7 === 0) add(e.mgr || e.by, `🔴 ${nm} 교정 기한이 ${-d}일 지났어요`);
-    }
-    if (e.use && e.use.by && e.use.due && e.use.due < Date.now()) add(e.use.by, `⏰ ${nm} 반납 시간이 지났어요`);
-  }
-  const uids = Object.keys(msgs); if (!uids.length) return { sent: 0 };
-  const list = await (await fetch(`${FS}/pushTokens?pageSize=300`, { headers: H })).json();
-  let ok = 0, n = 0;
-  for (const d of (list.documents || [])) {
-    const uid = d.name.split('/').pop(), f = d.fields || {}; if (!msgs[uid]) continue;
-    if (f.on && f.on.booleanValue === false) continue;
-    const off = (f.off && f.off.arrayValue && f.off.arrayValue.values || []).map(v => v.stringValue); if (off.includes('equip')) continue;
-    const m = msgs[uid], title = m.length > 1 ? `🧰 장비 알림 ${m.length}건` : '🧰 장비 알림', body = m.slice(0, 4).join('\n');
-    for (const v of (f.tokens && f.tokens.arrayValue && f.tokens.arrayValue.values || [])) {
-      if (!v.stringValue || n >= 40) continue; n++;
-      const r = await fetch(`https://fcm.googleapis.com/v1/projects/${PROJECT}/messages:send`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: { token: v.stringValue, data: { kind: 'equip', title, body, url: '#equip', at: String(Date.now()) }, webpush: { headers: { Urgency: 'normal', TTL: '21600' } } } }) });
-      if (r.ok) ok++;
-    }
-  }
-  return { sent: ok, people: uids.length };
+  if (kind === 'month') return pushTo(env, H, await calibPlan(H), 'equip');
+  // 반납 늦음
+  const eqs = await fsList(H, 'equips'), per = {};
+  for (const e of eqs) if (e.use && e.use.by && e.use.due && e.use.due < Date.now()) (per[e.use.by] = per[e.use.by] || []).push(`⏰ ${e.name || '장비'}(${e.no || '-'}) 반납 시간이 지났어요`);
+  return pushTo(env, H, Object.entries(per).map(([uid, l]) => ({ uid, title: '🧰 반납 알림', body: l.slice(0, 4).join('\n') })), 'equip');
+}
+async function isAdminUser(H, user) {
+  const acc = (await fsGet(H, 'settings/access')) || {}, em = String(user.email || '').toLowerCase();
+  return !!em && (acc.admins || []).map(x => String(x).toLowerCase()).includes(em);
 }
 
 /* ArrayBuffer → base64 (큰 파일도 안전하게 조각으로) */
