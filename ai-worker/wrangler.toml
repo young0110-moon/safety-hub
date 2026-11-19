@@ -8,9 +8,9 @@ workers_dev = true
 keep_vars = true
 
 # 실행 위치 고정: 한국 사용자가 홍콩 등 Gemini 미지원 지역 서버로 연결돼
-# "User location is not supported" 오류가 나는 것을 막기 위해 미국 서부 근처에서 실행
+# "User location is not supported" 오류가 나는 것을 막기 위해 도쿄 근처에서 실행 (대시보드 설정과 같게)
 [placement]
-region = "gcp:us-west1"
+region = "gcp:asia-northeast1"
 
 # 장비 알림: 매월 1일 한국 아침 9시(교정 만료)
 [triggers]
