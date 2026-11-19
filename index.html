@@ -914,16 +914,8 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- 나의 장비 관리는? -->
 <section id="p-equip" class="page pt-4 space-y-3" data-title="나의 장비 관리는?">
   <div id="eqAlert"></div>
-  <div class="card eq-hero">
-    <h2 class="font-black text-[15px]">📸 사진으로 장비 알아보기</h2>
-    <p class="text-xs opacity-80 mt-1 leading-relaxed">장비나 장비에 붙은 <b>이름표(기기번호)</b>를 찍으면 AI가 무슨 장비인지 알아보고, 그 장비 <b>자료</b>를 바로 보여 줘요.</p>
-    <div class="grid grid-cols-2 gap-2 mt-3">
-      <label class="eq-btn pri">📸 사진 찍기<input id="eqCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
-      <label class="eq-btn">🖼️ 앨범에서<input id="eqPic" type="file" accept="image/*" class="sr-only"></label>
-    </div>
-    <label class="eq-btn sc-qr mt-2">📦 세트 가방 QR 찍기 <span class="text-[11.5px] font-bold opacity-85">(세트 점검)</span><input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
-    <div id="eqResult"></div>
-  </div>
+  <label class="eq-btn sc-qr">📦 세트 가방 QR 찍기 <span class="text-[11.5px] font-bold opacity-85">(세트 점검)</span><input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
+  <div id="eqResult" class="hidden"></div>
   <div id="eqTabs" class="eq-tabs" role="tablist"></div>
   <div id="eqPane" class="space-y-2.5 pb-6"></div>
 </section>
