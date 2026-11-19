@@ -4181,6 +4181,8 @@ async function checkUpdate(mode){
     const j=await (await fetchT('version.json?t='+Date.now())).json();
     if(!j.v||j.v===BUILD){if(mode===true)toast('이미 최신 버전이에요.','ok');return}
     const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.value;
+    const busyView=document.querySelector('#eqSheet:not(.hidden),#pvView:not(.hidden),#sbSheetWrap.on,#pmSheet:not(.hidden)');
+    if(!loud&&busyView)return;/* 세트 점검·성적서 보는 중엔 새 버전으로 바꾸지 않음 (닫은 뒤 다음 확인 때) */
     if(!loud&&(typing||cur==='write')){$('#updBar').classList.remove('hidden');$('#updBar').classList.add('flex');return}
     /* 실제 화면 파일이 새 버전인지 확인 */
     let live='';try{const t=await (await fetchT('index.html?v='+j.v+'&t='+Date.now(),12000)).text();live=(t.match(/const BUILD='([^']+)'/)||[])[1]||''}catch(e){}
@@ -4204,7 +4206,7 @@ function ptrDoor(k){const E=$('#hElv');if(!E)return;const o=k>=0.3;if(o&&!E.clas
   const mv=y=>{[M,F].forEach(el=>{el.style.transition='none';el.style.transform=y?`translate3d(0,${y}px,0)`:''})};
   const back=()=>{[M,F].forEach(el=>{if(!el.style.transform)return;el.style.transition='transform .45s cubic-bezier(.22,.8,.3,1)';requestAnimationFrame(()=>{el.style.transform='';setTimeout(()=>el.style.transition='',480)})})};
   const reset=()=>{back();ptrDoor(0);y0=null;dy=0;act=false};
-  document.addEventListener('touchstart',e=>{if(e.touches.length>1||window.scrollY>0||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden)'))return;y0=e.touches[0].clientY;dy=0;act=false},{passive:true});
+  document.addEventListener('touchstart',e=>{if(e.touches.length>1||window.scrollY>0||document.body.style.overflow==='hidden'||document.querySelector('#sbSheetWrap.on,#pmSheet:not(.hidden),#nPanel:not(.hidden),#eqSheet:not(.hidden),#pvView:not(.hidden)')||(e.target.closest&&e.target.closest('#eqSheet,#pvView,[role=dialog]')))return;y0=e.touches[0].clientY;dy=0;act=false},{passive:true});
   document.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
     if(dy<=0||window.scrollY>0){if(act)reset();else y0=null;return}
     act=true;if(e.cancelable)e.preventDefault();
