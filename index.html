@@ -1614,7 +1614,7 @@ const eqUseLate=e=>!!(e.use&&e.use.by&&e.use.due&&e.use.due<Date.now());
 const eqMgr=e=>e.mgr||e.by;
 /* 내가 챙겨야 할 알림: 내가 쓰는 장비 반납 늦음 + 내가 담당인 장비 교정 30일 이내/지남 */
 function eqMyAlerts(){const out=[];(D.equips||[]).forEach(e=>{
-  if(e.use&&e.use.by===myId&&eqUseLate(e))out.push({e,k:'late'});
+
   const d=eqDays(e.calib),own=e.set&&((((D.settings.find(x=>x.id==='main')||{}).setOwner||{})[e.set])||[]).includes(myId);if(d!==null&&d<=30&&(eqMgr(e)===myId||own))out.push({e,k:d<0?'over':'soon',d})});return out}
 function eqBadges(e){const b=[],d=eqDays(e.calib);
   if(d!==null&&d<0)b.push(`<span class="eq-bd eq-red">교정 지남 ${eqDday(d)}</span>`);else if(d!==null&&d<=30)b.push(`<span class="eq-bd eq-amb">교정 ${eqDday(d)}</span>`);
@@ -1633,8 +1633,7 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
     ${e.use&&e.use.by?`<div class="text-xs mt-0.5 font-bold ${eqUseLate(e)?'text-red-500':'text-purple-600 dark:text-purple-300'}">🔧 ${esc(nmFull(e.use.by))} 사용 중${e.use.where?' · '+esc(e.use.where):''} · 반납 ${eqTime(e.use.due)}${eqUseLate(e)?' (늦음)':''}</div>`:''}
   </div></div>
   ${eqCertBtn(e)}
-  <div class="grid ${edit?'grid-cols-3':'grid-cols-2'} gap-1.5 mt-2.5">
-    <button type="button" data-equse="${e.id}" class="eq-b ${mine?'amb':other?'':'pri'}">${mine?'↩️ 반납하기':other?'대신 반납':'🔧 사용 시작'}</button>
+  <div class="grid ${edit?'grid-cols-2':'grid-cols-1'} gap-1.5 mt-2.5">
     <button type="button" data-eqdoc="${e.id}" class="eq-b">📘 설명서</button>
     ${edit?`<button type="button" data-eqedit="${e.id}" class="eq-b">✏️ 고치기</button>`:''}
   </div></div>`}
@@ -1643,7 +1642,7 @@ function renderEquip(){
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
   $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
     ${my.slice(0,eqAlOpen?999:3).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}${my.length>3?`<button type="button" data-eqalt class="mt-1.5 text-[12.5px] font-black text-purple-600 dark:text-purple-300 min-h-[36px]">${eqAlOpen?'▲ 접기':`▼ 나머지 ${my.length-3}개 더 보기`}</button>`:''}
-    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon} · 반납 늦음 ${late}</div>
+    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon}</div>
     ${isAdmin?'<button type="button" data-eqremind class="mt-2 w-full min-h-[44px] rounded-xl bg-[#B45309] text-white text-[13px] font-black">📣 교정 만료 알림 지금 보내기</button>':''}</div>`:'';
   const inv=eqInv();
   $('#eqTabs').innerHTML=[['list','🧰 장비 목록'],['inv','📋 재고 조사'+(inv?' ●':'')],['doc','📄 장비별 자료']].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===eqTab}" data-eqtab="${k}" class="eq-tab${k===eqTab?' on':''}">${l}</button>`).join('');
@@ -1661,7 +1660,7 @@ function renderEquip(){
       ${isAdmin?`<button type="button" data-eqimp class="w-full min-h-[46px] rounded-xl border border-amber-500 text-amber-700 dark:text-amber-300 font-black text-sm">📥 교정성적서 불러오기 (2026.10.28 기준)</button>`:''}
       ${sets.length?`<select id="eqSetSel" class="inp" aria-label="세트 고르기"><option value="">📦 모든 장비 (세트 전체)</option>${sets.map(s=>`<option value="${esc(s)}"${s===eqSet?' selected':''}>📦 ${esc(s)} (${all.filter(e=>e.set===s).length}대)</option>`).join('')}<option value="_"${eqSet==='_'?' selected':''}>🔧 세트 아닌 장비 (${all.filter(e=>!e.set).length}대)</option></select>`:''}
       <input id="eqQ" class="inp" placeholder="🔍 장비 이름·기기번호·보관 위치 검색" value="${esc(eqQ)}">
-      <div class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1">${['전체','사용 중','교정 임박','내 담당'].map(c=>`<button type="button" data-eqf="${c}" class="eq-chip${c===f?' on':''}">${c}</button>`).join('')}</div>
+      <div class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1">${['전체','교정 임박','내 담당'].map(c=>`<button type="button" data-eqf="${c}" class="eq-chip${c===f?' on':''}">${c}</button>`).join('')}</div>
       <div id="eqListBox" class="space-y-2.5">${box}</div>`;
     $('#eqQ').oninput=ev=>{eqQ=ev.target.value;renderEquip()};
     if($('#eqSetSel'))$('#eqSetSel').onchange=ev=>{eqSet=ev.target.value;renderEquip()};
