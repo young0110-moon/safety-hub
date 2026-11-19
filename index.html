@@ -298,6 +298,32 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .eq-ai{border-radius:14px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;font-size:12.5px;line-height:1.65}
 .dark .eq-ai{background:#082F49;border-color:#0C4A6E}
 .eq-prog{height:12px;border-radius:99px;background:rgba(124,58,237,.12);overflow:hidden}.eq-prog>i{display:block;height:100%;background:linear-gradient(90deg,#22C55E,#16A34A);border-radius:99px;transition:width .4s}
+.sc-qr{width:100%;background:#1E1B4B;color:#FDE68A;border-color:#1E1B4B}.dark .sc-qr{background:#FDE68A;color:#1E1B4B}
+.pv-view{position:fixed;inset:0;z-index:135;background:#E5E7EB;display:flex;flex-direction:column}.pv-view.hidden{display:none}.dark .pv-view{background:#0F0C29}
+.pv-bar{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;background:#1E1B4B;color:#fff;flex-shrink:0}
+.pv-t{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-b{min-height:40px;padding:0 11px;border-radius:10px;background:rgba(255,255,255,.16);font-size:13px;font-weight:800;color:#fff;white-space:nowrap}.pv-b.pri{background:#7C3AED}
+.pv-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:30px}
+.pv-doc{padding:10px;overflow-x:auto}.pv-page{display:block;width:100%;height:auto;margin:0 auto 10px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.sc-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:12px;border:1px solid rgba(124,58,237,.2);background:#fff}.sc-row.ok{background:#F0FDF4;border-color:#86EFAC}
+.dark .sc-row{background:#221C55}.dark .sc-row.ok{background:#052E16;border-color:#166534}
+.sc-st{font-size:20px;flex-shrink:0}.sc-mini{min-height:34px;padding:0 9px;border-radius:9px;font-size:11.5px;font-weight:800;border:1px solid rgba(124,58,237,.35);white-space:nowrap}
+.sc-hit{border-radius:12px;padding:10px 12px;background:#F0FDF4;border:1px solid #86EFAC;font-size:13px}.sc-warn{border-radius:12px;padding:10px 12px;background:#FFFBEB;border:1px solid #FCD34D;font-size:13px;line-height:1.6}
+.dark .sc-hit{background:#052E16;border-color:#166534}.dark .sc-warn{background:#3B2A0B;border-color:#92400E}
+.sc-pick{display:block;width:100%;min-height:44px;margin-top:6px;border-radius:10px;background:#16A34A;color:#fff;font-weight:800;font-size:13px}
+.rep{background:#fff;color:#111;max-width:820px;margin:12px auto;padding:22px 18px;font-size:12.5px;line-height:1.55}
+.rep h1{font-size:20px;font-weight:900;text-align:center;margin:0}.rep-sub{text-align:center;font-size:11.5px;color:#555;margin-top:4px}
+.rep h2{font-size:14px;font-weight:900;margin:16px 0 6px;border-left:4px solid #6D28D9;padding-left:7px}
+.rep-t{width:100%;border-collapse:collapse;font-size:11.5px}.rep-t th,.rep-t td{border:1px solid #CBD5E1;padding:5px 6px;text-align:center;vertical-align:middle}
+.rep-t th{background:#EEF2FF;font-weight:800}.rep-t td.l{text-align:left}.rep-t td:first-child{white-space:nowrap}.rep-t .red{color:#DC2626;font-weight:800}.rep-t .amb{color:#B45309;font-weight:800}
+.rep-note{font-size:11px;color:#555;margin-top:5px}.rep-box{border:1px solid #CBD5E1;border-radius:6px;padding:8px 10px;min-height:44px}
+.rep-sign{width:100%;border-collapse:collapse;margin-top:16px}.rep-sign th,.rep-sign td{border:1px solid #94A3B8;height:46px;font-size:12px}.rep-sign th{width:18%;background:#F1F5F9}
+.rep-foot{font-size:10px;color:#888;margin-top:10px;text-align:right}
+.lab-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;max-width:820px;margin:0 auto;background:#fff}
+.lab{display:flex;gap:10px;align-items:center;border:1.5px dashed #94A3B8;border-radius:10px;padding:10px;color:#111;break-inside:avoid}
+.lab-q{width:42%;flex-shrink:0}.lab-q svg{width:100%;height:auto;display:block}
+.lab-k{font-size:11px;font-weight:800;color:#6D28D9}.lab-c{font-size:18px;font-weight:900;letter-spacing:.3px}.lab-n{font-size:10.5px;color:#444;margin-top:3px}.lab-h{font-size:9.5px;color:#666;margin-top:5px}
+@media print{body.pv-on>*:not(#pvView){display:none!important}body.pv-on{background:#fff!important}#pvView{position:static!important;display:block!important;background:#fff!important}.pv-bar{display:none!important}.pv-body{overflow:visible!important}.rep{margin:0;padding:0;max-width:none}@page{size:A4;margin:12mm}}
 .eq-lbl{font-size:11.5px;font-weight:800;opacity:.75;margin:8px 0 3px;display:block}
 .tk-like{min-height:40px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--tln);background:transparent;color:var(--ttx)}
 .tk-like.on.tip{background:#E3F5F1;color:#0F766E;border-color:#99E2D4}.tk-like.on.ask{background:#FFF0E5;color:#C2410C;border-color:#FDBA8C}.tk-like.on.chat{background:#F1ECFD;color:#6D28D9;border-color:#C4B5FD}
@@ -887,6 +913,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
       <label class="eq-btn pri">📸 사진 찍기<input id="eqCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
       <label class="eq-btn">🖼️ 앨범에서<input id="eqPic" type="file" accept="image/*" class="sr-only"></label>
     </div>
+    <label class="eq-btn sc-qr mt-2">📦 세트 가방 QR 찍기 <span class="text-[11.5px] font-bold opacity-85">(세트 점검)</span><input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
     <div id="eqResult"></div>
   </div>
   <div id="eqTabs" class="eq-tabs" role="tablist"></div>
@@ -1597,7 +1624,7 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
     ${e.certs&&e.certs.length?`<div class="text-[11px] opacity-70 mt-0.5 break-words">📑 성적서 ${e.certs.map(c=>esc(c.c)+(e.certs.length>1?'('+esc(c.n.replace(/\(.*\)|\s*\/.*$/g,''))+')':'')).join(', ')} · ${esc([...new Set(e.certs.map(c=>c.lab))].join(', '))}</div>`:''}
     ${e.use&&e.use.by?`<div class="text-xs mt-0.5 font-bold ${eqUseLate(e)?'text-red-500':'text-purple-600 dark:text-purple-300'}">🔧 ${esc(nmFull(e.use.by))} 사용 중${e.use.where?' · '+esc(e.use.where):''} · 반납 ${eqTime(e.use.due)}${eqUseLate(e)?' (늦음)':''}</div>`:''}
   </div></div>
-  ${atList(e.files,'q',e.id)}
+  ${eqCertBtn(e)}
   <div class="grid ${edit?'grid-cols-3':'grid-cols-2'} gap-1.5 mt-2.5">
     <button type="button" data-equse="${e.id}" class="eq-b ${mine?'amb':other?'':'pri'}">${mine?'↩️ 반납하기':other?'대신 반납':'🔧 사용 시작'}</button>
     <button type="button" data-eqdoc="${e.id}" class="eq-b">📄 장비 자료</button>
@@ -1628,13 +1655,17 @@ function renderEquip(){
     $('#eqQ').oninput=ev=>{eqQ=ev.target.value;renderEquip()};
     if($('#eqSetSel'))$('#eqSetSel').onchange=ev=>{eqSet=ev.target.value;renderEquip()};
   }else if(eqTab==='inv'){
-    const m=D.settings.find(x=>x.id==='main')||{},hist=(m.invHist||[]).slice().reverse();
+    const m=D.settings.find(x=>x.id==='main')||{},hist=(m.invHist||[]).slice().reverse(),sets=[...new Set(all.map(e=>e.set).filter(Boolean))].sort(),sc=m.setChk||{};
+    const scBox=`<div class="card !p-4"><b class="text-sm">📦 세트로 점검하기</b><p class="text-[12.5px] opacity-80 mt-1 leading-relaxed">가방의 <b>세트 QR</b>을 찍으면 그 세트 장비 목록이 열려요. 장비 기기번호를 찍으면 그 세트 안에서 맞춰 ✔ 확인하고, <b>최신 성적서</b>도 바로 볼 수 있어요.</p>
+      <label class="eq-btn sc-qr mt-2.5">📦 세트 가방 QR 찍기<input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
+      ${sets.length?`<div class="flex gap-2 mt-2"><select id="scPickSel" class="inp flex-1" aria-label="세트 고르기"><option value="">QR 없이 세트 고르기</option>${sets.map(s=>`<option value="${esc(s)}">${esc(s)}${sc[s]?' · 점검 '+sc[s].ok+'/'+sc[s].total+' ('+ago(sc[s].at)+')':' · 점검 기록 없음'}</option>`).join('')}<option value="_">세트 아닌 장비</option></select><button type="button" data-scpick class="eq-b pri px-4 shrink-0">열기</button></div>`:''}
+      <div class="grid ${isAdmin?'grid-cols-2':'grid-cols-1'} gap-2 mt-2"><button type="button" data-eqrep class="eq-b">📄 보고서 만들기</button>${isAdmin?'<button type="button" data-eqlabel class="eq-b">🏷️ 세트 QR 라벨</button>':''}</div></div>`;
     if(!inv){P.innerHTML=`<div class="card !p-4"><b class="text-sm">📋 재고 조사란?</b><p class="text-[13px] opacity-85 mt-1 leading-relaxed">지사 장비가 제자리에 다 있는지 한 번에 확인하는 기능이에요. 조사를 시작한 뒤 장비 이름표(기기번호)를 사진으로 찍으면 AI가 번호를 읽어 <b>자동으로 ✔ 확인</b>해 줘요.</p>
       <label class="eq-lbl" for="eqInvT">조사 이름</label><input id="eqInvT" class="inp" maxlength="40" value="${new Date().getFullYear()}년 ${new Date().getMonth()+1}월 장비 재고 조사">
-      <button type="button" data-eqinvstart class="mt-3 w-full min-h-[50px] rounded-xl bg-[#16A34A] text-white font-black text-sm">▶ 재고 조사 시작</button></div>
+      <button type="button" data-eqinvstart class="mt-3 w-full min-h-[50px] rounded-xl bg-[#16A34A] text-white font-black text-sm">▶ 재고 조사 시작</button></div>${scBox}
       ${hist.length?`<div class="card !p-3"><b class="text-sm">지난 재고 조사</b>${hist.map(h=>`<div class="flex justify-between gap-2 text-[13px] mt-2"><span class="min-w-0 break-words">${esc(h.title)}<br><span class="text-[11px] opacity-65">${tstr(h.at)} · ${esc(nmFull(h.by))}</span></span><b class="${h.ok<h.total?'text-red-500':'text-green-600'} shrink-0">${h.ok}/${h.total}</b></div>`).join('')}</div>`:''}`;return}
     const ok=all.filter(eqChecked),no=all.filter(e=>!eqChecked(e)),pct=all.length?Math.round(ok.length/all.length*100):0;
-    P.innerHTML=`<div class="card !p-4"><div class="flex items-center justify-between gap-2"><b class="text-[15px] break-words">${esc(inv.title)}</b><span class="eq-bd eq-grn shrink-0">진행 중</span></div>
+    P.innerHTML=`${scBox}<div class="card !p-4"><div class="flex items-center justify-between gap-2"><b class="text-[15px] break-words">${esc(inv.title)}</b><span class="eq-bd eq-grn shrink-0">진행 중</span></div>
       <div class="text-[11.5px] opacity-70 mt-0.5">${tstr(inv.at)} · ${esc(nmFull(inv.by))} 시작</div>
       <div class="flex items-center justify-between mt-3 text-sm font-black"><span>확인 ${ok.length} / ${all.length}대</span><span>${pct}%</span></div><div class="eq-prog mt-1"><i style="width:${pct}%"></i></div>
       <label class="eq-btn pri mt-3">📸 기기번호 찍어서 확인<input id="eqInvCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
@@ -1654,6 +1685,7 @@ function renderEquip(){
         :'<div class="card text-center text-sm opacity-75 py-8">아직 등록된 장비 자료가 없어요.</div>'}`;
   }
   hydrate(P);
+  if(scPending&&(D.equips||[]).length){const c=scPending;scPending='';scOpen(c)}
   if(eqLast&&eqLast.mode==='find'){const h=eqMatch(eqLast.ai);if((h&&h.id)!==(eqLast.hit&&eqLast.hit.id)||h){eqLast.hit=h;renderScanResult()}}
 }
 
@@ -1892,6 +1924,195 @@ document.addEventListener('click',async e=>{
     const m=D.settings.find(x=>x.id==='main')||{},sum={title:r.title,at:r.at,by:r.by,end:Date.now(),endBy:myId,total:all.length,ok,miss:all.filter(e=>!eqChecked(e)).map(e=>e.name+' ('+(e.no||'-')+')').slice(0,50)};
     try{await db.doc('settings/main').set({inv:{...r,done:true,end:Date.now()},invHist:[...(m.invHist||[]).slice(-9),sum]},{merge:true});toast(`재고 조사를 끝냈어요. 확인 ${ok}/${all.length}대`,'ok')}catch(err){toast(errMsg(err),'error')}return}
 });
+
+/* ===== 세트 점검 (세트 가방 QR → 그 세트 장비만 놓고 기기번호 사진으로 확인) · 최신 성적서 보기 · 보고서 =====
+   · 세트 QR 내용: https://…/safety-hub/?set=SEB-4029-05  (휴대폰 카메라로 찍어도 앱이 열리며 바로 세트 점검)
+   · 확인 기록: equips.seen = {at, by, set, m(ai|guess|manual), ph(사진 id)} / 재고 조사 중이면 inv 도 함께
+   · 세트 점검 결과: settings/main.setChk[세트] = {at, by, ok, total, miss[]} */
+let scSet='',scOk=new Map(),scBusy=false,scPending='',scLast=null;
+const SC_KIND=['조도','줄자','초시계','절연','클램프','도어','푸쉬','캘리퍼','틈새','각도','크리노','회전','감속','소음','진동','압력','아이스코프'];
+const scKindKey=k=>{k=String(k||'');const h=SC_KIND.find(w=>k.includes(w));return h==='크리노'?'각도':h==='아이스코프'?'압력':h||''};
+/* 헷갈리는 글자를 같은 글자로 (O→0, I·L→1, Z→2, S→5, B→8) */
+const scC=s=>eqN(s).replace(/[OQ]/g,'0').replace(/[IL]/g,'1').replace(/Z/g,'2').replace(/S/g,'5').replace(/B/g,'8');
+function scLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
+const scItems=code=>(D.equips||[]).filter(e=>code==='_'?!e.set:e.set===code).sort((a,b)=>(a.kind||'').localeCompare(b.kind||'')||a.name.localeCompare(b.name));
+const scToday=()=>eqToday();
+const scDone=e=>scOk.has(e.id)||!!(e.seen&&e.seen.at>=scToday()&&e.seen.set===scSet)||eqChecked(e);
+/* AI가 읽은 글자들 → 장비 찾기: ① 전체에서 똑같은 번호 ② 이 세트 안에서 비슷한 번호(1~2글자 틀림 허용) */
+function scMatch(ai,items){
+  const cands=[...new Set([ai.no,ai.serial,...(ai.texts||[])].map(scC).filter(x=>x.length>=3))],E=D.equips||[],hits=new Map();
+  for(const c of cands){const ex=E.find(e=>scC(e.no)===c||(e.serial&&scC(e.serial)===c));if(ex){hits.set(ex.id,{e:ex,how:'exact'});continue}
+    let best=null,bd=9;for(const e of items){const n=scC(e.no),lim=n.length>=7?2:n.length>=4?1:0;let dd=scLev(c,n);
+      if(dd>lim&&c.length>=5&&n.length>=5&&(c.includes(n)||n.includes(c)))dd=lim;if(dd<=lim&&dd<bd){bd=dd;best=e}}
+    if(best&&!hits.has(best.id))hits.set(best.id,{e:best,how:'near'})}
+  return [...hits.values()]}
+/* 최신 성적서: 기능(성적서 종류)마다 가장 최근 것 */
+function eqLatest(e){const C=e.certs||[],by={};C.forEach(c=>{const k=c.n||'';if(!by[k]||c.d>by[k].d)by[k]=c});const L=Object.values(by).sort((a,b)=>b.d.localeCompare(a.d));
+  const files=(e.files||[]).map((f,i)=>({f,i,c:C.find(c=>f.n&&f.n.startsWith(c.c+' '))}));
+  return {certs:L,files:files.filter(x=>!x.c||L.includes(x.c)).sort((a,b)=>((b.c&&b.c.d)||'').localeCompare((a.c&&a.c.d)||'')),all:files}}
+const eqCertBtn=e=>{const L=eqLatest(e);if(!L.certs.length&&!(e.files||[]).length)return '';const d=L.certs[0]&&L.certs[0].d;
+  return `<button type="button" data-certv="${e.id}" class="mt-2 w-full min-h-[44px] rounded-xl bg-[#0F766E] text-white text-[13px] font-black flex items-center justify-center gap-1.5">📑 최신 성적서 보기${d?` <span class="font-bold opacity-85">(${esc(d)} 교정)</span>`:''}${L.certs.length>1?` · ${L.certs.length}장`:''}</button>`};
+
+/* ---- 화면 전체를 덮는 보기 창 (성적서 · 보고서 · QR 라벨) ---- */
+function pvOpen(title,html,tools){
+  let v=$('#pvView');if(!v){v=document.createElement('div');v.id='pvView';v.className='pv-view';document.body.appendChild(v)}
+  v.innerHTML=`<div class="pv-bar"><button type="button" data-pvx class="pv-b">✕ 닫기</button><b class="pv-t">${esc(title)}</b>${tools||''}</div><div id="pvBody" class="pv-body">${html}</div>`;
+  v.classList.remove('hidden');document.body.classList.add('pv-on')}
+function pvClose(){const v=$('#pvView');if(v){v.classList.add('hidden');v.innerHTML=''}document.body.classList.remove('pv-on')}
+document.addEventListener('click',e=>{if(e.target.closest('[data-pvx]'))pvClose();if(e.target.closest('[data-pvprint]'))window.print()});
+function loadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[data-src="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.dataset.src=src;s.onload=()=>ok();s.onerror=()=>no(new Error('불러오기 실패: '+src));document.head.appendChild(s)})}
+/* 조각으로 저장된 파일 → Blob */
+async function atBlob(col,cid,f,prog){const parts=[];for(let k=0;k<f.c;k++){prog&&prog(k,f.c);const sn=await db.doc(col+'/'+cid(k)).get();const dd=sn.exists&&sn.data();if(!dd||dd.gone||!dd.data)throw {code:'missing'};
+  const bin=atob(dd.data),u=new Uint8Array(bin.length);for(let q=0;q<bin.length;q++)u[q]=bin.charCodeAt(q);parts.push(u)}return new Blob(parts,{type:f.t||'application/octet-stream'})}
+/* 성적서 보기 */
+let pvZoom=1,pvFile=null;
+async function certView(eid,idx){
+  const e=(D.equips||[]).find(x=>x.id===eid);if(!e)return;const L=eqLatest(e),list=L.files.length?L.files:L.all;
+  const cur=list.find(x=>x.i===idx)||list[0],c=cur&&cur.c||L.certs[0];
+  const tabs=L.all.length>1?`<div class="flex gap-1.5 overflow-x-auto hscroll px-3 pt-2">${L.all.map(x=>`<button type="button" data-certv="${e.id}" data-ci="${x.i}" class="eq-chip shrink-0${cur&&x.i===cur.i?' on':''}">${esc(x.c?x.c.n.replace(/\s*\/.*$/,'').replace(/\(.*\)/,'').trim()+' '+x.c.d.slice(2):x.f.n)}${L.files.includes(x)?' ★':''}</button>`).join('')}</div>`:'';
+  const dd=eqDays(e.calib);
+  pvOpen('📑 '+e.name,`${tabs}<div class="px-3 pt-2 text-[12.5px] leading-relaxed"><b>${esc(e.kind||'')}</b> · 🔢 ${esc(e.no||'-')}${e.set?' · 📦 '+esc(e.set):''}<br>
+    ${c?`성적서 <b>${esc(c.c)}</b> · 교정일 <b>${esc(c.d)}</b> · ${esc(c.lab||'')}`:''}${e.calib?`<br>교정 만료 <b class="${dd<0?'text-red-500':dd<=30?'text-amber-600':''}">${esc(e.calib)} (${eqDday(dd)})</b>`:''}
+    ${L.files.length&&cur&&!L.files.includes(cur)?'<br><span class="text-amber-600 font-bold">※ 예전 성적서예요. ★ 표시가 최신이에요.</span>':''}</div>
+    <div id="pvDoc" class="pv-doc"><div class="text-center text-sm opacity-70 py-16">${cur?'📑 성적서를 불러오는 중…':'아직 이 장비에 성적서 파일이 올라오지 않았어요.<br>관리자가 \'교정성적서 불러오기\'에서 zip을 고르면 붙어요.'}</div></div>`,
+    cur?`<button type="button" data-pvz="-1" class="pv-b">－</button><button type="button" data-pvz="1" class="pv-b">＋</button><button type="button" data-pvsave class="pv-b">⬇️ 저장</button>`:'');
+  if(!cur)return;pvZoom=1;pvFile=null;
+  try{const blob=await atBlob('fileChunks',k=>cur.f.id+'_'+k,cur.f,(k,n)=>{const t=$('#pvDoc div');if(t)t.textContent=`📑 성적서를 불러오는 중… ${Math.round(k/n*100)}%`});
+    pvFile=new File([blob],cur.f.n,{type:blob.type});const box=$('#pvDoc');if(!box)return;
+    if(/^image\//.test(blob.type)||/\.(jpe?g|png)$/i.test(cur.f.n)){const u=URL.createObjectURL(blob);box.innerHTML=`<img src="${u}" class="pv-page" alt="성적서">`;return}
+    await loadScript('lib/pdfjs/pdf.js');const lib=window.pdfjsLib;lib.GlobalWorkerOptions.workerSrc='lib/pdfjs/pdf.worker.js';
+    const pdf=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;box.innerHTML='';
+    for(let pn=1;pn<=pdf.numPages;pn++){const pg=await pdf.getPage(pn),vp0=pg.getViewport({scale:1}),w=Math.min(1600,(box.clientWidth||360)*(window.devicePixelRatio||2)*1.5),vp=pg.getViewport({scale:w/vp0.width});
+      const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;cv.className='pv-page';box.appendChild(cv);await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise}
+  }catch(err){const box=$('#pvDoc');if(box)box.innerHTML=`<div class="text-center text-sm py-16">${err&&err.code==='missing'?'성적서 파일이 지워졌어요.':'성적서를 열지 못했어요. 아래 ⬇️ 저장으로 받아서 열어 주세요.'}</div>`}}
+document.addEventListener('click',async e=>{
+  const v=e.target.closest('[data-certv]');if(v){e.preventDefault();e.stopPropagation();certView(v.dataset.certv,v.dataset.ci!==undefined?+v.dataset.ci:undefined);return}
+  const z=e.target.closest('[data-pvz]');if(z){pvZoom=Math.max(1,Math.min(3,pvZoom+(+z.dataset.pvz)*.5));document.querySelectorAll('#pvDoc .pv-page').forEach(c=>c.style.width=(pvZoom*100)+'%');return}
+  if(e.target.closest('[data-pvsave]')&&pvFile){const f=pvFile;if(isIOS&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]})}catch(_){}}
+    else{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);toast('내려받았어요.','ok')}}
+},true);
+
+/* ---- QR 읽기 (사진 한 장에서) ---- */
+async function qrRead(file){
+  const bmp=await createImageBitmap(file);
+  try{if('BarcodeDetector' in window){const r=await new BarcodeDetector({formats:['qr_code']}).detect(bmp);if(r&&r[0])return r[0].rawValue}}catch(_){}
+  await loadScript('lib/jsQR.js');const W=Math.min(1600,bmp.width),H=Math.round(bmp.height*W/bmp.width),cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(bmp,0,0,W,H);const d=cx.getImageData(0,0,W,H),q=window.jsQR(d.data,W,H,{inversionAttempts:'attemptBoth'});return q?q.data:''}
+const scCodeOf=t=>{t=String(t||'');const m=t.match(/[?&]set=([A-Za-z0-9_-]+)/)||t.match(/\b(SEB-\d{4}-\d{2})\b/i);return m?m[1].toUpperCase():''};
+
+/* ---- 세트 점검 창 ---- */
+function scOpen(code){
+  if(!code)return;const items=scItems(code);if(!items.length)return toast(`${code} 세트에 등록된 장비가 없어요. 교정성적서 불러오기를 먼저 해 주세요.`,'error');
+  if(scSet!==code){scSet=code;scOk=new Map();scLast=null}scDraw()}
+function scDraw(){
+  const code=scSet,items=scItems(code),ok=items.filter(scDone),m=D.settings.find(x=>x.id==='main')||{},last=(m.setChk||{})[code],pct=Math.round(ok.length/items.length*100),inv=eqInv();
+  const row=e=>{const done=scDone(e),how=scOk.get(e.id)||(e.seen&&e.seen.at>=scToday()?e.seen.m:''),dd=eqDays(e.calib);
+    return `<div class="sc-row${done?' ok':''}" data-scid="${e.id}"><span class="sc-st">${done?'✅':'⬜'}</span><div class="flex-1 min-w-0"><b class="text-[13.5px] break-words">${esc((e.kind||e.name).replace(/\(.*\)/,''))}</b> <span class="text-[11.5px] opacity-75">🔢 ${esc(e.no)}</span>
+      <div class="text-[11px] mt-0.5 ${dd!==null&&dd<0?'text-red-500 font-bold':dd!==null&&dd<=30?'text-amber-600 font-bold':'opacity-65'}">${e.calib?'교정 만료 '+esc(e.calib)+' ('+eqDday(dd)+')':'교정 정보 없음'}${done&&how?' · '+({ai:'📸 번호 인식',near:'📸 번호 인식',guess:'🤔 종류로 확인',manual:'👀 눈으로 확인'}[how]||''):''}</div></div>
+      <div class="flex flex-col gap-1 shrink-0">${eqLatest(e).certs.length||(e.files||[]).length?`<button type="button" data-certv="${e.id}" class="sc-mini">📑 성적서</button>`:''}${done?'':`<button type="button" data-scman="${e.id}" class="sc-mini">👀 확인</button>`}</div></div>`};
+  eqOpen(`<div class="pr-10"><div class="text-[11px] font-bold opacity-65">세트 점검${inv?' · 재고 조사 「'+esc(inv.title)+'」에도 기록돼요':''}</div><h2 class="text-lg font-black">📦 ${esc(code==='_'?'세트 아닌 장비':code)}</h2>
+    ${last?`<div class="text-[11.5px] opacity-70">마지막 점검: ${tstr(last.at)} · ${esc(nmFull(last.by))} · ${last.ok}/${last.total}</div>`:''}</div>
+    <div class="flex items-center justify-between mt-2 text-sm font-black"><span>확인 ${ok.length} / ${items.length}개</span><span>${pct}%</span></div><div class="eq-prog mt-1"><i style="width:${pct}%"></i></div>
+    <div class="grid grid-cols-[1fr_auto] gap-2 mt-3"><label class="eq-btn pri">📸 장비 기기번호 찍기<input id="scCam" type="file" accept="image/*" capture="environment" class="sr-only"></label><label class="eq-btn px-3">🖼️<input id="scPic" type="file" accept="image/*" multiple class="sr-only"></label></div>
+    <div class="text-[11.5px] opacity-75 mt-1.5 leading-relaxed">💡 번호에 가까이 · 빛 반사는 비스듬히 피해서 · 2~3대를 번호가 보이게 나란히 놓고 한 번에 찍어도 돼요</div>
+    <div id="scRes">${scLast||''}</div>
+    <div class="eq-sec">이 세트의 장비 ${items.length}개</div>
+    <div class="space-y-1.5">${items.filter(e=>!scDone(e)).map(row).join('')}${items.filter(scDone).map(row).join('')}</div>
+    <button type="button" id="scEnd" class="mt-4 w-full min-h-[50px] rounded-xl bg-[#16A34A] text-white font-black text-sm">✔ 이 세트 점검 끝내기</button>`);
+}
+async function scPhoto(file){
+  if(scBusy)return;scBusy=true;const res=$('#scRes');let img='';
+  try{img=await compress(file,1280,.75)}catch(_){scBusy=false;return toast('사진을 읽지 못했어요.','error')}
+  if(res)res.innerHTML=`<div class="flex items-center gap-3 mt-3"><img src="${img}" class="eq-th" alt="찍은 사진"><div class="text-sm font-bold">🤖 AI가 번호를 읽는 중…<div class="text-[11.5px] opacity-70 font-normal">5~15초쯤 걸려요</div></div></div>`;
+  const items=scItems(scSet);let html='';
+  try{const ai=await eqAI(img),hits=scMatch(ai,items),mine=hits.filter(h=>h.e.set===scSet||(scSet==='_'&&!h.e.set)),other=hits.filter(h=>!mine.includes(h));
+    let ph='';if(mine.length){try{ph=await photoPut(await compress(file,800,.6))}catch(_){}}
+    for(const h of mine)await scCheck(h.e,h.how==='exact'?'ai':'near',ph);
+    html+=mine.map(h=>`<div class="sc-hit">✅ <b>${esc(h.e.kind.replace(/\(.*\)/,''))}</b> (${esc(h.e.no)}) 확인!${h.how==='near'?' <span class="text-[11px] opacity-75">· 비슷한 번호로 찾음</span>':''}${eqCertBtn(h.e)}</div>`).join('');
+    html+=other.map(h=>`<div class="sc-warn">⚠️ <b>${esc(h.e.name)}</b> (${esc(h.e.no)})는 <b>${esc(h.e.set||'세트 아닌 장비')}</b> 장비예요. 이 가방에 잘못 들어 있지 않은지 확인해 주세요.${eqCertBtn(h.e)}</div>`).join('');
+    if(!hits.length){const kk=scKindKey(ai.kind||ai.match),cand=kk?items.filter(e=>!scDone(e)&&scKindKey(e.kind)===kk):[];
+      html+=`<div class="sc-warn">🤔 번호를 정확히 못 읽었어요.${ai.no||ai.serial?` (읽은 글자: <b>${esc(ai.no||ai.serial)}</b>)`:''}${ai.kind?`<br>AI가 본 장비: <b>${esc(ai.kind)}</b>`:''}
+        ${cand.length?`<div class="mt-2 font-bold">이 장비가 맞나요?</div>${cand.map(e=>`<button type="button" data-scguess="${e.id}" class="sc-pick">✔ 맞아요: ${esc(e.kind.replace(/\(.*\)/,''))} (${esc(e.no)})</button>`).join('')}`:'<br>번호가 잘 보이게 더 가까이 다시 찍거나, 목록에서 👀 확인을 눌러 주세요.'}</div>`;
+      scLastImg=img}
+  }catch(err){html=`<div class="sc-warn">${esc(eqAIErr(err))}<br>목록에서 👀 확인을 눌러 눈으로 확인할 수도 있어요.</div>`}
+  scLast=`<div class="mt-3 space-y-2">${html}</div>`;scBusy=false;scDraw()}
+let scLastImg='';
+async function scCheck(e,m,ph){
+  scOk.set(e.id,m);const now=Date.now(),inv=eqInv(),up={seen:{at:now,by:myId,set:scSet,m,...(ph?{ph}:{})}};if(inv)up.inv={r:inv.id,by:myId,at:now};
+  try{await patch('equips',e.id,up)}catch(err){toast(errMsg(err),'error')}}
+document.addEventListener('change',e=>{const id=e.target.id;
+  if(id==='scCam'||id==='scPic'){const fs=[...e.target.files];e.target.value='';(async()=>{for(const f of fs)await scPhoto(f)})()}
+  if(id==='eqQr'){const f=e.target.files[0];e.target.value='';if(!f)return;toast('QR을 읽는 중…');
+    qrRead(f).then(t=>{const c=scCodeOf(t);if(!c)return toast('세트 QR을 찾지 못했어요. QR이 화면 가운데 크게 나오게 다시 찍어 주세요.','error');scOpen(c)}).catch(()=>toast('QR을 읽지 못했어요.','error'))}});
+document.addEventListener('click',async e=>{
+  const g=e.target.closest('[data-scguess],[data-scman],#scEnd,[data-scpick],[data-eqrep],[data-eqlabel],#repGo,#repCsv');if(!g||!e.target.closest('#eqSheet,#p-equip,#pvView'))return;
+  if(g.dataset.scguess){const x=D.equips.find(y=>y.id===g.dataset.scguess);if(!x)return;let ph='';try{if(scLastImg)ph=await photoPut(scLastImg)}catch(_){}
+    await scCheck(x,'guess',ph);scLast=`<div class="mt-3"><div class="sc-hit">✅ <b>${esc(x.kind.replace(/\(.*\)/,''))}</b> (${esc(x.no)}) 확인!${eqCertBtn(x)}</div></div>`;scDraw();return}
+  if(g.dataset.scman){const x=D.equips.find(y=>y.id===g.dataset.scman);if(!x)return;if(!g.dataset.arm){g.dataset.arm=1;g.textContent='한 번 더';setTimeout(()=>{if(g.isConnected){delete g.dataset.arm;g.textContent='👀 확인'}},3000);return}
+    await scCheck(x,'manual','');scLast=`<div class="mt-3"><div class="sc-hit">👀 <b>${esc(x.kind.replace(/\(.*\)/,''))}</b> (${esc(x.no)}) 눈으로 확인했어요.${eqCertBtn(x)}</div></div>`;scDraw();return}
+  if(g.id==='scEnd'){const items=scItems(scSet),ok=items.filter(scDone),miss=items.filter(x=>!scDone(x));
+    if(miss.length&&!g.dataset.arm){g.dataset.arm=1;g.textContent=`확인 안 된 ${miss.length}개가 있어요. 한 번 더 누르면 끝내요`;return}
+    try{await db.doc('settings/main').set({setChk:{[scSet]:{at:Date.now(),by:myId,ok:ok.length,total:items.length,miss:miss.map(x=>({id:x.id,k:(x.kind||'').replace(/\(.*\)/,''),no:x.no}))}}},{merge:true})}catch(err){toast(errMsg(err),'error')}
+    eqClose();toast(miss.length?`세트 점검 끝 · ${ok.length}/${items.length}개 · 없음: ${miss.map(x=>(x.kind||'').replace(/\(.*\)/,'')).join(', ')}`:`세트 점검 끝 · ${items.length}개 모두 확인! 👏`,miss.length?'error':'ok');scSet='';scLast=null;return}
+  if(g.dataset.scpick!==undefined){const v=$('#scPickSel').value;if(v)scOpen(v);return}
+  if(g.dataset.eqrep!==undefined){repForm();return}
+  if(g.dataset.eqlabel!==undefined){labelsView();return}
+  if(g.id==='repGo'){repMake($('#repP').value);return}
+  if(g.id==='repCsv'){repCsv();return}
+});
+
+/* ---- 보고서 ---- */
+function repForm(){const inv=eqInv(),m=D.settings.find(x=>x.id==='main')||{},h=(m.invHist||[]).slice(-1)[0];
+  eqOpen(`<h2 class="text-lg font-black pr-10">📄 장비 점검 보고서 만들기</h2>
+    <p class="text-[12.5px] opacity-80 mt-1">세트 점검·재고 조사 결과와 교정 현황을 한 장으로 정리해요. 만든 뒤 <b>인쇄·PDF 저장</b>이나 <b>엑셀(CSV)</b>로 받을 수 있어요.</p>
+    <label class="eq-lbl" for="repP">어느 기간의 점검으로 볼까요?</label>
+    <select id="repP" class="inp"><option value="d0">오늘 점검한 것</option><option value="d7">최근 7일</option><option value="d30" selected>최근 30일</option>${inv?`<option value="inv">진행 중인 재고 조사 「${esc(inv.title)}」</option>`:''}<option value="all">기간 상관없이 마지막 확인</option></select>
+    <button type="button" id="repGo" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">📄 보고서 만들기</button>`)}
+function repData(p){
+  const E=(D.equips||[]).slice(),t0=eqToday(),since=p==='d0'?t0:p==='d7'?t0-6*864e5:p==='d30'?t0-29*864e5:0,inv=eqInv();
+  const okOf=e=>p==='inv'?eqChecked(e):!!(e.seen&&e.seen.at>=since);
+  const sets=[...new Set(E.map(e=>e.set||'_'))].sort((a,b)=>a==='_'?1:b==='_'?-1:a.localeCompare(b));
+  const rows=sets.map(s=>{const it=E.filter(e=>(e.set||'_')===s),ok=it.filter(okOf);return {s,n:it.length,ok:ok.length,miss:it.filter(e=>!okOf(e)),over:it.filter(e=>(eqDays(e.calib)??1)<0).length,last:((D.settings.find(x=>x.id==='main')||{}).setChk||{})[s]}});
+  const how={ai:0,near:0,guess:0,manual:0};E.forEach(e=>{if(okOf(e)&&e.seen&&how[e.seen.m]!==undefined)how[e.seen.m]++});
+  const cal=E.filter(e=>e.calib&&eqDays(e.calib)<=30).sort((a,b)=>a.calib.localeCompare(b.calib));
+  const label=p==='d0'?'오늘':p==='d7'?'최근 7일':p==='d30'?'최근 30일':p==='inv'?`재고 조사 「${inv?inv.title:''}」`:'기간 전체(마지막 확인)';
+  return {E,rows,how,cal,okOf,label,ok:E.filter(okOf).length,over:E.filter(e=>(eqDays(e.calib)??1)<0).length,soon:E.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,use:E.filter(e=>e.use&&e.use.by).length}}
+let repLast=null;
+function repMake(p){const R=repData(p);repLast=R;eqClose();const today=new Date(),me_=me()||{},dt=`${today.getFullYear()}. ${today.getMonth()+1}. ${today.getDate()}.`;
+  const miss=R.rows.flatMap(r=>r.miss.map(e=>({...e,_s:r.s})));
+  pvOpen('📄 장비 점검 보고서',`<div class="rep">
+    <h1>장비 재고·교정 점검 보고서</h1><div class="rep-sub">한국승강기안전공단 부산동부지사 · 작성 ${dt} · 작성자 ${esc(me_.name||'')} ${esc(me_.rank||'')}<br>점검 기준: ${esc(R.label)}</div>
+    <h2>1. 요약</h2>
+    <table class="rep-t"><tr><th>전체 장비</th><th>확인</th><th>미확인</th><th>교정 기한 지남</th><th>30일 안 만료</th><th>사용 중</th></tr>
+    <tr><td>${R.E.length}대</td><td><b>${R.ok}대</b></td><td class="${R.E.length-R.ok?'red':''}"><b>${R.E.length-R.ok}대</b></td><td class="${R.over?'red':''}">${R.over}대</td><td class="${R.soon?'amb':''}">${R.soon}대</td><td>${R.use}대</td></tr></table>
+    <div class="rep-note">확인 방법: 📸 기기번호 사진 인식 ${R.how.ai+R.how.near}건 · 🤔 종류로 확인 ${R.how.guess}건 · 👀 눈으로 확인 ${R.how.manual}건</div>
+    <h2>2. 세트별 점검 결과</h2>
+    <table class="rep-t"><tr><th>세트</th><th>장비</th><th>확인</th><th>미확인 장비</th><th>교정 지남</th><th>마지막 세트 점검</th></tr>
+    ${R.rows.map(r=>`<tr><td>${esc(r.s==='_'?'세트 아닌 장비':r.s)}</td><td>${r.n}</td><td class="${r.ok<r.n?'red':''}">${r.ok}/${r.n}</td><td class="l">${r.miss.length?r.miss.map(e=>esc((e.kind||e.name).replace(/\(.*\)/,''))+(r.s==='_'?' '+esc(e.no):'')).join(', '):'-'}</td><td class="${r.over?'red':''}">${r.over||'-'}</td><td>${r.last?tstr(r.last.at)+'<br>'+esc(nm(r.last.by)):'-'}</td></tr>`).join('')}</table>
+    <h2>3. 확인되지 않은 장비 (${miss.length}대)</h2>
+    ${miss.length?`<table class="rep-t"><tr><th>세트</th><th>장비</th><th>기기번호</th><th>마지막 확인</th><th>비고</th></tr>${miss.map(e=>`<tr><td>${esc(e._s==='_'?'-':e._s)}</td><td class="l">${esc(e.name)}</td><td>${esc(e.no)}</td><td>${e.seen?tstr(e.seen.at):'기록 없음'}</td><td>${e.use&&e.use.by?'사용 중('+esc(nm(e.use.by))+')':''}</td></tr>`).join('')}</table>`:'<p>모든 장비를 확인했어요.</p>'}
+    <h2>4. 교정 조치가 필요한 장비 (${R.cal.length}대)</h2>
+    ${R.cal.length?`<table class="rep-t"><tr><th>장비</th><th>기기번호</th><th>세트</th><th>최근 교정일</th><th>교정 만료일</th><th>남은 날</th><th>성적서</th></tr>${R.cal.map(e=>{const d=eqDays(e.calib),c=eqLatest(e).certs[0];return `<tr><td class="l">${esc(e.name)}</td><td>${esc(e.no)}</td><td>${esc(e.set||'-')}</td><td>${esc(e.cdate||'-')}</td><td>${esc(e.calib)}</td><td class="${d<0?'red':'amb'}">${eqDday(d)}</td><td>${c?esc(c.c):'-'}</td></tr>`}).join('')}</table>`:'<p>30일 안에 교정이 필요한 장비가 없어요.</p>'}
+    <h2>5. 의견</h2><div class="rep-box">${miss.length?`확인되지 않은 장비 ${miss.length}대는 보관 위치·사용·교정 반출 여부를 확인할 필요가 있음. `:''}${R.over?`교정 기한이 지난 장비 ${R.over}대는 사용을 중지하고 교정을 의뢰해야 함. `:''}${R.soon?`30일 안에 만료되는 ${R.soon}대는 교정 일정을 잡아야 함.`:''}${!miss.length&&!R.over&&!R.soon?'특이 사항 없음.':''}</div>
+    <table class="rep-sign"><tr><th>점검자</th><td></td><th>확인자</th><td></td></tr></table>
+    <div class="rep-foot">MOA 「나의 장비 관리는?」에서 만든 보고서 · 교정 만료일은 교정일 + 1년 기준</div></div>`,
+    `<button type="button" data-pvprint class="pv-b pri">🖨️ 인쇄·PDF</button><button type="button" id="repCsv" class="pv-b">📊 엑셀</button>`)}
+function repCsv(){const R=repLast;if(!R)return;const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[['세트','장비 이름','종류','기기번호','확인','확인 방법','마지막 확인','확인자','최근 교정일','교정 만료일','남은 날','최신 성적서','보관 위치'].map(q).join(',')];
+  R.E.slice().sort((a,b)=>(a.set?0:1)-(b.set?0:1)||(a.set||'').localeCompare(b.set||'')||a.name.localeCompare(b.name)).forEach(e=>{const d=eqDays(e.calib),c=eqLatest(e).certs[0];
+    lines.push([e.set||'',e.name,e.kind||'',e.no,R.okOf(e)?'확인':'미확인',e.seen?({ai:'번호 인식',near:'번호 인식',guess:'종류로 확인',manual:'눈으로 확인'}[e.seen.m]||''):'',e.seen?tstr(e.seen.at):'',e.seen?nm(e.seen.by):'',e.cdate||'',e.calib||'',d===null?'':eqDday(d),c?c.c:'',e.place||''].map(q).join(','))});
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'}),f=new File([blob],`장비점검_${new Date().toISOString().slice(0,10)}.csv`,{type:'text/csv'});
+  if(isIOS&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(()=>{});return}
+  const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);toast('엑셀로 열 수 있는 파일을 받았어요.','ok')}
+/* ---- 세트 QR 라벨 인쇄 (관리자) ---- */
+async function labelsView(){
+  try{await loadScript('lib/qrcode.js')}catch(e){return toast('QR 도구를 불러오지 못했어요.','error')}
+  const base=location.origin+location.pathname.replace(/index\.html$/,''),sets=[...new Set((D.equips||[]).map(e=>e.set).filter(Boolean))].sort();
+  if(!sets.length)return toast('세트 장비가 없어요. 교정성적서 불러오기를 먼저 해 주세요.','error');
+  const svg=t=>{const q=qrcode(0,'M');q.addData(t);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})};
+  pvOpen('🏷️ 세트 QR 라벨',`<div class="lab-wrap">${sets.map(s=>{const it=scItems(s);return `<div class="lab"><div class="lab-q">${svg(base+'?set='+s)}</div><div class="lab-t"><div class="lab-k">MOA 장비 세트</div><div class="lab-c">${esc(s)}</div><div class="lab-n">장비 ${it.length}개 · ${esc([...new Set(it.map(e=>scKindKey(e.kind)).filter(Boolean))].slice(0,6).join('·'))}</div><div class="lab-h">앱 → 나의 장비 관리는? → 📦 세트 QR 찍기</div></div></div>`}).join('')}</div>`,
+    `<button type="button" data-pvprint class="pv-b pri">🖨️ 인쇄·PDF</button>`)}
 
 /* ===== 현장목소리 ===== */
 const VCATS=[{k:'위험',c:'#FF3B30',i:'⚠️'},{k:'조치요청',c:'#EA580C',i:'🛠️'},{k:'개선제안',c:'#2563EB',i:'💡'},{k:'칭찬',c:'#16A34A',i:'👏'},{k:'현장공유',c:'#7C3AED',i:'📷'}];
@@ -4002,6 +4223,7 @@ async function init(){
   setTimeout(()=>{if(!ready){ready=true;changed()}},8000);
 }
 renderHeader();vitals();checkLogin();
+if(/[?&]set=/.test(location.search)){scPending=scCodeOf(location.search);history.replaceState(null,'',location.pathname+'#equip')}
 {const n0=fromHash();navStack.push(n0);if(n0!=='home')show(n0);}
 init();
 </script>
