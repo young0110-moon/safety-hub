@@ -1701,7 +1701,7 @@ function renderEquip(){
     eqManLoad().then(()=>{const b=$('#eqBdList');if(b){b.classList.remove('opacity-70');b.innerHTML=EQBOARD.map(x=>`<button type="button" data-eqbd="${esc(x.n)}" class="eq-b !justify-start text-left">${eqEmoji(x.t||x.n)} ${esc(x.n)}</button>`).join('')}});
   }
   hydrate(P);
-  if(scPending&&(D.equips||[]).length){const c=scPending;scPending='';scOpen(c)}
+  if(scPending&&(D.equips||[]).length){const c=scPending;scPending='';const L=c.split(',');if(L.length>1)setqPick(L);else scOpen(c)}
   if(eqLast&&eqLast.mode==='find'){const h=eqMatch(eqLast.ai);if((h&&h.id)!==(eqLast.hit&&eqLast.hit.id)||h){eqLast.hit=h;renderScanResult()}}
 }
 
@@ -4388,7 +4388,7 @@ async function init(){
   setTimeout(()=>{if(!ready){ready=true;changed()}},8000);
 }
 renderHeader();vitals();checkLogin();
-if(/[?&]set=/.test(location.search)){scPending=scCodeOf(location.search);history.replaceState(null,'',location.pathname+'#equip')}
+if(/[?&]set=/.test(location.search)){scPending=(new URLSearchParams(location.search).get('set')||'').toUpperCase().split(/[,|\s]+/).filter(c=>/^[A-Z0-9_-]+$/.test(c)).join(',');history.replaceState(null,'',location.pathname+'#equip')}
 {const n0=fromHash();navStack.push(n0);if(n0!=='home')show(n0);}
 init();
 </script>
