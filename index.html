@@ -1626,7 +1626,7 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
   <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><b class="text-[15px] break-words">${esc(e.name)}</b>${eqBadges(e)}</div>
     <div class="text-xs opacity-85 mt-0.5 break-words">${e.kind?esc(e.kind)+' · ':''}🔢 ${esc(e.no||'기기번호 없음')}${e.model?' · '+esc(e.model):''}</div>
     <div class="text-xs opacity-75 break-words">📍 ${esc(e.place||'보관 위치 미입력')} · 👤 담당 ${esc(nmFull(eqMgr(e)))}</div>
-    ${e.calib?`<div class="text-xs mt-0.5 ${d<0?'text-red-500 font-bold':d<=30?'text-amber-600 dark:text-amber-300 font-bold':'opacity-75'}">🗓️ 교정 만료 ${esc(e.calib)} (${eqDday(d)})${e.cdate?` · 교정일 ${esc(e.cdate)}`:''}</div>`:''}
+    ${e.calib?`<div class="text-xs mt-0.5 ${d<0?'text-red-500 font-bold':d<=30?'text-amber-600 dark:text-amber-300 font-bold':'opacity-75'}">🗓️ 교정 만료 ${esc(e.calib)} (${eqDday(d)})${e.cdate?` · 교정일 ${esc(e.cdate)}`:''} · 주기 ${eqCyc(e.kind)}년</div>`:eqCyc(e.kind)===0?'<div class="text-xs mt-0.5 opacity-70">🚫 교정 제외 장비</div>':''}
     ${e.certs&&e.certs.length?`<div class="text-[11px] opacity-70 mt-0.5 break-words">📑 성적서 ${e.certs.map(c=>esc(c.c)+(e.certs.length>1?'('+esc(c.n.replace(/\(.*\)|\s*\/.*$/g,''))+')':'')).join(', ')} · ${esc([...new Set(e.certs.map(c=>c.lab))].join(', '))}</div>`:''}
     ${e.use&&e.use.by?`<div class="text-xs mt-0.5 font-bold ${eqUseLate(e)?'text-red-500':'text-purple-600 dark:text-purple-300'}">🔧 ${esc(nmFull(e.use.by))} 사용 중${e.use.where?' · '+esc(e.use.where):''} · 반납 ${eqTime(e.use.due)}${eqUseLate(e)?' (늦음)':''}</div>`:''}
   </div></div>
@@ -1690,9 +1690,9 @@ function renderEquip(){
     P.innerHTML=`<button type="button" data-eqtnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 자료 등록하기</button>
       <p class="text-[12px] opacity-75 px-1 leading-relaxed">장비 종류마다 설명·사용 방법·점검 요령과 설명서(PDF 등)를 올려 두면, 사진으로 장비를 찍었을 때 이 자료가 바로 떠요.</p>
       <details class="card !p-3" id="eqCycBox"${eqCycOpen?' open':''}><summary class="font-black text-sm cursor-pointer">⏱️ 교정 주기 (1년 · 2년)</summary>
-        <div class="text-[12px] opacity-75 mt-1.5 leading-relaxed">장비 종류마다 교정 주기를 정해요. 바꾸면 그 종류 장비의 <b>교정 만료일이 바로 다시 계산</b>돼요 (마지막 교정일 + 주기).</div>
-        ${[...new Set(all.map(e=>e.kind).filter(Boolean))].sort().map(k=>{const y=eqCyc(k),n=all.filter(e=>e.kind===k).length;return `<div class="flex items-center gap-2 mt-2"><span class="text-lg">${eqEmoji(k)}</span><span class="flex-1 min-w-0 text-[13px] font-bold break-words">${esc(k)} <span class="font-normal opacity-60">${n}대</span></span>
-          ${[1,2].map(v=>`<button type="button" ${isAdmin?`data-eqcyc="${esc(k)}" data-v="${v}"`:'disabled'} class="min-h-[40px] px-3 rounded-xl text-[13px] font-black border ${y===v?'bg-[#6D28D9] text-white border-[#6D28D9]':'border-purple-400/40 opacity-70'}">${v}년</button>`).join('')}</div>`}).join('')||'<div class="text-[12px] opacity-60 mt-2">등록된 장비가 없어요.</div>'}
+        <div class="text-[12px] opacity-75 mt-1.5 leading-relaxed">장비 종류마다 교정 주기를 정해요. <b>제외</b>는 교정을 안 하는 장비예요 (만료일·알림 없음). 바꾸면 그 종류 장비의 <b>교정 만료일이 바로 다시 계산</b>돼요 (마지막 교정일 + 주기).</div>
+        ${[...new Set([...all.map(e=>e.kind).filter(Boolean),...Object.keys(((D.settings.find(x=>x.id==='main')||{}).cyc)||{})])].sort().map(k=>{const y=eqCyc(k),n=all.filter(e=>e.kind===k).length;return `<div class="flex items-center gap-2 mt-2"><span class="text-lg">${eqEmoji(k)}</span><span class="flex-1 min-w-0 text-[13px] font-bold break-words">${esc(k)} <span class="font-normal opacity-60">${n?n+'대':'아직 없음'}</span></span>
+          ${[1,2,0].map(v=>`<button type="button" ${isAdmin?`data-eqcyc="${esc(k)}" data-v="${v}"`:'disabled'} class="min-h-[40px] px-2.5 rounded-xl text-[13px] font-black border ${y===v?(v?'bg-[#6D28D9] text-white border-[#6D28D9]':'bg-slate-600 text-white border-slate-600'):'border-purple-400/40 opacity-70'}">${v?v+'년':'제외'}</button>`).join('')}</div>`}).join('')||'<div class="text-[12px] opacity-60 mt-2">등록된 장비가 없어요.</div>'}
         ${isAdmin?'':'<div class="text-[11px] opacity-60 mt-2">주기는 관리자가 바꿀 수 있어요.</div>'}</details>
       <details class="card !p-3" id="eqBdBox"><summary class="font-black text-sm cursor-pointer">📺 장비 사용법 모음 (게시판 QR)</summary><div id="eqBdList" class="grid grid-cols-2 gap-1.5 mt-2 text-[13px] opacity-70">불러오는 중…</div></details>
       <details class="card !p-3"><summary class="font-black text-sm cursor-pointer">📑 교정성적서 이렇게 읽어요</summary><div class="eq-txt mt-2 text-[13px]">${esc(EQ_CERT_HELP)}</div></details>
@@ -1768,8 +1768,11 @@ async function eqImportOpen(){
 let cuRows=[];
 const cuKey=n=>{n=String(n||'');const h=['소음','진동','감속','각도','크리노','조도','절연','클램프','전류','전압','캘리퍼','줄자','틈새','회전','푸쉬','초시계','압력'].find(w=>n.includes(w));return h==='크리노'?'각도':h==='감속'?'진동':h||''};
 /* 교정 주기: 장비 종류마다 1년 또는 2년 (settings/main.cyc = {종류: 2}) */
-const eqCyc=k=>{const m=((D.settings.find(x=>x.id==='main')||{}).cyc)||{};return m[k]===2?2:1};
-const cuYear=(d,kind,yrs)=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${+m[1]+(yrs||eqCyc(kind))}-${m[2]}-${m[3]==='29'&&m[2]==='02'?'28':m[3]}`:''};
+/* 값: 1·2 = 년, 0 = 교정 제외(만료일 없음, 알림 없음). 종류 이름이 조금 달라도(예: 금속제곧은자 ↔ 곧은자) 찾아요 */
+const eqCyc=k=>{const m=((D.settings.find(x=>x.id==='main')||{}).cyc)||{},n=eqN(k);let v=m[k];
+  if(v===undefined&&n)for(const key in m){const q=eqN(key);if(q&&(n===q||(q.length>=2&&n.includes(q))||(n.length>=2&&q.includes(n)))){v=m[key];break}}
+  return v===0?0:v===2?2:1};
+const cuYear=(d,kind,yrs)=>{const y=yrs===undefined?eqCyc(kind):yrs;if(y===0)return '';const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${+m[1]+y}-${m[2]}-${m[3]==='29'&&m[2]==='02'?'28':m[3]}`:''};
 function cuFind(it){const h=eqMatch({no:it.no,serial:it.serial,texts:[]});if(h)return h;const c=[it.no,it.serial].map(scC).filter(x=>x.length>=3);
   return (D.equips||[]).find(e=>c.includes(scC(e.no))||(e.serial&&c.includes(scC(e.serial))))||null}
 /* 이 장비에 새 성적서를 넣으면 어떻게 되는지: 바꿀 예전 성적서 / 이미 더 최신 */
@@ -1827,9 +1830,9 @@ document.addEventListener('click',e=>{const d=e.target.closest('[data-cudel],#cu
   if(d.id==='cuSave')return cuSave();if(d.dataset.certup!==undefined)return cuOpen();cuRows.splice(+d.dataset.cudel,1);cuDraw()});
 
 let eqCycOpen=false;
-async function eqCycSet(kind,v){eqCycOpen=true;try{await db.doc('settings/main').set({cyc:{[kind]:v}},{merge:true});const m=D.settings.find(x=>x.id==='main');if(m){m.cyc={...(m.cyc||{}),[kind]:v}}
-    const L=(D.equips||[]).filter(e=>e.kind===kind&&e.cdate);let n=0;for(const e of L){const c=cuYear(e.cdate,kind,v);if(c&&c!==e.calib){await patch('equips',e.id,{calib:c});n++}}
-    toast(`⏱️ ${kind}: 교정 주기 ${v}년 · 만료일 ${n}대 다시 계산했어요`,'ok');renderEquip()}catch(err){toast(errMsg(err),'error')}}
+async function eqCycSet(kind,v){eqCycOpen=true;try{const m=D.settings.find(x=>x.id==='main'),cyc={...((m&&m.cyc)||{}),[kind]:v};await db.doc('settings/main').set({cyc},{merge:true});if(m)m.cyc=cyc;
+    const L=(D.equips||[]).filter(e=>e.kind===kind&&(e.cdate||v===0));let n=0;for(const e of L){const c=cuYear(e.cdate,kind,v);if(c!==(e.calib||'')){await patch('equips',e.id,{calib:c});n++}}
+    toast(v?`⏱️ ${kind}: 교정 주기 ${v}년 · 만료일 ${n}대 다시 계산했어요`:`⏱️ ${kind}: 교정 제외 · ${n}대 만료일을 지웠어요`,'ok');renderEquip()}catch(err){toast(errMsg(err),'error')}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-eqcyc]');if(b){e.preventDefault();eqCycSet(b.dataset.eqcyc,+b.dataset.v)}});
 /* ---- 아래에서 올라오는 창 ---- */
 function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.remove('hidden');document.body.style.overflow='hidden';hydrate($('#eqSheetBody'))}
