@@ -1655,6 +1655,7 @@ function renderEquip(){
       ${L.length?L.map(eqCard).join(''):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
     if(document.activeElement&&document.activeElement.id==='eqQ'&&$('#eqListBox')){$('#eqListBox').innerHTML=box;hydrate(P);return}
     P.innerHTML=`<button type="button" data-eqnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 등록하기</button>
+      <button type="button" data-certup class="w-full min-h-[50px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">📑 새 교정성적서 올리기 <span class="text-[11px] font-bold opacity-80">(교정 받은 뒤 · 여러 장 OK)</span></button>
       ${isAdmin?`<button type="button" data-eqimp class="w-full min-h-[46px] rounded-xl border border-amber-500 text-amber-700 dark:text-amber-300 font-black text-sm">📥 교정성적서 불러오기 (2026.10.28 기준)</button>`:''}
       ${sets.length?`<select id="eqSetSel" class="inp" aria-label="세트 고르기"><option value="">📦 모든 장비 (세트 전체)</option>${sets.map(s=>`<option value="${esc(s)}"${s===eqSet?' selected':''}>📦 ${esc(s)} (${all.filter(e=>e.set===s).length}대)</option>`).join('')}<option value="_"${eqSet==='_'?' selected':''}>🔧 세트 아닌 장비 (${all.filter(e=>!e.set).length}대)</option></select>`:''}
       <input id="eqQ" class="inp" placeholder="🔍 장비 이름·기기번호·보관 위치 검색" value="${esc(eqQ)}">
@@ -1758,6 +1759,65 @@ async function eqImportOpen(){
       b.textContent='✔ 닫기';b.disabled=false;b.onclick=eqClose;
     }catch(e){toast(atErr(e),'error');b.disabled=false;b.textContent='📥 다시 시도'}};
 }
+/* ---- 새 교정성적서 올리기: PDF·사진 여러 장 → AI가 기기번호·교정일 읽기 → 확인 → 저장 (측정 종류마다 최신 1부만 남김) ---- */
+let cuRows=[];
+const cuKey=n=>{n=String(n||'');const h=['소음','진동','감속','각도','크리노','조도','절연','클램프','전류','전압','캘리퍼','줄자','틈새','회전','푸쉬','초시계','압력'].find(w=>n.includes(w));return h==='크리노'?'각도':h==='감속'?'진동':h||''};
+const cuYear=d=>{const m=String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${+m[1]+1}-${m[2]}-${m[3]==='29'&&m[2]==='02'?'28':m[3]}`:''};
+function cuFind(it){const h=eqMatch({no:it.no,serial:it.serial,texts:[]});if(h)return h;const c=[it.no,it.serial].map(scC).filter(x=>x.length>=3);
+  return (D.equips||[]).find(e=>c.includes(scC(e.no))||(e.serial&&c.includes(scC(e.serial))))||null}
+/* 이 장비에 새 성적서를 넣으면 어떻게 되는지: 바꿀 예전 성적서 / 이미 더 최신 */
+function cuPlan(e,it){const C=e.certs||[];let rm=C.filter(c=>c.c===it.c||(cuKey(c.n)&&cuKey(c.n)===cuKey(it.n)));
+  if(!rm.length&&C.length===1&&(!cuKey(C[0].n)||!cuKey(it.n)))rm=[C[0]];
+  const newer=rm.find(c=>c.d&&it.d&&c.d>it.d);return {rm,old:!!newer,same:rm.some(c=>c.c===it.c&&c.d===it.d)}}
+async function cuAI(f){const u=recUrl(),fu=(()=>{try{return firebase.auth().currentUser}catch(e){return null}})();if(!u||!fu)throw {code:'noai'};
+  if(f.size>6e6)throw {code:'big'};
+  const r=await fetchO(u.replace(/\/$/,'')+'/cert',{method:'POST',headers:{'Authorization':'Bearer '+await fu.getIdToken(),'Content-Type':'application/json'},
+    body:JSON.stringify({mime:/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)?'application/pdf':(f.type||'image/jpeg'),data:atB64(await f.arrayBuffer())})},90000);
+  const j=await r.json().catch(()=>({}));if(r.status===415||r.status===404)throw {code:'noep'};if(!r.ok||j.error)throw {code:j.code||'ai',message:j.error};return j.items||[]}
+function cuOpen(){cuRows=[];eqOpen(`<h2 class="text-lg font-black pr-10">📑 새 교정성적서 올리기</h2>
+  <p class="text-[13px] opacity-85 mt-1 leading-relaxed">교정 받고 온 <b>성적서 PDF(또는 사진)</b>를 고르세요. <b>여러 장 한 번에</b> 돼요.<br>AI가 기기번호·교정일을 읽어 <b>맞는 장비를 찾고</b>, 저장하면 그 장비의 <b>예전 성적서는 빠지고 새 것으로 바뀌어요</b>. 교정 만료일도 교정일+1년으로 자동으로 바뀌어요.</p>
+  <label class="eq-btn pri mt-3">📂 성적서 파일 고르기<input id="cuPick" type="file" accept="application/pdf,image/*" multiple class="sr-only"></label>
+  <div id="cuList" class="mt-2"></div><div id="cuFoot"></div>`)}
+function cuDraw(){const E=(D.equips||[]).slice().sort((a,b)=>a.name.localeCompare(b.name)),L=$('#cuList');if(!L)return;
+  L.innerHTML=cuRows.map((r,i)=>{const e=r.eq&&(D.equips||[]).find(x=>x.id===r.eq);
+    const st=r.st==='read'?'<span class="opacity-70">🤖 읽는 중…</span>':r.st==='done'?'<span class="text-green-600 dark:text-green-400">✔ 저장됨</span>':r.err?`<span class="text-amber-600 dark:text-amber-300">${esc(r.err)}</span>`:'';
+    return `<div class="card !p-3 mb-2"><div class="flex items-start gap-2"><span class="text-xl shrink-0">${/pdf/i.test(r.f.type)||/\.pdf$/i.test(r.f.name)?'📄':'🖼️'}</span><div class="flex-1 min-w-0"><b class="text-[13px] break-all">${esc(r.f.name)}</b> <span class="text-[11px] opacity-60">${atSize(r.f.size)}</span><div class="text-[12px] mt-0.5">${st}</div></div>${r.st!=='done'?`<button type="button" data-cudel="${i}" class="text-xs opacity-60 min-h-[36px] px-2 shrink-0">빼기</button>`:''}</div>
+      ${r.st==='read'||r.st==='done'?'':`<label class="eq-lbl" for="cuEq${i}">어느 장비 성적서인가요?</label><select id="cuEq${i}" data-cueq="${i}" class="inp"><option value="">${r.eq?'':'⚠ 장비를 골라 주세요'}</option>${E.map(x=>`<option value="${x.id}"${x.id===r.eq?' selected':''}>${esc(x.name)} · ${esc(x.no||'')}</option>`).join('')}</select>
+      ${r.items.map((it,k)=>{const p=e?cuPlan(e,it):null;return `<div class="mt-2 p-2 rounded-xl bg-purple-500/5 text-[12.5px]"><div class="font-bold break-words">${esc(it.n||'성적서')} ${it.c?`<span class="opacity-70 font-normal">· ${esc(it.c)}</span>`:''}</div>
+        <div class="flex items-center gap-2 mt-1"><span class="shrink-0 opacity-80">교정일</span><input type="date" data-cud="${i}_${k}" value="${esc(it.d||'')}" class="inp !min-h-[40px] !py-1 flex-1"></div>
+        ${it.lab?`<div class="opacity-70 mt-0.5">🏢 ${esc(it.lab)}</div>`:''}
+        ${p?(p.same?'<div class="mt-1 opacity-70">이미 같은 성적서가 들어 있어요 (파일만 다시 붙여요)</div>':p.old?'<div class="mt-1 text-red-500 font-bold">⚠ 이 장비에 더 최신 성적서가 있어요 → 저장하지 않아요</div>':`<div class="mt-1 text-green-700 dark:text-green-300">→ ${p.rm.length?`예전 성적서 ${p.rm.map(c=>esc(c.c)+' ('+esc(c.d)+')').join(', ')} 를 바꿔요`:'새로 추가해요'} · 교정 만료 ${esc(cuYear(it.d)||'?')}</div>`):''}</div>`}).join('')}`}
+    </div>`}).join('');
+  const ready=cuRows.filter(r=>r.st==='ready'&&r.eq&&r.items.some(it=>it.d)).length,busy=cuRows.some(r=>r.st==='read');
+  $('#cuFoot').innerHTML=cuRows.length?`<button type="button" id="cuSave" class="mt-2 w-full min-h-[52px] rounded-xl bg-[#6D28D9] text-white font-black text-sm"${ready&&!busy?'':' disabled style="opacity:.5"'}>💾 ${ready}건 저장하기${busy?' (읽는 중…)':''}</button>
+    <div class="text-[11px] opacity-65 mt-1.5">장비·교정일이 맞는지 한 번 보고 저장해 주세요. 틀리면 위에서 고칠 수 있어요.</div>`:''}
+async function cuAdd(fs){for(const f of fs){if(f.size>AT_MAX)toast(f.name+' 은 10MB가 넘어서 뺐어요.','error');else cuRows.push({f,st:'read',items:[],eq:''})}cuDraw();
+  for(const r of cuRows.filter(r=>r.st==='read')){
+    try{const its=(await cuAI(r.f)).filter(it=>it&&(it.c||it.d||it.no));r.items=its.length?its:[{n:'',c:'',d:'',lab:''}];
+      const h=its.map(cuFind).find(Boolean);r.eq=h?h.id:'';if(!its.length)r.err='AI가 성적서 내용을 못 읽었어요. 장비와 교정일을 직접 넣어 주세요.';else if(!h)r.err=`기기번호 ${its[0].no||'?'} 와 맞는 장비가 없어요. 골라 주세요.`}
+    catch(err){r.items=[{n:'',c:'',d:'',lab:''}];r.err=err&&err.code==='noep'?'AI 서버(worker.js) 업데이트 전이라 직접 넣어 주세요.':err&&err.code==='big'?'6MB가 넘어 AI가 못 읽어요. 직접 넣어 주세요.':err&&err.code==='quota'?'오늘 AI 사용량을 다 썼어요. 직접 넣어 주세요.':'AI가 못 읽었어요. 장비와 교정일을 직접 넣어 주세요.'}
+    r.st='ready';cuDraw()}}
+async function cuSave(){const b=$('#cuSave');if(!b||b.disabled)return;b.disabled=true;let ok=0,skip=0,fail=0;
+  for(const r of cuRows){if(r.st!=='ready'||!r.eq)continue;const e=(D.equips||[]).find(x=>x.id===r.eq);if(!e)continue;b.textContent=`저장하는 중… ${esc(e.name)}`;
+    try{let C=(e.certs||[]).slice(),files=(e.files||[]).slice(),add=[];
+      for(const it of r.items){if(!it.d)continue;const p=cuPlan({certs:C},it);if(p.old){skip++;continue}
+        const rmC=new Set(p.rm.map(c=>c.c));C=C.filter(c=>!rmC.has(c.c));files=files.filter(f=>![...rmC].some(c=>f.n&&f.n.startsWith(c+' ')));
+        const nc={n:it.n||e.kind||e.name,c:it.c||('직접-'+it.d),d:it.d,lab:it.lab||''};C.push(nc);add.push(nc)}
+      if(!add.length){r.st='done';continue}
+      const fn=(add[0].c+' '+add[0].n).replace(/[\\/:*?"<>|]/g,'_')+'.'+((r.f.name.split('.').pop()||'pdf').toLowerCase());
+      const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+      files.push({id:fid,...await atUpload(new File([r.f],fn,{type:r.f.type||'application/pdf'}),'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}))});
+      const L=eqLatest({certs:C}).certs,cd=L.map(c=>c.d).filter(Boolean).sort()[0]||add[0].d;
+      await patch('equips',e.id,{certs:C,files,cdate:cd,calib:cuYear(cd),editedAt:Date.now()});r.st='done';ok++}
+    catch(err){fail++;r.err=atErr(err)}}
+  cuDraw();const f=$('#cuSave');if(f){f.outerHTML=`<button type="button" data-eqclose class="mt-2 w-full min-h-[52px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">✔ 닫기</button>`}
+  toast(`📑 성적서 ${ok}건 바꿨어요${skip?` · 더 최신이 있어 건너뜀 ${skip}`:''}${fail?` · 실패 ${fail}`:''}`,fail?'error':'ok')}
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='cuPick'){const fs=[...t.files];t.value='';if(fs.length)cuAdd(fs);return}
+  if(t.dataset&&t.dataset.cueq!==undefined){const r=cuRows[+t.dataset.cueq];if(r){r.eq=t.value;if(r.eq&&/장비/.test(r.err||''))r.err='';cuDraw()}return}
+  if(t.dataset&&t.dataset.cud){const [i,k]=t.dataset.cud.split('_').map(Number);const it=cuRows[i]&&cuRows[i].items[k];if(it){it.d=t.value;cuDraw()}}});
+document.addEventListener('click',e=>{const d=e.target.closest('[data-cudel],#cuSave,[data-certup]');if(!d)return;e.preventDefault();
+  if(d.id==='cuSave')return cuSave();if(d.dataset.certup!==undefined)return cuOpen();cuRows.splice(+d.dataset.cudel,1);cuDraw()});
 /* ---- 아래에서 올라오는 창 ---- */
 function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.remove('hidden');document.body.style.overflow='hidden';hydrate($('#eqSheetBody'))}
 function eqClose(){$('#eqSheet').classList.add('hidden');document.body.style.overflow='';eqTDocs=[]}

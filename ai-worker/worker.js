@@ -108,6 +108,20 @@ export default {
 
     if (!env.GEMINI_KEY) return out({ error: '서버에 Gemini 키(GEMINI_KEY)가 아직 등록되지 않았어요.' }, 500);
 
+    // ── 교정성적서 읽기 (PDF·사진) ──
+    if (new URL(req.url).pathname === '/cert') {
+      let q = {}; try { q = await req.json(); } catch (e) {}
+      const data = String(q.data || ''), mime = /^(application\/pdf|image\/(jpeg|png|webp))$/.test(q.mime) ? q.mime : 'application/pdf';
+      if (!data || data.length > 9_000_000) return out({ error: '파일이 없거나 너무 커요. (6MB까지)' }, 400);
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: CERT_PROMPT }, { inline_data: { mime_type: mime, data } }] }],
+        generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: CERT_SCHEMA }
+      };
+      const r = await gemini(env, body);
+      if (r.error) return out(r, r.status || 502);
+      return out({ ok: true, ...r.data });
+    }
+
     // ── 장비 사진 인식 ──
     if (new URL(req.url).pathname === '/equip') {
       let q = {}; try { q = await req.json(); } catch (e) {}
@@ -186,6 +200,21 @@ async function gemini(env, body) {
   }
   return { error: last || 'AI 호출 실패', status: 502 };
 }
+
+/* ===================== 교정성적서 읽기 ===================== */
+const CERT_PROMPT = `너는 한국 교정기관이 발행한 '교정성적서(Calibration Certificate)'를 읽는 사람이야. 파일 속 성적서마다 아래 값을 그대로 옮겨 적어 JSON으로만 답해.
+- 파일 하나에 성적서가 여러 장(예: 소음계 + 진동 측정기)이면 items에 각각 넣어. 같은 성적서의 2쪽·3쪽(측정 결과표)은 따로 넣지 마.
+- n: 기기명(교정 대상 이름) 그대로. 예) "소음계(EL-SCAN)", "진동 측정기(감속도측정기)", "디지털 캘리퍼스"
+- c: 성적서 번호(Certificate No.). 예) "26-02581-1", "K24-007280-014"
+- d: 교정일자(Date of Calibration) → YYYY-MM-DD. 발행일이 아니라 교정일. 없으면 ""
+- lab: 교정기관 이름
+- no: 기기번호/관리번호/Serial No. 칸의 값 그대로 (예: "ELS-206", "A18227589", "200608-4-283")
+- serial: 제조번호가 따로 있으면 그 값, 없으면 ""
+- model: 형식/모델, maker: 제작회사
+- 읽을 수 없는 값은 지어내지 말고 "" 로.`;
+const CERT_SCHEMA = { type: 'OBJECT', properties: { items: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+  n: { type: 'STRING' }, c: { type: 'STRING' }, d: { type: 'STRING' }, lab: { type: 'STRING' }, no: { type: 'STRING' }, serial: { type: 'STRING' }, model: { type: 'STRING' }, maker: { type: 'STRING' } },
+  required: ['n', 'c', 'd', 'lab', 'no', 'serial', 'model', 'maker'] } } }, required: ['items'] };
 
 /* ===================== 장비 사진 인식 ===================== */
 const EQ_PROMPT = `너는 한국승강기안전공단 검사원이 쓰는 측정·점검 장비 전문가야. 사진 속 장비(또는 장비에 붙은 이름표·스티커)를 보고 한국어 JSON으로 답해.
