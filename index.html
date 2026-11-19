@@ -1539,7 +1539,7 @@ const atBusy=new Set();
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-atd]');if(!b)return;e.preventDefault();e.stopPropagation();
   const key=b.dataset.atd,[scope,pid,ix]=key.split('|'),i=+ix;if(atBusy.has(key))return;
-  const post=scope==='v'?D.voices.find(x=>x.id===pid):scope==='e'?D.equipTypes.find(x=>x.id===pid):D.talks.find(x=>x.id===pid),f=post&&post.files&&post.files[i];
+  const post=scope==='v'?D.voices.find(x=>x.id===pid):scope==='e'?D.equipTypes.find(x=>x.id===pid):scope==='q'?D.equips.find(x=>x.id===pid):D.talks.find(x=>x.id===pid),f=post&&post.files&&post.files[i];
   if(!f||!db)return toast('자료를 찾을 수 없어요.','error');
   const col=scope==='t'?'talkFiles':'fileChunks',cid=k=>scope==='t'?`${pid}_f${i}_${k}`:f.id+'_'+k;
   atBusy.add(key);const go=b.querySelector('.at-go'),t0=go.textContent;
@@ -1559,12 +1559,20 @@ const atDelV=v=>((v&&v.files)||[]).forEach(f=>{for(let k=0;k<f.c;k++)del('fileCh
    · 장비 목록(equips): 교정 만료일, 사용·반납, 담당자 / 장비별 자료(equipTypes): 설명·사용법·점검·첨부 파일
    · 재고 조사: settings/main.inv 회차, 장비마다 inv:{r,by,at} 로 확인 표시
    · 알림: 화면 안 알림 + 서버(매일 아침·저녁)가 담당자·사용자에게 푸시 */
-let eqTab='list',eqF='전체',eqQ='',eqLast=null,eqBusy=false;
+let eqTab='list',eqF='전체',eqQ='',eqSet='',eqAlOpen=false,eqLast=null,eqBusy=false;
+const EQ_CERT_HELP=`① 성적서번호: 교정기관이 붙인 번호예요. 장비 목록 검색 칸에 넣으면 그 장비가 나와요.
+② 측정기(기기명·제작회사 및 형식·기기번호): 장비 이름표의 번호와 같은지 꼭 확인해요. 다르면 다른 장비 성적서예요.
+③ 교정일자: 교정한 날이에요. 앱에서는 이 날짜에 1년을 더해 '교정 만료일'로 보여 줘요.
+④ 교정환경·교정장소: 고정표준실(교정기관 안)에서 했는지, 현장에서 했는지 적혀 있어요.
+⑤ 측정표준의 소급성: 국가 표준(KRISS)까지 이어진 표준기로 교정했다는 뜻이에요. KOLAS 마크가 있으면 공인 교정이에요.
+⑥ 교정결과(2쪽): 표준값과 장비 지시값을 비교한 표예요. '보정인자'는 지시값에 곱하면 참값에 가까워지는 수(1.000에 가까울수록 정확)예요.
+⑦ 측정불확도: 측정값이 이 범위 안에서 흔들릴 수 있다는 뜻이에요(신뢰수준 약 95 %). 값이 작을수록 믿을 만해요.
+⑧ 교정 뒤 떨어뜨리거나 고장·과부하가 있었다면 성적서가 무효가 될 수 있어요. 바로 담당자에게 알려 주세요.`;
 const eqN=s=>String(s||'').toUpperCase().replace(/[^0-9A-Z가-힣]/g,'');
 const eqToday=()=>new Date(new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'})+'T00:00:00+09:00').getTime();
 const eqDays=c=>c?Math.round((new Date(c+'T00:00:00+09:00').getTime()-eqToday())/864e5):null;
 const eqDday=d=>d===0?'D-day':d>0?'D-'+d:'D+'+(-d);
-const eqEmoji=k=>{k=k||'';return /절연|접지|전압|전류|멀티|클램프|검전|전기/.test(k)?'🔌':/소음/.test(k)?'🔊':/조도|빛/.test(k)?'💡':/회전|타코/.test(k)?'⚙️':/거리|레이저|캘리퍼|버니어|줄자|게이지|수평/.test(k)?'📏':/하중|저울|로프|와이어|장력/.test(k)?'🏋️':/온도|습도/.test(k)?'🌡️':/진동|가속/.test(k)?'📳':'🧰'};
+const eqEmoji=k=>{k=k||'';return /절연|접지|전압|전류|멀티|클램프|검전|전기/.test(k)?'🔌':/소음/.test(k)?'🔊':/조도|빛/.test(k)?'💡':/회전|타코/.test(k)?'⚙️':/거리|레이저|캘리퍼|버니어|줄자|게이지|수평/.test(k)?'📏':/하중|저울|로프|와이어|장력/.test(k)?'🏋️':/온도|습도/.test(k)?'🌡️':/각도|크리노/.test(k)?'📐':/초시계|스톱/.test(k)?'⏱️':/압력|아이스코프/.test(k)?'🧭':/진동|가속/.test(k)?'📳':'🧰'};
 const eqInv=()=>{const m=D.settings.find(x=>x.id==='main');return m&&m.inv&&!m.inv.done?m.inv:null};
 const eqChecked=e=>{const r=eqInv();return !!(r&&e.inv&&e.inv.r===r.id)};
 const eqUseLate=e=>!!(e.use&&e.use.by&&e.use.due&&e.use.due<Date.now());
@@ -1585,9 +1593,11 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
   <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><b class="text-[15px] break-words">${esc(e.name)}</b>${eqBadges(e)}</div>
     <div class="text-xs opacity-85 mt-0.5 break-words">${e.kind?esc(e.kind)+' · ':''}🔢 ${esc(e.no||'기기번호 없음')}${e.model?' · '+esc(e.model):''}</div>
     <div class="text-xs opacity-75 break-words">📍 ${esc(e.place||'보관 위치 미입력')} · 👤 담당 ${esc(nmFull(eqMgr(e)))}</div>
-    ${e.calib?`<div class="text-xs mt-0.5 ${d<0?'text-red-500 font-bold':d<=30?'text-amber-600 dark:text-amber-300 font-bold':'opacity-75'}">🗓️ 교정 만료 ${esc(e.calib)} (${eqDday(d)})</div>`:''}
+    ${e.calib?`<div class="text-xs mt-0.5 ${d<0?'text-red-500 font-bold':d<=30?'text-amber-600 dark:text-amber-300 font-bold':'opacity-75'}">🗓️ 교정 만료 ${esc(e.calib)} (${eqDday(d)})${e.cdate?` · 교정일 ${esc(e.cdate)}`:''}</div>`:''}
+    ${e.certs&&e.certs.length?`<div class="text-[11px] opacity-70 mt-0.5 break-words">📑 성적서 ${e.certs.map(c=>esc(c.c)+(e.certs.length>1?'('+esc(c.n.replace(/\(.*\)|\s*\/.*$/g,''))+')':'')).join(', ')} · ${esc([...new Set(e.certs.map(c=>c.lab))].join(', '))}</div>`:''}
     ${e.use&&e.use.by?`<div class="text-xs mt-0.5 font-bold ${eqUseLate(e)?'text-red-500':'text-purple-600 dark:text-purple-300'}">🔧 ${esc(nmFull(e.use.by))} 사용 중${e.use.where?' · '+esc(e.use.where):''} · 반납 ${eqTime(e.use.due)}${eqUseLate(e)?' (늦음)':''}</div>`:''}
   </div></div>
+  ${atList(e.files,'q',e.id)}
   <div class="grid ${edit?'grid-cols-3':'grid-cols-2'} gap-1.5 mt-2.5">
     <button type="button" data-equse="${e.id}" class="eq-b ${mine?'amb':other?'':'pri'}">${mine?'↩️ 반납하기':other?'대신 반납':'🔧 사용 시작'}</button>
     <button type="button" data-eqdoc="${e.id}" class="eq-b">📄 장비 자료</button>
@@ -1596,23 +1606,27 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
 function renderEquip(){
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
   $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
-    ${my.map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}
+    ${my.slice(0,eqAlOpen?999:3).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}${my.length>3?`<button type="button" data-eqalt class="mt-1.5 text-[12.5px] font-black text-purple-600 dark:text-purple-300 min-h-[36px]">${eqAlOpen?'▲ 접기':`▼ 나머지 ${my.length-3}개 더 보기`}</button>`:''}
     <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon} · 반납 늦음 ${late}</div></div>`:'';
   const inv=eqInv();
   $('#eqTabs').innerHTML=[['list','🧰 장비 목록'],['inv','📋 재고 조사'+(inv?' ●':'')],['doc','📄 장비별 자료']].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===eqTab}" data-eqtab="${k}" class="eq-tab${k===eqTab?' on':''}">${l}</button>`).join('');
   const P=$('#eqPane');
   if(eqTab==='list'){
     const q=eqN(eqQ),f=eqF;
-    const L=all.filter(e=>(!q||eqN([e.name,e.kind,e.no,e.model,e.place,e.serial].join(' ')).includes(q))&&(f==='전체'||(f==='사용 중'&&e.use&&e.use.by)||(f==='교정 임박'&&(eqDays(e.calib)??99)<=30)||(f==='내 담당'&&eqMgr(e)===myId)))
+    const L=all.filter(e=>(!eqSet||(eqSet==='_'?!e.set:e.set===eqSet))&&(!q||eqN([e.name,e.kind,e.no,e.model,e.place,e.serial,e.set,...(e.certs||[]).map(c=>c.c)].join(' ')).includes(q))&&(f==='전체'||(f==='사용 중'&&e.use&&e.use.by)||(f==='교정 임박'&&(eqDays(e.calib)??99)<=30)||(f==='내 담당'&&eqMgr(e)===myId)))
       .sort((a,b)=>(eqDays(a.calib)??9999)-(eqDays(b.calib)??9999)||a.name.localeCompare(b.name));
+    const sets=[...new Set(all.map(e=>e.set).filter(Boolean))].sort();
     const box=`<div class="text-xs opacity-70">장비 ${L.length}대${all.length!==L.length?` / 전체 ${all.length}대`:''}</div>
       ${L.length?L.map(eqCard).join(''):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
     if(document.activeElement&&document.activeElement.id==='eqQ'&&$('#eqListBox')){$('#eqListBox').innerHTML=box;hydrate(P);return}
     P.innerHTML=`<button type="button" data-eqnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 등록하기</button>
+      ${isAdmin?`<button type="button" data-eqimp class="w-full min-h-[46px] rounded-xl border border-amber-500 text-amber-700 dark:text-amber-300 font-black text-sm">📥 교정성적서 불러오기 (2026.10.28 기준)</button>`:''}
+      ${sets.length?`<select id="eqSetSel" class="inp" aria-label="세트 고르기"><option value="">📦 모든 장비 (세트 전체)</option>${sets.map(s=>`<option value="${esc(s)}"${s===eqSet?' selected':''}>📦 ${esc(s)} (${all.filter(e=>e.set===s).length}대)</option>`).join('')}<option value="_"${eqSet==='_'?' selected':''}>🔧 세트 아닌 장비 (${all.filter(e=>!e.set).length}대)</option></select>`:''}
       <input id="eqQ" class="inp" placeholder="🔍 장비 이름·기기번호·보관 위치 검색" value="${esc(eqQ)}">
       <div class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1">${['전체','사용 중','교정 임박','내 담당'].map(c=>`<button type="button" data-eqf="${c}" class="eq-chip${c===f?' on':''}">${c}</button>`).join('')}</div>
       <div id="eqListBox" class="space-y-2.5">${box}</div>`;
     $('#eqQ').oninput=ev=>{eqQ=ev.target.value;renderEquip()};
+    if($('#eqSetSel'))$('#eqSetSel').onchange=ev=>{eqSet=ev.target.value;renderEquip()};
   }else if(eqTab==='inv'){
     const m=D.settings.find(x=>x.id==='main')||{},hist=(m.invHist||[]).slice().reverse();
     if(!inv){P.innerHTML=`<div class="card !p-4"><b class="text-sm">📋 재고 조사란?</b><p class="text-[13px] opacity-85 mt-1 leading-relaxed">지사 장비가 제자리에 다 있는지 한 번에 확인하는 기능이에요. 조사를 시작한 뒤 장비 이름표(기기번호)를 사진으로 찍으면 AI가 번호를 읽어 <b>자동으로 ✔ 확인</b>해 줘요.</p>
@@ -1635,11 +1649,70 @@ function renderEquip(){
     const T=(D.equipTypes||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
     P.innerHTML=`<button type="button" data-eqtnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 자료 등록하기</button>
       <p class="text-[12px] opacity-75 px-1 leading-relaxed">장비 종류마다 설명·사용 방법·점검 요령과 설명서(PDF 등)를 올려 두면, 사진으로 장비를 찍었을 때 이 자료가 바로 떠요.</p>
+      <details class="card !p-3"><summary class="font-black text-sm cursor-pointer">📑 교정성적서 이렇게 읽어요</summary><div class="eq-txt mt-2 text-[13px]">${esc(EQ_CERT_HELP)}</div></details>
       ${T.length?T.map(t=>{const n=all.filter(e=>eqN(e.kind)===eqN(t.name)).length;return `<button type="button" data-eqtype="${t.id}" class="card !p-3 w-full text-left flex items-center gap-3"><span class="eq-th eq-ph !w-12 !h-12 !text-2xl">${eqEmoji(t.name)}</span><span class="flex-1 min-w-0"><b class="text-[15px] block break-words">${esc(t.name)}</b><span class="text-xs opacity-75 block truncate">${esc(t.desc||'설명 없음')}</span><span class="text-[11px] opacity-65">등록 장비 ${n}대${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span></span><span class="opacity-50">›</span></button>`}).join('')
         :'<div class="card text-center text-sm opacity-75 py-8">아직 등록된 장비 자료가 없어요.</div>'}`;
   }
   hydrate(P);
   if(eqLast&&eqLast.mode==='find'){const h=eqMatch(eqLast.ai);if((h&&h.id)!==(eqLast.hit&&eqLast.hit.id)||h){eqLast.hit=h;renderScanResult()}}
+}
+
+/* ---- 교정성적서 불러오기 (관리자): data/calib-2026-10-28.json 의 장비·자료를 등록하고, zip 을 고르면 성적서 파일도 붙임 ---- */
+async function eqZip(file){
+  /* zip 안 파일 목록 읽기 (중앙 디렉터리) → {이름: ()=>Blob} */
+  const buf=new Uint8Array(await file.arrayBuffer()),dv=new DataView(buf.buffer);let eo=-1;
+  for(let i=buf.length-22;i>=Math.max(0,buf.length-65558);i--)if(dv.getUint32(i,true)===0x06054b50){eo=i;break}
+  if(eo<0)throw new Error('zip 파일이 아니에요');
+  const n=dv.getUint16(eo+10,true);let o=dv.getUint32(eo+16,true);const out={},u8=new TextDecoder('utf-8'),kr=(()=>{try{return new TextDecoder('euc-kr')}catch(e){return u8}})();
+  for(let k=0;k<n;k++){if(dv.getUint32(o,true)!==0x02014b50)break;
+    const fl=dv.getUint16(o+8,true),meth=dv.getUint16(o+10,true),csz=dv.getUint32(o+20,true),nl=dv.getUint16(o+28,true),xl=dv.getUint16(o+30,true),cl=dv.getUint16(o+32,true),lo=dv.getUint32(o+42,true);
+    const raw=buf.subarray(o+46,o+46+nl),name=(fl&0x800?u8:kr).decode(raw);o+=46+nl+xl+cl;if(name.endsWith('/'))continue;
+    const parts=name.split('/'),key=parts.slice(-2).join('/');
+    out[key]=async()=>{const ln=dv.getUint16(lo+26,true),lx=dv.getUint16(lo+28,true),s=lo+30+ln+lx,data=buf.slice(s,s+csz);
+      if(meth===0)return new Blob([data]);if(meth!==8)throw new Error('지원하지 않는 압축');
+      return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()}}
+  return out}
+async function eqImportOpen(){
+  let J;try{const r=await fetch('data/calib-2026-10-28.json?v='+DATAV,{cache:'no-store'});J=await r.json()}catch(e){return toast('교정 자료를 불러오지 못했어요.','error')}
+  const E=D.equips||[],ex=J.equips.filter(x=>E.some(e=>eqN(e.no)===eqN(x.no))).length,now=eqToday();
+  const over=J.equips.filter(x=>new Date(x.calib+'T00:00:00+09:00')<now).length,soon=J.equips.filter(x=>{const d=(new Date(x.calib+'T00:00:00+09:00')-now)/864e5;return d>=0&&d<=30}).length;
+  eqOpen(`<h2 class="text-lg font-black pr-10">📥 교정성적서 불러오기</h2>
+    <div class="eq-ai mt-2">2026.10.28 기준 교정성적서 ${J.equips.reduce((a,x)=>a+x.certs.length,0)}장을 읽어 정리한 내용이에요.<br>
+    장비 <b>${J.equips.length}대</b> (세트 ${new Set(J.equips.map(x=>x.set).filter(Boolean)).size}개 + 단독 ${J.equips.filter(x=>!x.set).length}대) · 장비 종류 <b>${J.types.length}가지</b><br>
+    교정일 + 1년을 교정 만료일로 넣어요 → 이미 지남 <b class="text-red-500">${over}대</b> · 30일 안 <b class="text-amber-600">${soon}대</b></div>
+    <label class="flex items-start gap-2 mt-3 text-[13px]"><input id="imE" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비 목록 등록</b><br><span class="opacity-75">이미 있는 기기번호(${ex}대)는 교정일·성적서 정보만 새로 고쳐요. 담당자는 나로 들어가요.</span></span></label>
+    <label class="flex items-start gap-2 mt-2 text-[13px]"><input id="imT" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비별 자료 ${J.types.length}가지 등록</b><br><span class="opacity-75">용도·사용 방법·주의·교정 항목. 이미 있는 종류는 비어 있는 칸만 채워요.</span></span></label>
+    <span class="eq-lbl mt-3">성적서 파일도 붙이기 (선택)</span>
+    <label class="at-pick">🗜️ 교정성적서 zip 파일 고르기<input id="imZip" type="file" accept=".zip,application/zip" class="sr-only"></label>
+    <div id="imZipTx" class="text-[12px] opacity-75 mt-1">고르면 장비마다 성적서 PDF가 붙어 '받기'로 볼 수 있어요. (약 40MB, PC에서 하면 더 빨라요)</div>
+    <div id="imProg" class="hidden mt-3"><div class="eq-prog"><i style="width:0"></i></div><div id="imProgTx" class="text-[12px] font-bold mt-1"></div></div>
+    <button type="button" id="imGo" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#D97706] text-white font-black text-sm">📥 불러오기</button>`);
+  let zip=null;
+  $('#imZip').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;$('#imZipTx').textContent='zip 읽는 중…';try{zip=await eqZip(f);const want=J.equips.flatMap(x=>x.certs.map(c=>c.f)),got=want.filter(k=>zip[k]).length;$('#imZipTx').innerHTML=`🗜️ ${esc(f.name)} · 성적서 <b>${got}/${want.length}</b>장 찾음`}catch(e){zip=null;$('#imZipTx').textContent='zip을 읽지 못했어요: '+(e.message||e)}};
+  $('#imGo').onclick=async()=>{const b=$('#imGo');if(b.disabled)return;if(!db)return toast('로그인한 뒤에 할 수 있어요.','error');
+    const doE=$('#imE').checked,doT=$('#imT').checked;if(!doE&&!doT&&!zip)return toast('할 일을 하나 이상 골라 주세요.','error');
+    b.disabled=true;$('#imProg').classList.remove('hidden');const bar=$('#imProg i'),tx=$('#imProgTx');let n=0,add=0,upd=0,fil=0,err=0;
+    const total=(doT?J.types.length:0)+(doE||zip?J.equips.length:0),step=t=>{n++;bar.style.width=Math.round(n/total*100)+'%';tx.textContent=t+` (${n}/${total})`};
+    try{
+      if(doT)for(const t of J.types){const o=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(t.name));
+        if(!o)await put('equipTypes',{...t,files:[],by:myId,at:Date.now()});else{const fill={};['desc','howto','check','cal'].forEach(k=>{if(!o[k]&&t[k])fill[k]=t[k]});if(Object.keys(fill).length)await patch('equipTypes',o.id,fill)}
+        step('장비 자료: '+t.name)}
+      for(const x of (doE||zip?J.equips:[])){
+        let o=(D.equips||[]).find(e=>eqN(e.no)===eqN(x.no));let id=o&&o.id;
+        try{
+          if(doE){const info={kind:x.kind,set:x.set,cdate:x.cdate,calib:x.calib,certs:x.certs.map(c=>({n:c.n,c:c.c,d:c.d,lab:c.lab}))};
+            if(o){const fill={};['maker','model','serial','place','memo'].forEach(k=>{if(!o[k]&&x[k])fill[k]=x[k]});await patch('equips',o.id,{...info,...fill,editedAt:Date.now()});upd++}
+            else{id=await put('equips',{name:x.name,no:x.no,serial:x.serial,maker:x.maker,model:x.model,place:x.place,memo:x.memo,...info,mgr:myId,use:null,inv:null,by:myId,at:Date.now()});add++}}
+          if(zip&&id){const have=new Set(((o&&o.files)||[]).map(f=>f.n)),files=[...((o&&o.files)||[])];let ch=false;
+            for(const c of x.certs){const get=zip[c.f];const fn=c.c+' '+c.n.replace(/[\\/:*?"<>|]/g,'_')+'.'+(c.f.split('.').pop()||'pdf');if(!get||have.has(fn))continue;
+              const blob=await get(),f=new File([blob],fn,{type:/\.jpe?g$/i.test(c.f)?'image/jpeg':'application/pdf'});
+              const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);files.push({id:fid,...await atUpload(f,'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}))});ch=true;fil++}
+            if(ch)await patch('equips',id,{files})}
+        }catch(e){err++;console.warn('import',x.no,e)}
+        step('장비: '+x.name)}
+      tx.textContent=`끝! 새 장비 ${add}대 · 고친 장비 ${upd}대 · 성적서 파일 ${fil}장${err?` · 실패 ${err}건`:''}`;toast('교정성적서를 불러왔어요.','ok');
+      b.textContent='✔ 닫기';b.disabled=false;b.onclick=eqClose;
+    }catch(e){toast(atErr(e),'error');b.disabled=false;b.textContent='📥 다시 시도'}};
 }
 /* ---- 아래에서 올라오는 창 ---- */
 function eqOpen(html){$('#eqSheetBody').innerHTML=html;$('#eqSheet').classList.remove('hidden');document.body.style.overflow='hidden';hydrate($('#eqSheetBody'))}
@@ -1653,6 +1726,7 @@ function eqDocPop(kind,ai,eid){
     ${t?`${t.desc?`<div class="eq-sec">📘 어떤 장비인가요</div><div class="eq-txt">${esc(t.desc)}</div>`:''}
       ${t.howto?`<div class="eq-sec">🛠️ 사용 방법</div><div class="eq-txt">${esc(t.howto)}</div>`:''}
       ${t.check?`<div class="eq-sec">⚠️ 점검·주의 사항</div><div class="eq-txt">${esc(t.check)}</div>`:''}
+      ${t.cal?`<div class="eq-sec">📑 교정 정보</div><div class="eq-txt">${esc(t.cal)}</div>`:''}
       ${t.files&&t.files.length?`<div class="eq-sec">📎 설명서·자료</div>${atList(t.files,'e',t.id)}`:''}
       <div class="text-[11px] opacity-60 mt-2">자료 등록: ${esc(nmFull(t.by))}${t.editedAt?' · '+ago(t.editedAt)+' 수정':''}</div>`
      :`<div class="card !p-3 mt-3 text-[13px]">아직 지사에 올라온 <b>${esc(kind||'이 장비')}</b> 자료가 없어요.<br>설명서나 사용 요령을 올려 두면 다음부터 바로 떠요.</div>`}
@@ -1671,12 +1745,14 @@ function eqForm(e,pre){e=e||{};pre=pre||{};const v=k=>esc(e[k]??pre[k]??'');
   <div class="grid grid-cols-2 gap-2"><div><label class="eq-lbl" for="efModel">모델명</label><input id="efModel" class="inp" maxlength="40" value="${v('model')}"></div><div><label class="eq-lbl" for="efMaker">제조사</label><input id="efMaker" class="inp" maxlength="30" value="${v('maker')}"></div></div>
   <label class="eq-lbl" for="efSerial">제조번호 (S/N)</label><input id="efSerial" class="inp" maxlength="40" value="${v('serial')}">
   <label class="eq-lbl" for="efPlace">보관 위치</label><input id="efPlace" class="inp" maxlength="40" value="${v('place')}" placeholder="예: 2층 장비실 3번 선반">
-  <label class="eq-lbl" for="efCalib">교정 만료일 (다음 교정일)</label><input id="efCalib" type="date" class="inp" value="${v('calib')}">
+  <div class="grid grid-cols-2 gap-2"><div><label class="eq-lbl" for="efCdate">마지막 교정일</label><input id="efCdate" type="date" class="inp" value="${v('cdate')}"></div><div><label class="eq-lbl" for="efCalib">교정 만료일</label><input id="efCalib" type="date" class="inp" value="${v('calib')}"></div></div>
+  <label class="eq-lbl" for="efSet">세트 번호 (세트 장비면)</label><input id="efSet" class="inp" maxlength="30" value="${v('set')}" placeholder="예: SEB-4029-01">
   <label class="eq-lbl" for="efMgr">담당자 (교정 알림을 받는 사람)</label><select id="efMgr" class="inp">${(D.members||[]).map(m=>`<option value="${m.id}"${(e.mgr||e.by||myId)===m.id?' selected':''}>${esc(m.name)} ${esc(m.rank||'')}</option>`).join('')}</select>
   <label class="eq-lbl" for="efMemo">메모</label><textarea id="efMemo" class="inp" rows="2" maxlength="200">${v('memo')}</textarea>
   <button type="button" id="efSave" data-id="${e.id||''}" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">💾 ${e.id?'고친 내용 저장':'장비 등록'}</button>
   ${e.id&&(canDel(e.by))?`<button type="button" id="efDel" class="mt-2 w-full min-h-[44px] rounded-xl border border-red-400/60 text-red-500 text-xs font-bold">🗑️ 장비 삭제</button>`:''}`);
   eqPhoto=pre.img||null;
+  $('#efCdate').onchange=()=>{const c=$('#efCdate').value;if(c&&!$('#efCalib').value){const d=new Date(c+'T00:00:00');d.setFullYear(d.getFullYear()+1);$('#efCalib').value=d.toISOString().slice(0,10)}};
   $('#efPh').onchange=async ev=>{const f=ev.target.files[0];ev.target.value='';if(!f)return;try{eqPhoto=await compress(f,1024,.72);const im=$('#efImg');if(im.tagName==='IMG')im.src=eqPhoto;else im.outerHTML=`<img src="${eqPhoto}" class="eq-th" id="efImg">`}catch(_){toast('사진을 읽지 못했어요.','error')}};
 }
 let eqPhoto=null;
@@ -1684,7 +1760,7 @@ async function eqSave(id){
   const g=k=>$('#ef'+k).value.trim(),name=g('Name'),no=g('No');
   if(!name)return toast('장비 이름을 적어 주세요.','error');if(!no)return toast('기기번호를 적어 주세요. 재고 조사에 써요.','error');
   const dup=(D.equips||[]).find(x=>x.id!==id&&eqN(x.no)===eqN(no));if(dup)return toast(`같은 기기번호(${dup.no})가 이미 있어요: ${dup.name}`,'error');
-  const row={name,kind:g('Kind'),no,model:g('Model'),maker:g('Maker'),serial:g('Serial'),place:g('Place'),calib:g('Calib'),mgr:$('#efMgr').value||myId,memo:g('Memo')};
+  const row={name,kind:g('Kind'),no,model:g('Model'),maker:g('Maker'),serial:g('Serial'),place:g('Place'),calib:g('Calib'),cdate:g('Cdate'),set:g('Set'),mgr:$('#efMgr').value||myId,memo:g('Memo')};
   const b=$('#efSave');if(b.disabled)return;b.disabled=true;b.textContent='저장하는 중…';
   try{const old=id&&D.equips.find(x=>x.id===id);
     if(eqPhoto){row.photo=await photoPut(eqPhoto);if(old&&old.photo)photoDel(old.photo)}
@@ -1699,6 +1775,7 @@ function eqTForm(t,preName){t=t||{};eqTDocs=[];const v=k=>esc(t[k]??'');
   <label class="eq-lbl" for="tfDesc">어떤 장비인가요 (용도)</label><textarea id="tfDesc" class="inp" rows="3" maxlength="1000">${v('desc')}</textarea>
   <label class="eq-lbl" for="tfHow">사용 방법</label><textarea id="tfHow" class="inp" rows="5" maxlength="2000" placeholder="1. 전원을 켜고…&#10;2. …">${v('howto')}</textarea>
   <label class="eq-lbl" for="tfChk">점검·주의 사항</label><textarea id="tfChk" class="inp" rows="3" maxlength="1000">${v('check')}</textarea>
+  <label class="eq-lbl" for="tfCal">교정 정보</label><textarea id="tfCal" class="inp" rows="3" maxlength="1000">${v('cal')}</textarea>
   <span class="eq-lbl">설명서·자료 파일</span>
   ${(t.files||[]).map((f,i)=>{const[x,c]=atIcon(f.n);return `<div class="at-row mb-1.5"><span class="at-ext" style="--c:${c}">${x}</span><span class="at-nm">${esc(f.n)}</span><span class="at-sz">${atSize(f.s)}</span><label class="text-[11px] font-bold flex items-center gap-1 shrink-0"><input type="checkbox" data-tfrm="${i}"> 빼기</label></div>`}).join('')}
   <label class="at-pick">📎 자료 첨부 <small>(PDF·한글·엑셀 등 · 10MB)</small><input id="tfDoc" type="file" multiple class="sr-only"></label><div id="tfDocs" class="at-list"></div>
@@ -1718,7 +1795,7 @@ async function eqTSave(id){
   const b=$('#tfSave');if(b.disabled)return;b.disabled=true;const files=[];
   try{for(let j=0;j<eqTDocs.length;j++){const fid='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
       const m=await atUpload(eqTDocs[j],'fileChunks',k=>fid+'_'+k,async()=>({by:myId,at:Date.now()}),(a,n)=>{b.textContent=`자료 올리는 중… (${j+1}/${eqTDocs.length}) ${Math.round(a/n*100)}%`});files.push({id:fid,...m})}
-    const row={name,desc:$('#tfDesc').value.trim(),howto:$('#tfHow').value.trim(),check:$('#tfChk').value.trim(),files:[...keep,...files]};
+    const row={name,desc:$('#tfDesc').value.trim(),howto:$('#tfHow').value.trim(),check:$('#tfChk').value.trim(),cal:$('#tfCal').value.trim(),files:[...keep,...files]};
     if(id)await patch('equipTypes',id,{...row,editedAt:Date.now()});else await put('equipTypes',{...row,by:myId,at:Date.now()});
     ((old&&old.files)||[]).filter((_,i)=>rm.includes(i)).forEach(f=>atDelV({files:[f]}));
     eqTDocs=[];eqClose();toast('장비 자료를 저장했어요.','ok')}
@@ -1774,11 +1851,13 @@ document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='eqCam'||id==='eqPic'||id==='eqInvCam'){const f=e.target.files[0];e.target.value='';if(f)eqScan(f,id==='eqInvCam'?'inv':'find')}});
 document.addEventListener('click',async e=>{
   if(!e.target.closest('#p-equip,#eqSheet'))return;
-  const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
+  const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqimp],[data-eqalt],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
   const d=b.dataset,E=id=>(D.equips||[]).find(x=>x.id===id);
   if(d.eqtab){eqTab=d.eqtab;renderEquip();return}
   if(d.eqf){eqF=d.eqf;renderEquip();return}
   if(d.eqnew!==undefined){eqForm(null,{});return}
+  if(d.eqimp!==undefined){eqImportOpen();return}
+  if(d.eqalt!==undefined){eqAlOpen=!eqAlOpen;renderEquip();return}
   if(d.eqedit){eqForm(E(d.eqedit));return}
   if(d.eqdoc){const x=E(d.eqdoc);eqDocPop(x&&x.kind||'',null,d.eqdoc);return}
   if(d.eqgo){eqClose();eqTab='list';eqF='전체';eqQ='';renderEquip();setTimeout(()=>{const c=document.querySelector(`[data-eqid="${d.eqgo}"]`);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.animate([{boxShadow:'0 0 0 4px #F59E0B'},{boxShadow:'0 0 0 0 transparent'}],{duration:1600})}},80);return}
@@ -1789,7 +1868,7 @@ document.addEventListener('click',async e=>{
   if(d.eqreg!==undefined){const a=(eqLast&&eqLast.ai)||{};eqForm(null,{ai:1,img:eqLast&&eqLast.img,name:a.kind?a.kind+' '+((D.equips||[]).filter(x=>eqN(x.kind)===eqN(a.match||a.kind)).length+1)+'호':'',kind:a.match||a.kind||'',no:a.no||'',serial:a.serial||'',model:a.model||'',maker:a.maker||'',calib:/^\d{4}-\d{2}-\d{2}$/.test(a.calib||'')?a.calib:''});return}
   if(b.id==='efSave'){eqSave(d.id||'');return}
   if(b.id==='efDel'){if(!d.arm){d.arm=1;b.textContent='한 번 더 누르면 삭제돼요';return}const x=E($('#efSave').dataset.id);if(!x)return;
-    try{await del('equips',x.id);if(x.photo)photoDel(x.photo);eqClose();toast('장비를 삭제했어요.')}catch(err){toast(errMsg(err),'error')}return}
+    try{await del('equips',x.id);if(x.photo)photoDel(x.photo);atDelV(x);eqClose();toast('장비를 삭제했어요.')}catch(err){toast(errMsg(err),'error')}return}
   if(b.id==='tfSave'){eqTSave(d.id||'');return}
   if(b.id==='tfDel'){if(!d.arm){d.arm=1;b.textContent='한 번 더 누르면 삭제돼요';return}const t=D.equipTypes.find(x=>x.id===$('#tfSave').dataset.id);if(!t)return;
     try{await del('equipTypes',t.id);atDelV(t);eqClose();toast('장비 자료를 삭제했어요.')}catch(err){toast(errMsg(err),'error')}return}
