@@ -303,6 +303,7 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .man{max-width:720px;margin:0 auto;padding:14px 14px 30px;font-size:14px}.man-hd{display:flex;gap:12px;align-items:center}
 .man-ph{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px}.man-ph a{display:block;width:150px;text-align:center;font-size:11.5px;font-weight:700}.man-ph img{width:150px;height:150px;object-fit:contain;border-radius:14px;border:1px solid rgba(124,58,237,.2);background:#fff}
 .eq-phb{display:block;text-align:center;font-weight:700;line-height:1.25}.eq-phb img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:12px;border:1px solid rgba(124,58,237,.18);margin-bottom:3px}
+.mem-card{font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px;background:#EDE9FE;color:#5B21B6;vertical-align:1px;min-height:26px}.dark .mem-card{background:#312E81;color:#DDD6FE}
 .man-qr{display:flex;align-items:center;gap:8px;min-height:50px;padding:10px 14px;margin-top:6px;border-radius:14px;background:#1E1B4B;color:#FDE68A;font-size:14px;text-decoration:none}.dark .man-qr{background:#312E81}
 .man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
 .man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
@@ -1001,6 +1002,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- MEMBERS -->
 <section id="p-members" class="page pt-4 space-y-3" data-title="멤버">
   <div id="mOnline" class="text-xs font-bold px-1 flex items-center gap-1.5"></div>
+  <div id="mPraise"></div>
   <input id="mSearch" class="inp" placeholder="🔍 이름·직급·팀 검색">
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
@@ -2674,10 +2676,22 @@ function renderMembers(){
   const q=$('#mSearch').value.trim(),ord=r=>{const i=RANKS.indexOf(r);return i<0?99:i};
   const list=D.members.filter(m=>!q||[m.name,m.rank,m.team].join(' ').includes(q)).sort((a,b)=>(isOnline(b)?1:0)-(isOnline(a)?1:0)||ord(a.rank)-ord(b.rank)||a.name.localeCompare(b.name,'ko'));
   const on=D.members.filter(isOnline).length;
+  const pr=mbCard('칭찬게시');$('#mPraise').innerHTML=pr?`<button type="button" data-mcard="칭찬게시" class="w-full min-h-[46px] rounded-xl bg-[#FEF3C7] text-[#92400E] font-black text-sm dark:bg-[#422006] dark:text-[#FDE68A]">👏 칭찬 게시판 QR</button>`:'';
   $('#mOnline').innerHTML=`<span class="mem-on-dot"></span> 지금 접속 중 <b>${on}명</b><span class="opacity-60">/ 전체 ${D.members.length}명</span>`;
-  $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="mem-call"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7.2 3.6c.5-.4 1.2-.3 1.6.2l2 2.6c.4.5.3 1.2-.1 1.6l-1.2 1.1a.9.9 0 0 0-.2 1c.9 1.9 2.4 3.5 4.3 4.4.4.2.8.1 1.1-.2l1.1-1.2c.4-.4 1.1-.5 1.6-.1l2.6 2c.5.4.6 1.1.2 1.6l-1.3 1.7c-.8 1-2.2 1.4-3.4 1A17 17 0 0 1 4.9 8.8c-.4-1.2 0-2.6 1-3.4z"/></svg></a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
+  $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}${mbCard(m.name)?` <button type="button" data-mcard="${esc(m.name)}" class="mem-card" aria-label="${esc(m.name)} 명함 QR 보기">🪪 명함</button>`:''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="mem-call"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7.2 3.6c.5-.4 1.2-.3 1.6.2l2 2.6c.4.5.3 1.2-.1 1.6l-1.2 1.1a.9.9 0 0 0-.2 1c.9 1.9 2.4 3.5 4.3 4.4.4.2.8.1 1.1-.2l1.1-1.2c.4-.4 1.1-.5 1.6-.1l2.6 2c.5.4.6 1.1.2 1.6l-1.3 1.7c-.8 1-2.2 1.4-3.4 1A17 17 0 0 1 4.9 8.8c-.4-1.2 0-2.6 1-3.4z"/></svg></a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
 }
 $('#mSearch').oninput=renderMembers;
+/* 명함 QR: settings/main.cards = {이름: 명함 링크}. 이름 옆 🪪 → 큰 QR + 명함 열기 */
+const mbCards=()=>((D.settings.find(x=>x.id==='main')||{}).cards)||{};
+const mbCard=n=>{const c=mbCards();return c[n]||c[String(n||'').replace(/\s/g,'')]||''};
+async function mbCardOpen(name,url,title){url=url||mbCard(name);if(!url)return;
+  try{await loadScript('lib/qrcode.js')}catch(e){return window.open(url,'_blank','noopener')}
+  const q=qrcode(0,'M');q.addData(url);q.make();
+  pvOpen(title||('🪪 '+name+' 명함'),`<div class="man text-center"><div class="text-xl font-black mt-2">${esc(title?title.replace(/^\S+\s/,''):name)}</div>
+    <div class="text-[12.5px] opacity-75 mt-1">휴대폰 카메라로 아래 QR을 찍으면 ${title?'페이지가':'명함이'} 열려요.</div>
+    <div class="mx-auto mt-4 bg-white p-3 rounded-2xl" style="width:min(78vw,320px)">${q.createSvgTag({cellSize:6,margin:2,scalable:true})}</div>
+    <a href="${esc(url)}" target="_blank" rel="noopener" class="man-qr justify-center mt-4" style="max-width:320px;margin-left:auto;margin-right:auto">🪪 <span>${title?'바로 열기':'명함 바로 열기'}</span><span class="opacity-60">↗</span></a></div>`)}
+document.addEventListener('click',e=>{const b=e.target.closest('#mList [data-mcard],#mPraise [data-mcard]');if(b){e.preventDefault();const n=b.dataset.mcard;n==='칭찬게시'?mbCardOpen(n,'','👏 칭찬 게시판'):mbCardOpen(n)}});
 
 /* ===== 위험현장 (사진 포함) ===== */
 const LC={'주의':'#EAB308','위험':'#F37021','긴급':'#FF3B30'};
