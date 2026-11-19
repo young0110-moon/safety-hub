@@ -301,6 +301,7 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .sc-qr{width:100%;background:#1E1B4B;color:#FDE68A;border-color:#1E1B4B}.dark .sc-qr{background:#FDE68A;color:#1E1B4B}
 .pv-view{position:fixed;inset:0;z-index:135;background:#E5E7EB;display:flex;flex-direction:column}.pv-view.hidden{display:none}
 .man{max-width:720px;margin:0 auto;padding:14px 14px 30px;font-size:14px}.man-hd{display:flex;gap:12px;align-items:center}
+.man-qr{display:flex;align-items:center;gap:8px;min-height:50px;padding:10px 14px;margin-top:6px;border-radius:14px;background:#1E1B4B;color:#FDE68A;font-size:14px;text-decoration:none}.dark .man-qr{background:#312E81}
 .man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
 .man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
 .man-sec>summary{font-size:15px;font-weight:900;min-height:46px;display:flex;align-items:center;cursor:pointer;list-style:none}.man-sec>summary::-webkit-details-marker{display:none}
@@ -1686,9 +1687,11 @@ function renderEquip(){
     const T=(D.equipTypes||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
     P.innerHTML=`<button type="button" data-eqtnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 자료 등록하기</button>
       <p class="text-[12px] opacity-75 px-1 leading-relaxed">장비 종류마다 설명·사용 방법·점검 요령과 설명서(PDF 등)를 올려 두면, 사진으로 장비를 찍었을 때 이 자료가 바로 떠요.</p>
+      <details class="card !p-3" id="eqBdBox"><summary class="font-black text-sm cursor-pointer">📺 장비 사용법 모음 (게시판 QR)</summary><div id="eqBdList" class="grid grid-cols-2 gap-1.5 mt-2 text-[13px] opacity-70">불러오는 중…</div></details>
       <details class="card !p-3"><summary class="font-black text-sm cursor-pointer">📑 교정성적서 이렇게 읽어요</summary><div class="eq-txt mt-2 text-[13px]">${esc(EQ_CERT_HELP)}</div></details>
       ${T.length?T.map(t=>{const n=all.filter(e=>eqN(e.kind)===eqN(t.name)).length;return `<button type="button" data-eqtype="${t.id}" class="card !p-3 w-full text-left flex items-center gap-3"><span class="eq-th eq-ph !w-12 !h-12 !text-2xl">${eqEmoji(t.name)}</span><span class="flex-1 min-w-0"><b class="text-[15px] block break-words">${esc(t.name)}</b><span class="text-xs opacity-75 block truncate">${esc(t.desc||'설명 없음')}</span><span class="text-[11px] opacity-65">등록 장비 ${n}대${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span></span><span class="opacity-50">›</span></button>`}).join('')
         :'<div class="card text-center text-sm opacity-75 py-8">아직 등록된 장비 자료가 없어요.</div>'}`;
+    eqManLoad().then(()=>{const b=$('#eqBdList');if(b){b.classList.remove('opacity-70');b.innerHTML=EQBOARD.map(x=>`<button type="button" data-eqbd="${esc(x.n)}" class="eq-b !justify-start text-left">${eqEmoji(x.t||x.n)} ${esc(x.n)}</button>`).join('')}});
   }
   hydrate(P);
   if(scPending&&(D.equips||[]).length){const c=scPending;scPending='';scOpen(c)}
@@ -1758,22 +1761,27 @@ function eqClose(){$('#eqSheet').classList.add('hidden');document.body.style.ove
 $('#eqSheet').addEventListener('click',e=>{if(e.target.closest('[data-eqclose]'))eqClose()});
 /* 장비 자료 팝업: 등록된 자료 + AI 참고 설명 + 이 종류의 장비 */
 /* 장비 사용 설명서 (data/equip-manual.json) + 지사 자료(equipTypes) + AI 참고 + 지사에 있는 같은 장비 */
-let EQMAN=null;
-async function eqManLoad(){if(EQMAN)return EQMAN;try{const r=await fetch('data/equip-manual.json?v='+DATAV);EQMAN=(await r.json()).types||{}}catch(e){EQMAN={}}return EQMAN}
+let EQMAN=null,EQBOARD=[];
+async function eqManLoad(){if(EQMAN)return EQMAN;try{const r=await fetch('data/equip-manual.json?v='+DATAV),j=await r.json();EQMAN=j.types||{};EQBOARD=j.board||[]}catch(e){EQMAN={}}return EQMAN}
+/* 지사 게시판 「장비사용법」 QR (공단 사용법 링크) */
+const eqBdKey=u=>{const m=String(u||'').match(/site\.naver\.com\/([A-Za-z0-9]+)/);return m?m[1]:''};
+function eqBoardOf(name,mk){return EQBOARD.filter(b=>(mk&&b.t===mk)||eqN(b.n)===eqN(name))}
+const eqBdBtn=b=>`<a href="${esc(b.u)}" target="_blank" rel="noopener" class="man-qr">📺 <span class="flex-1">공단 사용법 보기 · <b>${esc(b.n)}</b></span><span class="opacity-60">↗</span></a>`;
 function eqManFind(M,kind){if(!kind)return [null,''];const k=Object.keys(M).find(x=>eqN(x)===eqN(kind))||Object.keys(M).find(x=>scKindKey(x)&&scKindKey(x)===scKindKey(kind));return k?[M[k],k]:[null,'']}
 function eqStd(kw){pvClose();eqClose();go('insp');setTimeout(()=>{try{sbSubmit(kw)}catch(e){}},500)}
 async function eqDocPop(kind,ai,eid){
-  const M=await eqManLoad(),[man,mk]=eqManFind(M,kind),name=mk||kind||'알 수 없는 장비';
+  const M=await eqManLoad(),bd0=EQBOARD.find(b=>eqN(b.n)===eqN(kind)),[man,mk]=bd0?(bd0.t?[M[bd0.t],bd0.t]:[null,'']):eqManFind(M,kind),name=bd0&&!bd0.t?bd0.n:(mk||kind||'알 수 없는 장비'),bds=eqBoardOf(bd0?bd0.n:name,mk).sort((x,y)=>(y===bd0)-(x===bd0));
   const t=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(kind)||eqN(x.name)===eqN(mk))||null,one=eid&&(D.equips||[]).find(x=>x.id===eid);
   const list=(D.equips||[]).filter(e=>e.kind&&(eqN(e.kind)===eqN(kind)||eqN(e.kind)===eqN(mk)));
   const ic={'이런 장비예요':'🔎','구성품':'🧩','쓰기 전 점검':'✅','측정 순서':'🛠️','결과 읽기':'📊','안전·주의':'⚠️','보관·관리':'🧼','이럴 땐':'❓','교정':'📑'};
   pvOpen('📘 '+name+' 사용 설명서',`<div class="man">
     <div class="man-hd"><span class="text-4xl">${eqEmoji(name)}</span><div class="min-w-0"><div class="text-[11px] font-bold opacity-65">장비 사용 설명서</div><h2 class="text-xl font-black break-words">${esc(name)}</h2>
       ${man&&man.models.length?`<div class="text-[12px] opacity-75 mt-0.5">우리 지사 모델: ${esc(man.models.join(', '))}</div>`:''}</div></div>
+    ${bds.length?`<div class="mt-3">${bds.map(eqBdBtn).join('')}<div class="text-[10.5px] opacity-60 mt-1 px-1">사무실 게시판 「장비사용법」 QR과 같은 링크예요.</div></div>`:''}
     ${one?`<div class="man-one">🔢 <b>${esc(one.no)}</b>${one.set?' · 📦 '+esc(one.set):''}${one.calib?` · 교정 만료 ${esc(one.calib)} (${eqDday(eqDays(one.calib))})`:''}${eqCertBtn(one)}</div>`:''}
     <div class="grid grid-cols-2 gap-2 mt-3">${man&&man.std?`<button type="button" data-eqstd="${esc(man.std)}" class="eq-b">🛡️ 관련 안전기준 찾기</button>`:''}<button type="button" ${t?`data-eqtedit="${t.id}"`:`data-eqtnew="${esc(name)}"`} class="eq-b">${t?'✏️ 지사 자료 고치기':'➕ 지사 자료·설명서 올리기'}</button></div>
     ${man?man.sec.map(([h,b],i)=>`<details class="man-sec"${i<4||h==='안전·주의'?' open':''}><summary>${ic[h]||'•'} ${esc(h)}</summary><div class="eq-txt">${esc(b)}</div></details>`).join('')
-      :'<div class="card !p-3 mt-3 text-[13px]">이 장비의 설명서가 아직 없어요. 아래 \'지사 자료\'에 사용 요령이나 제조사 설명서(PDF)를 올려 두면 다음부터 여기에 보여요.</div>'}
+      :bds.length?'<div class="card !p-3 mt-3 text-[13px]">이 장비는 위 \'공단 사용법 보기\'로 확인해 주세요. 지사 자료를 올려 두면 여기에도 보여요.</div>':'<div class="card !p-3 mt-3 text-[13px]">이 장비의 설명서가 아직 없어요. 아래 \'지사 자료\'에 사용 요령이나 제조사 설명서(PDF)를 올려 두면 다음부터 여기에 보여요.</div>'}
     ${t&&(t.desc||t.howto||t.check||(t.files||[]).length)?`<details class="man-sec" open><summary>🏢 지사 자료${t.files&&t.files.length?` · 📎 ${t.files.length}`:''}</summary>
       ${t.desc?`<div class="eq-sec">용도</div><div class="eq-txt">${esc(t.desc)}</div>`:''}${t.howto?`<div class="eq-sec">사용 방법</div><div class="eq-txt">${esc(t.howto)}</div>`:''}${t.check?`<div class="eq-sec">점검·주의</div><div class="eq-txt">${esc(t.check)}</div>`:''}
       ${t.files&&t.files.length?`<div class="eq-sec">설명서·자료 파일</div>${atList(t.files,'e',t.id)}`:''}</details>`:''}
@@ -1781,7 +1789,7 @@ async function eqDocPop(kind,ai,eid){
     ${list.length?`<details class="man-sec"><summary>🧰 지사에 있는 ${esc(name)} ${list.length}대</summary>${list.map(e=>`<button type="button" data-certv="${e.id}" class="block w-full text-left text-[13px] py-2 border-b border-purple-400/20">${esc(e.name)} · 🔢 ${esc(e.no||'-')} ${eqBadges(e)} <span class="opacity-60">📑</span></button>`).join('')}</details>`:''}
     <div class="text-[11px] opacity-60 mt-4">이 설명서는 일반적인 사용 요령이에요. 장비마다 세부 조작이 다를 수 있으니 제조사 설명서를 함께 확인해 주세요.</div></div>`);
 }
-document.addEventListener('click',e=>{const s=e.target.closest('[data-eqstd]');if(s){e.preventDefault();eqStd(s.dataset.eqstd)}});
+document.addEventListener('click',e=>{const s=e.target.closest('[data-eqstd]');if(s){e.preventDefault();eqStd(s.dataset.eqstd)}const b=e.target.closest('[data-eqbd]');if(b){e.preventDefault();eqDocPop(b.dataset.eqbd)}});
 
 /* 장비 등록·고치기 */
 function eqForm(e,pre){e=e||{};pre=pre||{};const v=k=>esc(e[k]??pre[k]??'');
@@ -2065,6 +2073,7 @@ document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='scCam'||id==='scPic'){const fs=[...e.target.files];e.target.value='';(async()=>{for(const f of fs)await scPhoto(f)})()}
   if(id==='eqQr'){const f=e.target.files[0];e.target.value='';if(!f)return;toast('QR을 읽는 중…');
     qrRead(f).then(async t=>{if(!t)return toast('QR을 찾지 못했어요. QR이 화면 가운데 크게 나오게 다시 찍어 주세요.','error');
+      await eqManLoad();const bk=eqBdKey(t),bd=bk&&EQBOARD.find(x=>eqBdKey(x.u)===bk);if(bd){toast('📘 '+bd.n+' 사용법이에요','ok');return eqDocPop(bd.n)}
       const k=await scQrKey(t),m=((D.settings.find(x=>x.id==='main')||{}).qrMap||{})[k];if(m&&m.set)return scOpen(m.set);
       const c=scCodeOf(t);if(c&&scItems(c).length)return scOpen(c);scQrLink(t,k)}).catch(()=>toast('QR을 읽지 못했어요.','error'))}});
 /* 지사에 원래 붙어 있던 QR: 처음 한 번 '어느 세트인지' 연결해 두면 다음부터 바로 열림 (settings/main.qrMap) */
