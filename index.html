@@ -1690,12 +1690,14 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-eqinvf]');
 
 /* 장비 사용법 모음: 검색 + 가나다 목록 (작은 사진 · 종류) */
 const BD_CAT=[['전기',['전압전류계','다기능절연저항','저전압절연저항계','고전압절연저항계','접지저항계','파워메타','IP등급테스터']],['길이 · 각도 · 수평',['버니어캘리퍼스','디지털각도계','금속줄자','틈새게이지','수준기']],
-  ['힘 · 회전 · 압력',['푸쉬풀게이지','토크렌치','회전속도계','ISCOPE','전기식지시저울']],['소리 · 진동',['EL-Scan','소음진동계','소음계','진동계']],['빛 · 온도 · 시간',['조도계','온습도계','온도계','열화상카메라','초시계']]];
+  ['힘 · 회전 · 압력',['푸쉬풀게이지','토크렌치','회전속도계','ISCOPE','전기식지시저울','도어운동에너지 측정기']],['소리 · 진동',['EL-Scan','소음진동계','소음계','진동계','감속도측정기(DPA)']],['빛 · 온도 · 시간',['조도계','온습도계','온도계','열화상카메라','초시계']]];
 const bdCho=s=>{const o=String(s).charCodeAt(0);return o>=0xAC00&&o<=0xD7A3?'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'[Math.floor((o-0xAC00)/588)].replace('ㄲ','ㄱ').replace('ㄸ','ㄷ').replace('ㅃ','ㅂ').replace('ㅆ','ㅅ').replace('ㅉ','ㅈ'):'A-Z'};
 function eqBdDraw(){const b=$('#eqBdList');if(!b)return;const q=eqN(($('#eqBdQ')||{}).value||'');
-  const L=EQBOARD.filter(x=>!q||eqN(x.n+' '+(x.t||'')).includes(q)).sort((a,c)=>(bdCho(a.n)==='A-Z')-(bdCho(c.n)==='A-Z')||a.n.localeCompare(c.n,'ko'));
+  const used=new Set(EQBOARD.map(x=>x.t).filter(Boolean).map(eqN)),seen=new Set(EQBOARD.map(x=>eqN(x.n))),extra=[];
+  [...Object.keys(EQMAN||{}),...(D.equipTypes||[]).map(t=>t.name)].forEach(n=>{const k=eqN(n);if(n&&!used.has(k)&&!seen.has(k)){seen.add(k);extra.push({n,t:n,ty:1})}});
+  const L=[...EQBOARD,...extra].filter(x=>!q||eqN(x.n+' '+(x.t||'')).includes(q)).sort((a,c)=>(bdCho(a.n)==='A-Z')-(bdCho(c.n)==='A-Z')||a.n.localeCompare(c.n,'ko'));
   if(!L.length){b.innerHTML='<div class="opacity-65 py-4 text-center">찾는 장비가 없어요.</div>';return}let cur='';
-  b.innerHTML=L.map(x=>{const k=bdCho(x.n),ph=EQPHOTO.find(p=>p.b.includes(x.n)),cat=(BD_CAT.find(c=>c[1].includes(x.n))||['기타'])[0];
+  b.innerHTML=L.map(x=>{const k=bdCho(x.n),ph=EQPHOTO.find(p=>p.b.includes(x.n))||(x.ty&&EQPHOTO.find(p=>p.t.includes(x.n))),cat=(BD_CAT.find(c=>c[1].includes(x.n))||['기타'])[0];
     const h=k!==cur?`<div class="bd-ix">${k}</div>`:'';cur=k;
     return h+`<button type="button" data-eqbd="${esc(x.n)}" class="bd-row">${ph?`<img src="${esc(ph.f)}" alt="" loading="lazy">`:`<span class="bd-ph">${eqEmoji(x.t||x.n)}</span>`}<span class="flex-1 min-w-0 text-left"><b>${esc(x.n)}</b><small>${cat}</small></span><em>사용법 ›</em></button>`}).join('')}
 document.addEventListener('input',e=>{if(e.target.id==='eqBdQ')eqBdDraw()});
@@ -1763,8 +1765,7 @@ function renderEquip(){
         ${isAdmin?'':'<div class="text-[11px] opacity-60 mt-2">주기는 관리자가 바꿀 수 있어요.</div>'}</details>
       <details class="card !p-3" id="eqBdBox"><summary class="font-black text-sm cursor-pointer">📺 장비 사용법</summary><div class="bd-srch mt-2"><span>🔍</span><input id="eqBdQ" placeholder="장비 이름으로 찾기 (예: 절연)" autocomplete="off"></div><div id="eqBdList" class="mt-1 text-[13px]"><div class="opacity-70 py-3">불러오는 중…</div></div></details>
       <details class="card !p-3"><summary class="font-black text-sm cursor-pointer">📑 교정성적서 이렇게 읽어요</summary><div class="eq-txt mt-2 text-[13px]">${esc(EQ_CERT_HELP)}</div></details>
-      ${T.length?T.map(t=>{const n=all.filter(e=>eqN(e.kind)===eqN(t.name)).length;return `<button type="button" data-eqtype="${t.id}" class="card !p-3 w-full text-left flex items-center gap-3"><span class="eq-th eq-ph !w-12 !h-12 !text-2xl">${eqEmoji(t.name)}</span><span class="flex-1 min-w-0"><b class="text-[15px] block break-words">${esc(t.name)}</b><span class="text-xs opacity-75 block truncate">${esc(t.desc||'설명 없음')}</span><span class="text-[11px] opacity-65">등록 장비 ${n}대${t.files&&t.files.length?` · 📎 자료 ${t.files.length}`:''}</span></span><span class="opacity-50">›</span></button>`}).join('')
-        :'<div class="card text-center text-sm opacity-75 py-8">아직 등록된 장비 자료가 없어요.</div>'}`;
+      `;
     eqManLoad().then(()=>{const g=$('#eqPhList');if(g)g.innerHTML=EQPHOTO.map(x=>`<button type="button" data-eqbd="${esc(x.b[0]||x.t[0]||x.n)}" class="eq-phb"><img src="${esc(x.f)}" alt="" loading="lazy"><span>${esc(x.n)}</span></button>`).join('');const b=$('#eqBdList');if(b){b.classList.remove('opacity-70');eqBdDraw()}});
   }
   hydrate(P);
