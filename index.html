@@ -307,6 +307,7 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .eq-grp{border-radius:16px;background:rgba(255,255,255,.75);border:1px solid rgba(124,58,237,.18);padding:4px 12px}.dark .eq-grp{background:rgba(30,27,75,.75)}
 .eq-grp>summary{display:flex;align-items:center;gap:10px;min-height:56px;cursor:pointer;list-style:none}.eq-grp>summary::-webkit-details-marker{display:none}
 .eq-grp-ar{opacity:.5;transition:transform .2s}.eq-grp[open] .eq-grp-ar{transform:rotate(180deg)}.eq-grp[open]{padding-bottom:12px}
+.eq-all{width:100%;min-height:52px;border-radius:14px;background:#EDE9FE;color:#5B21B6;font-weight:900;font-size:14px}.dark .eq-all{background:#312E81;color:#DDD6FE}
 .man-qr{display:flex;align-items:center;gap:8px;min-height:50px;padding:10px 14px;margin-top:6px;border-radius:14px;background:#1E1B4B;color:#FDE68A;font-size:14px;text-decoration:none}.dark .man-qr{background:#312E81}
 .man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
 .man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
@@ -1635,7 +1636,8 @@ function eqCard(e){const d=eqDays(e.calib),mine=e.use&&e.use.by===myId,other=e.u
     ${edit?`<button type="button" data-eqedit="${e.id}" class="eq-b">✏️ 고치기</button>`:''}
   </div></div>`}
 /* 장비 목록: 세트별로 접어 두고, 누르면 펼침 (검색 중이거나 한 묶음뿐이면 펼친 채로) */
-const eqGOpen=new Set();
+const eqGOpen=new Set();let eqListOpen=false;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-eqall]');if(!b)return;e.preventDefault();eqListOpen=b.dataset.eqall==='1';renderEquip();if(!eqListOpen){const t=$('#eqListBox');if(t)t.scrollIntoView({block:'center'})}});
 function eqGroups(L,force){const G=new Map();L.forEach(e=>{const k=e.set||'_';if(!G.has(k))G.set(k,[]);G.get(k).push(e)});
   const keys=[...G.keys()].sort((a,b)=>a==='_'?1:b==='_'?-1:a.localeCompare(b)),one=keys.length===1;
   return keys.map(k=>{const A=G.get(k),ov=A.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,sn=A.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,op=force||one||eqGOpen.has(k);
@@ -1659,7 +1661,8 @@ function renderEquip(){
       .sort((a,b)=>(eqDays(a.calib)??9999)-(eqDays(b.calib)??9999)||a.name.localeCompare(b.name));
     const sets=[...new Set(all.map(e=>e.set).filter(Boolean))].sort();
     const box=`<div class="text-xs opacity-70">장비 ${L.length}대${all.length!==L.length?` / 전체 ${all.length}대`:''}</div>
-      ${L.length?eqGroups(L,!!q):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
+      ${L.length?(q||eqSet||eqListOpen?`${!q&&!eqSet?'<button type="button" data-eqall="0" class="eq-all">▴ 접기</button>':''}${eqGroups(L,true)}${!q&&!eqSet&&L.length>8?'<button type="button" data-eqall="0" class="eq-all">▴ 접기</button>':''}`
+        :`<button type="button" data-eqall="1" class="eq-all">▾ 전체 펼치기 <span class="opacity-70 font-bold">(장비 ${L.length}대)</span></button>`):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
     if(document.activeElement&&document.activeElement.id==='eqQ'&&$('#eqListBox')){$('#eqListBox').innerHTML=box;hydrate(P);return}
     P.innerHTML=`<button type="button" data-eqnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 등록하기</button>
       <button type="button" data-certup class="w-full min-h-[50px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">📑 새 교정성적서 올리기 <span class="text-[11px] font-bold opacity-80">(교정 받은 뒤 · 여러 장 OK)</span></button>
