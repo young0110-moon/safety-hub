@@ -277,7 +277,7 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .eq-tab{min-height:44px;border-radius:11px;font-size:13px;font-weight:800;opacity:.75}
 .eq-tab.on{background:#fff;opacity:1;color:#6D28D9;box-shadow:0 2px 8px rgba(76,29,149,.15)}
 .dark .eq-tab.on{background:#2E1065;color:#E9D5FF}
-.eq-th{width:64px;height:64px;border-radius:14px;object-fit:cover;flex-shrink:0;background:#FEF3C7}
+.eq-th{width:64px;height:64px;border-radius:16px;object-fit:cover;flex-shrink:0;background:#F5F1FF}.dark .eq-th{background:#2E2A5A}
 .eq-ph{display:flex;align-items:center;justify-content:center;font-size:30px}
 .eq-bd{font-size:10.5px;font-weight:900;padding:2px 7px;border-radius:99px;white-space:nowrap}
 .eq-red{background:#FEE2E2;color:#B91C1C}.eq-amb{background:#FEF3C7;color:#B45309}.eq-pur{background:#EDE9FE;color:#6D28D9}.eq-grn{background:#DCFCE7;color:#15803D}.eq-gry{background:#F1F5F9;color:#475569}
@@ -308,6 +308,32 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .eq-grp>summary{display:flex;align-items:center;gap:10px;min-height:56px;cursor:pointer;list-style:none}.eq-grp>summary::-webkit-details-marker{display:none}
 .eq-grp-ar{opacity:.5;transition:transform .2s}.eq-grp[open] .eq-grp-ar{transform:rotate(180deg)}.eq-grp[open]{padding-bottom:12px}
 .eq-all{width:100%;min-height:52px;border-radius:14px;background:#EDE9FE;color:#5B21B6;font-weight:900;font-size:14px}.dark .eq-all{background:#312E81;color:#DDD6FE}
+/* 장비 화면: 부드러운 톤 */
+.eqx-sum{border-radius:20px;background:#fff;border:1px solid #EEE7FB;padding:14px;box-shadow:0 6px 20px -14px rgba(91,33,182,.35)}.dark .eqx-sum{background:#1E1B4B;border-color:#312E81}
+.eqx-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.eqx-st{border-radius:14px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}.eqx-st b{font-size:22px;font-weight:900;line-height:1.1}.eqx-st span{font-size:11.5px;font-weight:700;opacity:.8}
+.eqx-st.r{background:#FFF1F1;color:#C2410C}.eqx-st.a{background:#FFF8E6;color:#B45309}.eqx-st.p{background:#F5F1FF;color:#5B21B6}
+.dark .eqx-st.r{background:#3B1618;color:#FCA5A5}.dark .eqx-st.a{background:#3A2A0C;color:#FCD34D}.dark .eqx-st.p{background:#2E2A5A;color:#C4B5FD}
+.eqx-more{margin-top:10px;width:100%;min-height:44px;border-radius:12px;background:#FAF8FF;display:flex;justify-content:space-between;align-items:center;padding:0 12px;font-size:13px;font-weight:700;color:#4C1D95}.dark .eqx-more{background:#25215A;color:#DDD6FE}
+.eqx-alist{margin-top:6px;display:flex;flex-direction:column}
+.eqx-ai{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 6px;font-size:13px;font-weight:600;text-align:left;border-bottom:1px solid #F3EEFC}.dark .eqx-ai{border-color:#312E81}
+.eqx-ai i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.eqx-dd{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:99px;white-space:nowrap}.eqx-dd.over,.eqx-dd.late{background:#FFF1F1;color:#C2410C}.eqx-dd.soon{background:#FFF8E6;color:#B45309}
+.dark .eqx-dd.over,.dark .eqx-dd.late{background:#3B1618;color:#FCA5A5}.dark .eqx-dd.soon{background:#3A2A0C;color:#FCD34D}
+.eqx-link{margin-top:8px;width:100%;min-height:38px;font-size:12.5px;font-weight:700;color:#9A5B13;text-align:center}.dark .eqx-link{color:#FCD34D}
+.eqx-qr{display:flex;align-items:center;gap:12px;min-height:72px;padding:12px 14px;border-radius:20px;background:linear-gradient(135deg,#F3EEFF,#EAF2FF);border:1px solid #E4DAFB;cursor:pointer;color:#3B1F7A}
+.dark .eqx-qr{background:linear-gradient(135deg,#2B2660,#1E2A55);border-color:#3B3780;color:#E9E3FF}
+.eqx-qr b{display:block;font-size:15.5px;font-weight:900}.eqx-qr small{display:block;font-size:12px;opacity:.7;margin-top:1px}
+.eqx-ic{width:46px;height:46px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px -6px rgba(91,33,182,.4);flex-shrink:0}.dark .eqx-ic{background:#1E1B4B}
+.eqx-go{font-size:22px;opacity:.45}
+.eqx-acts{display:grid;gap:8px}.eqx-acts.c3{grid-template-columns:repeat(3,1fr)}.eqx-acts.c2{grid-template-columns:repeat(2,1fr)}
+.eqx-act{min-height:84px;border-radius:16px;background:#fff;border:1px solid #EEE7FB;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:800;color:#3B1F7A}
+.dark .eqx-act{background:#1E1B4B;border-color:#312E81;color:#E9E3FF}
+.eqx-ai2{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px}.dark .eqx-ai2{filter:saturate(.7) brightness(.85)}
+.eqx-cert{margin-top:8px;width:100%;min-height:44px;border-radius:12px;background:#EAF7F1;color:#0F5D4A;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #CBEBDD}
+.dark .eqx-cert{background:#0E2E27;color:#99F6E4;border-color:#134E4A}
+.eq-tabs{background:#F3EFFC}.dark .eq-tabs{background:#25215A}
+.eq-chip.on{background:#EDE9FE;color:#5B21B6;border-color:#C4B5FD}.dark .eq-chip.on{background:#4C1D95;color:#EDE9FE}
 .man-qr{display:flex;align-items:center;gap:8px;min-height:50px;padding:10px 14px;margin-top:6px;border-radius:14px;background:#1E1B4B;color:#FDE68A;font-size:14px;text-decoration:none}.dark .man-qr{background:#312E81}
 .man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
 .man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
@@ -919,7 +945,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <!-- 나의 장비 관리는? -->
 <section id="p-equip" class="page pt-4 space-y-3" data-title="나의 장비 관리는?">
   <div id="eqAlert"></div>
-  <label class="eq-btn sc-qr">📦 세트 가방 QR 찍기 <span class="text-[11.5px] font-bold opacity-85">(세트 점검)</span><input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
+  <label class="eqx-qr"><span class="eqx-ic">📦</span><span class="flex-1 min-w-0"><b>세트 가방 QR 찍기</b><small>가방 QR을 찍으면 세트 점검이 바로 열려요</small></span><span class="eqx-go">›</span><input id="eqQr" type="file" accept="image/*" capture="environment" class="sr-only"></label>
   <div id="eqResult" class="hidden"></div>
   <div id="eqTabs" class="eq-tabs" role="tablist"></div>
   <div id="eqPane" class="space-y-2.5 pb-6"></div>
@@ -1657,10 +1683,14 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-eqinvf]');
 function renderEquip(){
   setqSeed();
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
-  $('#eqAlert').innerHTML=(my.length||over||soon||late)?`<div class="card !p-3 border-l-4 !border-l-amber-500"><b class="text-sm">🔔 장비 알림</b>
-    ${my.slice(0,eqAlOpen?999:3).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="block w-full text-left text-[13px] mt-1.5 font-bold ${a.k==='soon'?'text-amber-600 dark:text-amber-300':'text-red-500'}">${a.k==='late'?'⏰ 반납 시간이 지났어요':a.k==='over'?'🔴 교정 기한이 지났어요':'🟡 교정 만료 '+eqDday(a.d)} — ${esc(a.e.name)} (${esc(a.e.no||'번호 없음')}) ›</button>`).join('')}${my.length>3?`<button type="button" data-eqalt class="mt-1.5 text-[12.5px] font-black text-purple-600 dark:text-purple-300 min-h-[36px]">${eqAlOpen?'▲ 접기':`▼ 나머지 ${my.length-3}개 더 보기`}</button>`:''}
-    <div class="text-[11.5px] opacity-75 mt-1.5">지사 전체: 교정 지남 ${over} · 30일 안에 교정 ${soon}</div>
-    ${isAdmin?'<button type="button" data-eqremind class="mt-2 w-full min-h-[44px] rounded-xl bg-[#B45309] text-white text-[13px] font-black">📣 교정 만료 알림 지금 보내기</button>':''}</div>`:'';
+  const dot={over:'#F87171',soon:'#FBBF24',late:'#F87171'};
+  $('#eqAlert').innerHTML=`<div class="eqx-sum"><div class="eqx-stats">
+      <button type="button" data-eqstat="over" class="eqx-st r"><b>${over}</b><span>교정 지남</span></button>
+      <button type="button" data-eqstat="soon" class="eqx-st a"><b>${soon}</b><span>30일 안 만료</span></button>
+      <div class="eqx-st p"><b>${all.length}</b><span>전체 장비</span></div></div>
+    ${my.length?`<button type="button" data-eqalt class="eqx-more"><span>🔔 내가 챙길 장비 <b>${my.length}</b>건</span><span class="opacity-60">${eqAlOpen?'접기 ▴':'보기 ▾'}</span></button>
+      ${eqAlOpen?`<div class="eqx-alist">${my.slice().sort((x,y)=>(x.d??0)-(y.d??0)).map(a=>`<button type="button" data-eqgo="${a.e.id}" class="eqx-ai"><i style="background:${dot[a.k]}"></i><span class="flex-1 min-w-0 truncate">${esc(a.e.name)}</span><span class="eqx-dd ${a.k}">${a.k==='over'?(-a.d)+'일 지남':a.k==='late'?'반납 늦음':eqDday(a.d)}</span></button>`).join('')}</div>`:''}`:''}
+    ${isAdmin&&(over||soon)?'<button type="button" data-eqremind class="eqx-link">📣 교정 만료 알림 지금 보내기 ›</button>':''}</div>`;
   const inv=eqInv();
   $('#eqTabs').innerHTML=[['list','🧰 장비 목록'],['inv','📋 재고 조사'+(inv?' ●':'')],['doc','📄 장비별 자료']].map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===eqTab}" data-eqtab="${k}" class="eq-tab${k===eqTab?' on':''}">${l}</button>`).join('');
   const P=$('#eqPane');
@@ -1673,9 +1703,10 @@ function renderEquip(){
       ${L.length?(q||eqSet||eqListOpen?`${!q&&!eqSet?'<button type="button" data-eqall="0" class="eq-all">▴ 접기</button>':''}${eqGroups(L,true)}${!q&&!eqSet&&L.length>8?'<button type="button" data-eqall="0" class="eq-all">▴ 접기</button>':''}`
         :`<button type="button" data-eqall="1" class="eq-all">▾ 전체 펼치기 <span class="opacity-70 font-bold">(장비 ${L.length}대)</span></button>`):`<div class="card text-center text-sm opacity-75 py-8">${all.length?'찾는 장비가 없어요.':'아직 등록된 장비가 없어요.<br>위 사진 찍기로 장비를 찍거나<br>➕ 장비 등록하기를 눌러 주세요.'}</div>`}`;
     if(document.activeElement&&document.activeElement.id==='eqQ'&&$('#eqListBox')){$('#eqListBox').innerHTML=box;hydrate(P);return}
-    P.innerHTML=`<button type="button" data-eqnew class="w-full min-h-[50px] rounded-xl bg-[#6D28D9] text-white font-black text-sm">➕ 장비 등록하기</button>
-      <button type="button" data-certup class="w-full min-h-[50px] rounded-xl bg-[#1E1B4B] text-[#FDE68A] font-black text-sm">📑 새 교정성적서 올리기 <span class="text-[11px] font-bold opacity-80">(교정 받은 뒤 · 여러 장 OK)</span></button>
-      ${isAdmin?`<button type="button" data-eqimp class="w-full min-h-[46px] rounded-xl border border-amber-500 text-amber-700 dark:text-amber-300 font-black text-sm">📥 교정성적서 불러오기 (2026.10.28 기준)</button>`:''}
+    P.innerHTML=`<div class="eqx-acts ${isAdmin?'c3':'c2'}">
+        <button type="button" data-eqnew class="eqx-act"><span class="eqx-ai2" style="background:#EDE9FE">➕</span>장비 등록</button>
+        <button type="button" data-certup class="eqx-act"><span class="eqx-ai2" style="background:#E0F2FE">📑</span>새 성적서 올리기</button>
+        ${isAdmin?`<button type="button" data-eqimp class="eqx-act"><span class="eqx-ai2" style="background:#FEF3C7">📥</span>성적서 불러오기</button>`:''}</div>
       ${sets.length?`<select id="eqSetSel" class="inp" aria-label="세트 고르기"><option value="">📦 모든 장비 (세트 전체)</option>${sets.map(s=>`<option value="${esc(s)}"${s===eqSet?' selected':''}>📦 ${esc(s)} (${all.filter(e=>e.set===s).length}대)</option>`).join('')}<option value="_"${eqSet==='_'?' selected':''}>🔧 세트 아닌 장비 (${all.filter(e=>!e.set).length}대)</option></select>`:''}
       <input id="eqQ" class="inp" placeholder="🔍 장비 이름·기기번호·보관 위치 검색" value="${esc(eqQ)}">
       <div class="flex gap-2 overflow-x-auto hscroll -mx-1 px-1">${['전체','교정 임박','내 담당'].map(c=>`<button type="button" data-eqf="${c}" class="eq-chip${c===f?' on':''}">${c}</button>`).join('')}</div>
@@ -2008,13 +2039,14 @@ document.addEventListener('change',e=>{const id=e.target.id;
   if(id==='eqCam'||id==='eqPic'||id==='eqInvCam'){const f=e.target.files[0];e.target.value='';if(f)eqScan(f,id==='eqInvCam'?'inv':'find')}});
 document.addEventListener('click',async e=>{
   if(!e.target.closest('#p-equip,#eqSheet,#pvView'))return;
-  const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqimp],[data-eqalt],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
+  const b=e.target.closest('[data-eqtab],[data-eqf],[data-eqnew],[data-eqimp],[data-eqalt],[data-eqstat],[data-eqedit],[data-equse],[data-eqdoc],[data-eqgo],[data-eqtype],[data-eqtnew],[data-eqtedit],[data-eqreg],[data-eqdock],[data-eqchk],[data-equnchk],[data-eqinvstart],[data-eqinvend],[data-eqinvno],#efSave,#efDel,#tfSave,#tfDel,#ufGo');if(!b)return;
   const d=b.dataset,E=id=>(D.equips||[]).find(x=>x.id===id);
   if(d.eqtab){eqTab=d.eqtab;renderEquip();return}
   if(d.eqf){eqF=d.eqf;renderEquip();return}
   if(d.eqnew!==undefined){eqForm(null,{});return}
   if(d.eqimp!==undefined){eqImportOpen();return}
   if(d.eqalt!==undefined){eqAlOpen=!eqAlOpen;renderEquip();return}
+  if(d.eqstat){eqTab='list';eqF='교정 임박';eqSet='';eqQ='';eqListOpen=true;renderEquip();setTimeout(()=>{const t=$('#eqListBox');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})},50);return}
   if(d.eqedit){eqForm(E(d.eqedit));return}
   if(d.eqdoc){const x=E(d.eqdoc);eqDocPop(x&&x.kind||'',null,d.eqdoc);return}
   if(d.eqgo){eqClose();eqTab='list';eqF='전체';eqQ='';renderEquip();setTimeout(()=>{const c=document.querySelector(`[data-eqid="${d.eqgo}"]`);if(c){c.scrollIntoView({behavior:'smooth',block:'center'});c.animate([{boxShadow:'0 0 0 4px #F59E0B'},{boxShadow:'0 0 0 0 transparent'}],{duration:1600})}},80);return}
@@ -2078,7 +2110,7 @@ function eqLatest(e){const C=e.certs||[],by={};C.forEach(c=>{const k=c.n||'';if(
   const files=(e.files||[]).map((f,i)=>({f,i,c:C.find(c=>f.n&&f.n.startsWith(c.c+' '))}));
   return {certs:L,files:files.filter(x=>!x.c||L.includes(x.c)).sort((a,b)=>((b.c&&b.c.d)||'').localeCompare((a.c&&a.c.d)||'')),all:files}}
 const eqCertBtn=e=>{const L=eqLatest(e);if(!L.certs.length&&!(e.files||[]).length)return '';const d=L.certs[0]&&L.certs[0].d;
-  return `<button type="button" data-certv="${e.id}" class="mt-2 w-full min-h-[44px] rounded-xl bg-[#0F766E] text-white text-[13px] font-black flex items-center justify-center gap-1.5">📑 최신 성적서 보기${d?` <span class="font-bold opacity-85">(${esc(d)} 교정)</span>`:''}${L.certs.length>1?` · ${L.certs.length}장`:''}</button>`};
+  return `<button type="button" data-certv="${e.id}" class="eqx-cert">📑 최신 성적서 보기${d?` <span class="font-bold opacity-85">(${esc(d)} 교정)</span>`:''}${L.certs.length>1?` · ${L.certs.length}장`:''}</button>`};
 
 /* ---- 화면 전체를 덮는 보기 창 (성적서 · 보고서 · QR 라벨) ---- */
 function pvOpen(title,html,tools){
