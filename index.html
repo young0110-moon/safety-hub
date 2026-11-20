@@ -1645,6 +1645,15 @@ function eqGroups(L,force){const G=new Map();L.forEach(e=>{const k=e.set||'_';if
       ${ov?`<span class="eq-bd eq-red ml-1">교정 지남 ${ov}</span>`:''}${sn?`<span class="eq-bd eq-amb ml-1">30일 안 ${sn}</span>`:''}</span><span class="eq-grp-ar">▾</span></summary>
       <div class="space-y-2.5 pt-2">${A.map(eqCard).join('')}</div></details>`}).join('')}
 document.addEventListener('toggle',e=>{const d=e.target;if(d.matches&&d.matches('details[data-eqgrp]')){d.open?eqGOpen.add(d.dataset.eqgrp):eqGOpen.delete(d.dataset.eqgrp)}},true);
+/* 재고 조사 목록: 접어 두고 '펼치기'를 누르면 세트별로 쭉 */
+const eqInvOpen={no:false,ok:false};
+function eqInvFold(k,title,A,row,empty){if(!A.length)return `<div class="eq-sec">${title} 0</div>${empty}`;
+  if(!eqInvOpen[k])return `<button type="button" data-eqinvf="${k}" class="eq-all">▾ ${title} <span class="opacity-80">${A.length}대</span> · 펼치기</button>`;
+  const G=new Map();A.slice().sort((a,b)=>(a.set||'~').localeCompare(b.set||'~')||a.name.localeCompare(b.name)).forEach(e=>{const s=e.set||'_';if(!G.has(s))G.set(s,[]);G.get(s).push(e)});
+  return `<button type="button" data-eqinvf="${k}" class="eq-all">▴ ${title} <span class="opacity-80">${A.length}대</span> · 접기</button>
+    ${[...G].map(([s,L])=>`<div class="text-[12.5px] font-black opacity-75 px-1 pt-1">${s==='_'?'🔧 세트 아닌 장비':'📦 '+esc(s)} · ${L.length}대</div>${L.map(row).join('')}`).join('')}
+    ${A.length>8?`<button type="button" data-eqinvf="${k}" class="eq-all">▴ 접기</button>`:''}`}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-eqinvf]');if(!b)return;e.preventDefault();const k=b.dataset.eqinvf;eqInvOpen[k]=!eqInvOpen[k];renderEquip()});
 function renderEquip(){
   setqSeed();
   const my=eqMyAlerts(),all=D.equips||[],over=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d<0}).length,soon=all.filter(e=>{const d=eqDays(e.calib);return d!==null&&d>=0&&d<=30}).length,late=all.filter(eqUseLate).length;
@@ -1690,10 +1699,8 @@ function renderEquip(){
       <label class="eq-btn pri mt-3">📸 기기번호 찍어서 확인<input id="eqInvCam" type="file" accept="image/*" capture="environment" class="sr-only"></label>
       <div id="eqInvRes"></div>
       <div class="flex gap-2 mt-2"><input id="eqInvNo" class="inp flex-1" placeholder="번호를 직접 입력 (예: KE-015)"><button type="button" data-eqinvno class="eq-b pri px-4 shrink-0">확인</button></div></div>
-      <div class="eq-sec">❌ 아직 확인 안 된 장비 ${no.length}</div>
-      ${no.map(e=>`<div class="card !p-3 flex items-center gap-2"><span class="text-xl shrink-0">${eqEmoji(e.kind)}</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · 📍 ${esc(e.place||'위치 미입력')}</div></div><button type="button" data-eqchk="${e.id}" class="eq-b grn px-3 shrink-0">✔ 확인</button></div>`).join('')||'<div class="text-[13px] opacity-70 px-1">모두 확인했어요! 👏</div>'}
-      <div class="eq-sec">✅ 확인된 장비 ${ok.length}</div>
-      ${ok.map(e=>`<div class="card !p-3 flex items-center gap-2 opacity-90"><span class="text-xl shrink-0">✅</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · ${esc(nmFull(e.inv.by))} · ${ago(e.inv.at)}</div></div><button type="button" data-equnchk="${e.id}" class="text-xs font-bold opacity-60 min-h-[40px] px-2 shrink-0">취소</button></div>`).join('')}
+      ${eqInvFold('no','❌ 아직 확인 안 된 장비',no,e=>`<div class="card !p-3 flex items-center gap-2"><span class="text-xl shrink-0">${eqEmoji(e.kind)}</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · 📍 ${esc(e.place||'위치 미입력')}</div></div><button type="button" data-eqchk="${e.id}" class="eq-b grn px-3 shrink-0">✔ 확인</button></div>`,'<div class="text-[13px] opacity-70 px-1">모두 확인했어요! 👏</div>')}
+      ${eqInvFold('ok','✅ 확인된 장비',ok,e=>`<div class="card !p-3 flex items-center gap-2 opacity-90"><span class="text-xl shrink-0">✅</span><div class="flex-1 min-w-0"><b class="text-sm break-words">${esc(e.name)}</b><div class="text-xs opacity-75 break-words">🔢 ${esc(e.no||'번호 없음')} · ${esc(nmFull(e.inv.by))} · ${ago(e.inv.at)}</div></div><button type="button" data-equnchk="${e.id}" class="text-xs font-bold opacity-60 min-h-[40px] px-2 shrink-0">취소</button></div>`,'')}
       <button type="button" data-eqinvend class="w-full min-h-[48px] rounded-xl border border-red-400/60 text-red-500 text-sm font-bold">■ 재고 조사 끝내기</button>`;
   }else{
     const T=(D.equipTypes||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
