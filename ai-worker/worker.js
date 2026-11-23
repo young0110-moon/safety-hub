@@ -20,19 +20,7 @@ const MODELS  = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3-fla
 const MAX_BYTES = 18 * 1024 * 1024;                     // 녹음 최대 18MB (64kbps 기준 약 35분)
 const REC_MODELS = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash']; // 녹음 정리용(정확도 우선)
 
-const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 기록 담당자야.
-첨부된 녹음은 아침 브리핑(또는 현장 대화)이야. 한국어로 아래 JSON 형식에 맞춰 정리해.
-- brief: 직원들에게 전달·공지·요청한 내용을 번호 목록용 문장으로 (아래 [정리 양식]을 따를 것)
-- title: 브리핑 제목 (20자 이내)
-- summary: 핵심 요약 3문장 이내
-- dialogue: 대화를 말한 순서대로 정리. 화자 이름을 모르면 "화자1","화자2"로. 군더더기(음, 어, 반복)는 빼고 뜻은 그대로. 각 항목 {s:화자, t:내용}
-- points: 주요 안건·전달사항 목록
-- decisions: 결정된 사항 목록 (없으면 빈 배열)
-- todos: 할 일 목록 {who:담당(모르면 ""), what:할 일, when:기한(모르면 "")}
-- safety: 안전 관련 당부·위험 요소 (없으면 빈 배열)
-규칙: 녹음에 없는 내용은 절대 지어내지 마. 들리지 않는 부분은 "(잘 안 들림)"으로 표시해.
-개인 전화번호·주민번호 같은 개인정보가 들리면 "(개인정보 생략)"으로 바꿔 적어.
-듣기 전에 아래 [지사 용어 사전]을 먼저 읽고, 비슷하게 들리는 말은 사전의 바른 말로 적어. (예: "케이 휘슬"→"K휘슬", "피씨 지킴이"→"PC지킴이", "모아 앱"→"MOA 앱", "정기 평점"→"정기평정", "비계량"·"지표"는 그대로)
+const REC_GLOSS = `듣기 전에 아래 [지사 용어 사전]을 먼저 읽고, 비슷하게 들리는 말은 사전의 바른 말로 적어. (예: "케이 휘슬"→"K휘슬", "피씨 지킴이"→"PC지킴이", "모아 앱"→"MOA 앱", "정기 평점"→"정기평정", "비계량"·"지표"는 그대로)
 사전에 없는 사람 이름을 지어내지 마. 이름이 잘 안 들리면 직함만 적어 (예: "○○ 대리").
 
 [지사 용어 사전]
@@ -49,6 +37,19 @@ const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 
 3. K휘슬 모의신고 11.27까지 하시기 바랍니다.
 4. 지사장님 교육 출장으로 지난주 12, 13일 결재건은 1팀장님 앞으로 재결재 하시기 바랍니다.
 5. 노사협의회 안건 있으시면 김주희 대리에게 말씀 바랍니다.`;
+const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 기록 담당자야.
+첨부된 녹음은 아침 브리핑(또는 현장 대화)이야. 한국어로 아래 JSON 형식에 맞춰 정리해.
+- brief: 직원들에게 전달·공지·요청한 내용을 번호 목록용 문장으로 (아래 [정리 양식]을 따를 것)
+- title: 브리핑 제목 (20자 이내)
+- summary: 핵심 요약 3문장 이내
+- dialogue: 대화를 말한 순서대로 정리. 화자 이름을 모르면 "화자1","화자2"로. 군더더기(음, 어, 반복)는 빼고 뜻은 그대로. 각 항목 {s:화자, t:내용}
+- points: 주요 안건·전달사항 목록
+- decisions: 결정된 사항 목록 (없으면 빈 배열)
+- todos: 할 일 목록 {who:담당(모르면 ""), what:할 일, when:기한(모르면 "")}
+- safety: 안전 관련 당부·위험 요소 (없으면 빈 배열)
+규칙: 녹음에 없는 내용은 절대 지어내지 마. 들리지 않는 부분은 "(잘 안 들림)"으로 표시해.
+개인 전화번호·주민번호 같은 개인정보가 들리면 "(개인정보 생략)"으로 바꿔 적어.
+` + '\n' + REC_GLOSS;
 
 const SCHEMA = {
   type: 'OBJECT',
@@ -73,7 +74,7 @@ export default {
     const cors = {
       'Access-Control-Allow-Origin': okOrigin ? origin : ORIGINS[0],
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Prompt',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Prompt, X-Fix',
       'Access-Control-Max-Age': '86400', 'Vary': 'Origin'
     };
     const out = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
@@ -201,34 +202,65 @@ export default {
     try { style = decodeURIComponent(req.headers.get('X-Prompt') || '').slice(0, 4000); } catch (e) {}
     const prompt = `${PROMPT}\n\n[오늘] ${today} (한국 시간)\n\n[정리 양식]\n${style || '전달사항을 말한 순서대로 한 문장씩, "~입니다/~바랍니다" 공지체로. 상대적인 날짜(오늘·내일·이번 주·다음 주)는 오늘 기준 실제 날짜를 괄호로 덧붙임. 예: 다음 주 화요일(10/27)'}`;
 
-    // 4) Gemini 로 정리
-    const body = {
-      contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64(buf) } }] }],
-      generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
-    };
-    let last = '', quota = false;
-    // 녹음은 받아쓰기 정확도가 중요 → 더 똑똑한 flash 모델 먼저, 사용량이 막히면 가벼운 모델로
-    for (const m of [...new Set([...REC_MODELS, ...(env.MODEL ? [env.MODEL] : []), ...MODELS])]) {
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
+    // 4) 두 단계로 정리: ① 들은 그대로 받아쓰기 → ② 받아쓴 글로 전달사항 정리 (지어낸 말 줄이기)
+    let fixes = '';
+    try { fixes = decodeURIComponent(req.headers.get('X-Fix') || '').slice(0, 3000); } catch (e) {}
+    const fixTxt = fixes ? '\n\n[고친 말 사전 — 직원들이 직접 고친 말. 왼쪽처럼 들리면 오른쪽으로 적어]\n' + fixes : '';
+    const audio = { inline_data: { mime_type: mime, data: b64(buf) } };
+    const tr = await gemRec(env, {
+      contents: [{ role: 'user', parts: [{ text: TR_PROMPT + '\n\n' + REC_GLOSS + fixTxt }, audio] }],
+      generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: TR_SCHEMA }
+    });
+    if (tr.code === 'quota' || tr.code === 'location') return out({ error: tr.error, code: tr.code }, tr.code === 'quota' ? 429 : 502);
+    const lines = tr.data && Array.isArray(tr.data.lines) ? tr.data.lines.filter(l => l && l.t) : [];
+    let r;
+    if (lines.length) {
+      const script = lines.map(l => `${String(l.s || '화자')}: ${String(l.t)}`).join('\n').slice(0, 60000);
+      r = await gemRec(env, {
+        contents: [{ role: 'user', parts: [{ text: prompt + fixTxt + '\n\n[받아쓰기 원문 — 이 글에 있는 내용만으로 정리해. dialogue 는 이 원문을 다듬어서]\n' + script }] }],
+        generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
       });
-      if (r.status === 404) { last = `모델 ${m} 없음`; continue; }        // 이름이 바뀐 모델은 건너뜀
-      const j = await r.json().catch(() => ({}));
-      if (r.status === 429) { quota = true; last = '사용량 초과'; continue; }
-      if (!r.ok) {
-        last = (j.error && j.error.message) || ('HTTP ' + r.status);
-        // 이 서버가 Gemini 미지원 지역(예: 홍콩)에서 실행되면 구글이 거절함 → 알아보기 쉽게 안내
-        if (/location is not supported/i.test(last)) return out({ error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요. (실행 위치: ' + ((req.cf && req.cf.colo) || '?') + ')', code: 'location' }, 502);
-        continue;                                              // 다른 모델로 다시 시도
-      }
-      const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
-      let data; try { data = JSON.parse(txt); } catch (e) { return out({ error: 'AI 응답을 읽지 못했어요. 다시 시도해 주세요.' }, 502); }
-      return out({ ok: true, model: m, by: user.email || '', at: Date.now(), ...data });
     }
-    if (quota) return out({ error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' }, 429);
-    return out({ error: 'AI 정리에 실패했어요: ' + last }, 502);
+    if (!r || r.error) {   // 받아쓰기가 안 되면 예전처럼 한 번에 정리
+      r = await gemRec(env, {
+        contents: [{ role: 'user', parts: [{ text: prompt + fixTxt }, audio] }],
+        generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
+      });
+    }
+    if (r.error) return out({ error: r.error, code: r.code }, r.code === 'quota' ? 429 : 502);
+    return out({ ok: true, model: (tr.model ? tr.model + ' → ' : '') + r.model, two: !!lines.length, by: user.email || '', at: Date.now(), ...r.data });
   }
 };
+
+/* 녹음 1단계: 들은 그대로 받아쓰기 (정리·요약 없이) */
+const TR_PROMPT = `너는 한국어 회의 녹음 받아쓰기 담당자야. 첨부된 녹음(한국승강기안전공단 부산동부지사 아침 브리핑)을 들은 그대로 받아써.
+- 요약하거나 문장을 꾸미지 말고, 말한 순서대로 말한 내용 그대로. 음, 어 같은 군더더기만 빼.
+- 화자가 바뀌면 줄을 나눠. 이름을 모르면 "화자1","화자2".
+- 숫자·날짜·시간·사람 이름·장소는 특히 정확하게. 잘 안 들리면 지어내지 말고 "(잘 안 들림)".
+- 아래 용어 사전과 [고친 말 사전]에 있는 말과 비슷하게 들리면 사전의 바른 말로 적어.
+- 개인 전화번호·주민번호는 "(개인정보 생략)".`;
+const TR_SCHEMA = { type: 'OBJECT', properties: { lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['lines'] };
+
+/* 녹음 정리용 Gemini 호출: 정확도 좋은 모델부터, 사용량이 막히거나 안 되면 다음 모델 */
+async function gemRec(env, body) {
+  let last = '', quota = false;
+  for (const m of [...new Set([...REC_MODELS, ...(env.MODEL ? [env.MODEL] : []), ...MODELS])]) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
+    });
+    if (r.status === 404) { last = `모델 ${m} 없음`; continue; }
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 429) { quota = true; last = '사용량 초과'; continue; }
+    if (!r.ok) {
+      last = (j.error && j.error.message) || ('HTTP ' + r.status);
+      if (/location is not supported/i.test(last)) return { error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요.', code: 'location' };
+      continue;
+    }
+    const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
+    try { return { data: JSON.parse(txt), model: m }; } catch (e) { last = 'AI 응답을 읽지 못했어요.'; continue; }
+  }
+  return quota ? { error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' } : { error: 'AI 정리에 실패했어요: ' + last };
+}
 
 /* Gemini 호출 (모델 이름이 바뀌면 다음 모델로) */
 async function gemini(env, body) {
