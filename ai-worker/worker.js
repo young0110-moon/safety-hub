@@ -17,7 +17,8 @@
 const PROJECT = 'moon0110-50b6f';                       // Firebase 프로젝트
 const ORIGINS = ['https://young0110-moon.github.io'];   // 앱 주소
 const MODELS  = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3-flash-preview']; // 앞에서부터 시도
-const MAX_BYTES = 18 * 1024 * 1024;                     // 녹음 최대 18MB (약 60분)
+const MAX_BYTES = 18 * 1024 * 1024;                     // 녹음 최대 18MB (64kbps 기준 약 35분)
+const REC_MODELS = ['gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash']; // 녹음 정리용(정확도 우선)
 
 const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 기록 담당자야.
 첨부된 녹음은 아침 브리핑(또는 현장 대화)이야. 한국어로 아래 JSON 형식에 맞춰 정리해.
@@ -30,7 +31,24 @@ const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 
 - todos: 할 일 목록 {who:담당(모르면 ""), what:할 일, when:기한(모르면 "")}
 - safety: 안전 관련 당부·위험 요소 (없으면 빈 배열)
 규칙: 녹음에 없는 내용은 절대 지어내지 마. 들리지 않는 부분은 "(잘 안 들림)"으로 표시해.
-개인 전화번호·주민번호 같은 개인정보가 들리면 "(개인정보 생략)"으로 바꿔 적어.`;
+개인 전화번호·주민번호 같은 개인정보가 들리면 "(개인정보 생략)"으로 바꿔 적어.
+듣기 전에 아래 [지사 용어 사전]을 먼저 읽고, 비슷하게 들리는 말은 사전의 바른 말로 적어. (예: "케이 휘슬"→"K휘슬", "피씨 지킴이"→"PC지킴이", "모아 앱"→"MOA 앱", "정기 평점"→"정기평정", "비계량"·"지표"는 그대로)
+사전에 없는 사람 이름을 지어내지 마. 이름이 잘 안 들리면 직함만 적어 (예: "○○ 대리").
+
+[지사 용어 사전]
+· 사람·직함: 지사장님, 1팀장님, 2팀장님, 이사장님, 경영기획이사님, 김주희 대리, 김소라 대리, 박진욱 대리, 정필교 과장, 이동엽 차장, 문병영 과장
+· 장소·현장: 신세계(백화점), 개금역, 연산역, 고리관리구역, 북부지사, 지역본부, 토요시청검사, 금오유비끼(회식 장소)
+· 인사·행정: 정기평정, 정기모의평정, 성과면담, 업무실적보고서, 노사협의회, 노조 임시총회, 결재 상신, 재결재, 여비 입력, 통신비, 연차, 공가, 휴가계획, 근무복·검사복 사이즈 조사(ERP), 그룹웨어, 내부메일, 공문, 밴드, 노조단톡방
+· 청렴·보안: K휘슬 모의신고, 맞춤형 신고기간, 청렴감사 퀴즈, 청렴 툰 공모전, 해킹메일 훈련, PC지킴이, 특정감사(내부통제·방만경영), 갑질 및 괴롭힘 간담회
+· 교육·행사: 안전보건교육, 테크니컬 교육, 품질관리교육, AI 교육, AI 골든벨, CS 퀴즈, 직무스트레스 진단, 어떠케어 앱, 국민안전교육플랫폼, 선택교육, 안전캠페인, 친환경 캠페인, 연말회식
+· 검사 업무: 안전검사, 야간검사, 검사지원, 현장작동성평가, 조건부 합격·불합격, 불합격 표지, 태블릿 등록, 조건부처리율, 현장시정조치, 부적합조기개선률, 공동주택, 지표 회의, 비계량 사업, 안전관리자 선임·해임, 교육 재이수, 성적서 기안, 검사소모품비, 기록물 폐기, 수기입력, AI 스마트배정시스템, 자동일정배정, AI 안전톡, 위험재해현장 사진등록, 안전모·안전화·안전보호구, 핸드레일, 에스컬레이터, MOA 앱
+
+[우리 지사 전달사항 실제 예시 — 이 말투와 길이로]
+1. 11.24(화) 테크니컬, 안전보건, AI 교육 있습니다.
+2. 근무복 신청 11.30까지 하셔야 합니다.
+3. K휘슬 모의신고 11.27까지 하시기 바랍니다.
+4. 지사장님 교육 출장으로 지난주 12, 13일 결재건은 1팀장님 앞으로 재결재 하시기 바랍니다.
+5. 노사협의회 안건 있으시면 김주희 대리에게 말씀 바랍니다.`;
 
 const SCHEMA = {
   type: 'OBJECT',
@@ -173,7 +191,7 @@ export default {
     if (!type.startsWith('audio/') && type !== 'video/mp4' && type !== 'video/webm') return out({ error: '녹음 파일 형식이 아니에요.' }, 415);
     const buf = await req.arrayBuffer();
     if (!buf.byteLength) return out({ error: '녹음이 비어 있어요.' }, 400);
-    if (buf.byteLength > MAX_BYTES) return out({ error: '녹음이 너무 길어요. 60분 이내로 나눠서 녹음해 주세요.' }, 413);
+    if (buf.byteLength > MAX_BYTES) return out({ error: '녹음이 너무 길어요. 30분 이내로 나눠서 녹음해 주세요.' }, 413);
     const mime = type === 'video/mp4' ? 'audio/mp4' : type === 'video/webm' ? 'audio/webm' : type;
 
     // 3) 오늘 날짜(한국 시간) + 앱이 보낸 [정리 양식] → 프롬프트 완성
@@ -188,24 +206,26 @@ export default {
       contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64(buf) } }] }],
       generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
     };
-    let last = '';
-    for (const m of (env.MODEL ? [env.MODEL, ...MODELS] : MODELS)) {
+    let last = '', quota = false;
+    // 녹음은 받아쓰기 정확도가 중요 → 더 똑똑한 flash 모델 먼저, 사용량이 막히면 가벼운 모델로
+    for (const m of [...new Set([...REC_MODELS, ...(env.MODEL ? [env.MODEL] : []), ...MODELS])]) {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
       });
       if (r.status === 404) { last = `모델 ${m} 없음`; continue; }        // 이름이 바뀐 모델은 건너뜀
       const j = await r.json().catch(() => ({}));
-      if (r.status === 429) return out({ error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' }, 429);
+      if (r.status === 429) { quota = true; last = '사용량 초과'; continue; }
       if (!r.ok) {
-        last = (j.error && j.error.message) || ('HTTP ' + r.status); if (r.status >= 500) continue;
+        last = (j.error && j.error.message) || ('HTTP ' + r.status);
         // 이 서버가 Gemini 미지원 지역(예: 홍콩)에서 실행되면 구글이 거절함 → 알아보기 쉽게 안내
         if (/location is not supported/i.test(last)) return out({ error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요. (실행 위치: ' + ((req.cf && req.cf.colo) || '?') + ')', code: 'location' }, 502);
-        return out({ error: 'AI 정리에 실패했어요: ' + last }, 502);
+        continue;                                              // 다른 모델로 다시 시도
       }
       const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
       let data; try { data = JSON.parse(txt); } catch (e) { return out({ error: 'AI 응답을 읽지 못했어요. 다시 시도해 주세요.' }, 502); }
       return out({ ok: true, model: m, by: user.email || '', at: Date.now(), ...data });
     }
+    if (quota) return out({ error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' }, 429);
     return out({ error: 'AI 정리에 실패했어요: ' + last }, 502);
   }
 };

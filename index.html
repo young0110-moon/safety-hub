@@ -870,7 +870,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <p class="text-[12px] opacity-80 leading-relaxed">브리핑을 녹음하면 AI가 <b>대화 정리 · 핵심 요약 · 결정 사항 · 할 일</b>로 나눠 적어 줘요. 휴대폰 녹음 앱으로 녹음한 파일을 올려도 돼요.</p>
     <div id="recBody"></div>
     <details class="text-[11px] opacity-80 leading-relaxed"><summary class="font-bold cursor-pointer min-h-[32px] flex items-center">⚠️ 녹음 전에 꼭 읽어 주세요</summary>
-      <ul class="list-disc pl-4 space-y-0.5 mt-1"><li>녹음 전에 참석자에게 <b>녹음한다고 알리고</b> 동의를 받아 주세요.</li><li>고객 이름·전화번호 같은 <b>개인정보</b>가 나오는 대화는 녹음하지 마세요.</li><li>무료 AI(Gemini 무료 등급)라 보낸 내용이 Google 서비스 개선에 쓰일 수 있어요. <b>대외비 내용은 녹음하지 마세요.</b></li><li>녹음 파일은 정리에만 쓰고 서버에 저장하지 않아요. 정리본은 <b>이 휴대폰에만</b> 저장돼요.</li><li>최대 60분. 녹음 중에는 화면이 꺼지지 않게 유지돼요. (아이폰은 화면을 끄면 녹음이 멈출 수 있어요)</li></ul></details>
+      <ul class="list-disc pl-4 space-y-0.5 mt-1"><li>녹음 전에 참석자에게 <b>녹음한다고 알리고</b> 동의를 받아 주세요.</li><li>고객 이름·전화번호 같은 <b>개인정보</b>가 나오는 대화는 녹음하지 마세요.</li><li>무료 AI(Gemini 무료 등급)라 보낸 내용이 Google 서비스 개선에 쓰일 수 있어요. <b>대외비 내용은 녹음하지 마세요.</b></li><li>녹음 파일은 정리에만 쓰고 서버에 저장하지 않아요. 정리본은 <b>이 휴대폰에만</b> 저장돼요.</li><li>최대 30분 (10분 안팎이 가장 정확해요). 휴대폰은 <b>탁자 가운데</b>, 화면이 위로 가게 두세요. 녹음 중에는 화면이 꺼지지 않게 유지돼요. (아이폰은 화면을 끄면 녹음이 멈출 수 있어요)</li></ul></details>
     <div id="recList" class="space-y-2"></div>
   </div>
 </section>
@@ -2498,29 +2498,31 @@ function postCard(v,compact,hq,full){
 }
 /* ===== 🎙️ 브리핑 녹음 → AI 정리 (Cloudflare Workers + Gemini)
    녹음은 서버(AI_URL)로만 보내고 저장하지 않음. 정리본은 이 휴대폰(localStorage)에만 보관 ===== */
-const REC_MAX_MS=60*60*1000,REC_MAX_B=18*1024*1024;
+const REC_MAX_MS=30*60*1000,REC_MAX_B=18*1024*1024;
 let aiRec={st:'idle',mr:null,chunks:[],t0:0,tick:0,stream:null,lock:null,err:'',open:null,mime:'',delArm:''};
 const recSaved=()=>store.get('koelsa_rec',[]);
 /* [정리 양식] 프롬프트 — 녹음을 '번호 전달사항'으로 정리. 오늘 기준 달력을 같이 보내 날짜 계산 실수를 막음 */
 function recPrompt(){const W='일월화수목금토',t=new Date();t.setHours(0,0,0,0);
   const mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));
-  const f=d=>`${d.getMonth()+1}/${d.getDate()}(${W[d.getDay()]})`;
+  const f=d=>`${d.getMonth()+1}.${d.getDate()}(${W[d.getDay()]})`;
+  const names=[...new Set((D.members||[]).map(m=>String(m.name||'').trim()).filter(Boolean))].slice(0,40).join(', ');
   const wk=o=>Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+o+i);return f(d)}).join(' ');
   const add=n=>{const d=new Date(t);d.setDate(t.getDate()+n);return f(d)};
   return `[정리 양식 · 전달사항]
 1) 녹음에서 직원들에게 전달·공지·요청·당부한 내용을 빠짐없이 뽑아 brief 배열에 말한 순서대로 넣는다.
 2) 한 항목은 한 문장. 끝은 "~입니다." / "~예정입니다." / "~바랍니다." 같은 공손한 공지체.
 3) 상대적인 날짜는 아래 달력으로 실제 날짜를 찾아 괄호로 덧붙인다. 원래 표현은 그대로 둔다.
-   예) 다음 주 화요일 → "다음 주 화요일(10/27)", 이번 주 목요일 → "이번 주 목요일(10/22)", 금일·오늘 → "금일(10/19)"
+   예) 다음 주 화요일 → "다음 주 화요일(10.27)", 이번 주 목요일 → "이번 주 목요일(10.22)", 금일·오늘 → "금일(10.19)"
+   날짜만 말한 경우도 "11.30까지", "12.10(목)"처럼 우리 지사 표기(월.일)로 쓴다.
 4) 시각은 24시간제로 적는다. 업무 시간의 "5시"는 17:00, "9시"는 09:00.
-5) 사람은 직함과 존칭으로: 지사장님, 팀장님, 과장님.
+5) 사람은 직함과 존칭으로: 지사장님, 팀장님, 과장님. 우리 지사 직원 이름: ${names||'(없음)'}
 6) 녹음에 없는 날짜·시간·사람·내용은 절대 추가하지 않는다. 불분명하면 "(확인 필요)"를 붙인다.
 [달력] 오늘 ${f(t)} · 내일 ${add(1)} · 모레 ${add(2)}
 이번 주(월~일): ${wk(0)}
 다음 주(월~일): ${wk(7)}
 [예시]
 녹음: "다음 주 화요일에 안전캠페인 있고요, 이번 주 목요일 5시에 안전보건 교육 있습니다. 오늘 지사장님 안 계시니까 결재는 팀장님께 올려 주세요."
-brief: ["다음 주 화요일(10/27)에 안전캠페인이 있습니다.", "이번 주 목요일(10/22) 17:00에 안전보건 교육이 예정되어 있습니다.", "금일(10/19) 지사장님 부재로 결재는 팀장님께 상신 바랍니다."]
+brief: ["다음 주 화요일(10.27) 안전캠페인 있습니다.", "이번 주 목요일(10.22) 17:00 안전보건교육 있습니다.", "금일(10.19) 지사장님 부재로 결재는 팀장님께 상신 바랍니다."]
 (예시의 날짜는 10/19(월) 기준이므로, 실제로는 위 [달력]으로 계산할 것)`}
 const recUrl=()=>String(window.AI_URL||'').trim();
 const recFmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
@@ -2528,14 +2530,14 @@ function recPickMime(){if(!window.MediaRecorder)return '';for(const m of ['audio
 async function recStart(){
   if(!recUrl())return toast('AI 정리 서버 주소가 아직 등록되지 않았어요.','error');
   if(!navigator.mediaDevices||!window.MediaRecorder)return toast('이 브라우저는 녹음을 지원하지 않아요. 녹음 앱으로 녹음한 뒤 파일을 올려 주세요.','error');
-  try{aiRec.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}})}catch(e){return toast('마이크 사용을 허용해 주세요. (설정 → 사이트 권한 → 마이크)','error')}
+  try{aiRec.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:true,channelCount:1,sampleRate:48000}})}catch(e){return toast('마이크 사용을 허용해 주세요. (설정 → 사이트 권한 → 마이크)','error')}
   aiRec.mime=recPickMime();aiRec.chunks=[];aiRec.err='';
-  try{aiRec.mr=new MediaRecorder(aiRec.stream,aiRec.mime?{mimeType:aiRec.mime,audioBitsPerSecond:32000}:{})}catch(e){aiRec.mr=new MediaRecorder(aiRec.stream)}
+  try{aiRec.mr=new MediaRecorder(aiRec.stream,aiRec.mime?{mimeType:aiRec.mime,audioBitsPerSecond:64000}:{})}catch(e){aiRec.mr=new MediaRecorder(aiRec.stream)}
   aiRec.mr.ondataavailable=e=>{if(e.data&&e.data.size)aiRec.chunks.push(e.data)};
   aiRec.mr.onstop=()=>{const type=(aiRec.mr.mimeType||aiRec.mime||'audio/webm').split(';')[0];const blob=new Blob(aiRec.chunks,{type});const cancel=aiRec.st==='cancel';recCleanup();if(cancel){aiRec.st='idle';renderRec();toast('녹음을 취소했어요.');return}recSend(blob)};
   aiRec.mr.start(1000);aiRec.st='aiRec';aiRec.t0=Date.now();
   try{aiRec.lock=await navigator.wakeLock.request('screen')}catch(e){}
-  clearInterval(aiRec.tick);aiRec.tick=setInterval(()=>{const ms=Date.now()-aiRec.t0;const el=$('#recTime');if(el)el.textContent=recFmt(ms);if(ms>=REC_MAX_MS){toast('60분이 되어 녹음을 마쳤어요.');recStop()}},500);
+  clearInterval(aiRec.tick);aiRec.tick=setInterval(()=>{const ms=Date.now()-aiRec.t0;const el=$('#recTime');if(el)el.textContent=recFmt(ms);if(ms>=REC_MAX_MS){toast('30분이 되어 녹음을 마쳤어요.');recStop()}},500);
   renderRec()}
 function recStop(){if(aiRec.mr&&aiRec.mr.state!=='inactive'){aiRec.st='busy';aiRec.mr.stop();renderRec()}}
 function recCancel(){if(aiRec.mr&&aiRec.mr.state!=='inactive'){aiRec.st='cancel';aiRec.mr.stop()}}
@@ -2555,9 +2557,9 @@ async function recSend(blob){
     store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';aiRec.last=null;toast('AI 정리가 끝났어요.','ok')}
   catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(/location is not supported|지역에서 실행/i.test(e.message)?'AI 서버 위치 문제로 정리하지 못했어요. 녹음은 그대로 있으니 잠시 후 [다시 정리]를 눌러 주세요.':(e.message||'정리하지 못했어요.')))}
   renderRec()}
-/* 복사용: 날짜(예: 10월 19일 월요일) + 전달사항 1. 2. 3. 만 */
+/* 복사용: 지사 밴드 양식 — 26. 11. 23(월) / 전달사항 / 1. 2. 3. / 안전검사 하세요~ */
 function recBriefText(it){const d=new Date(it.at);const B=(it.brief&&it.brief.length)?it.brief:(it.points||[]);
-  return [`${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`,'',...B.map((x,i)=>`${i+1}. ${x}`)].join('\n')}
+  return [`${String(d.getFullYear()).slice(2)}. ${d.getMonth()+1}. ${d.getDate()}(${'일월화수목금토'[d.getDay()]})`,'','전달사항','',...B.flatMap((x,i)=>[`${i+1}. ${x}`,'']),'안전검사 하세요~'].join('\n')}
 function recText(it){const d=new Date(it.at),W='일월화수목금토';const L=[`[${d.getMonth()+1}월 ${d.getDate()}일(${W[d.getDay()]}) 브리핑 전달사항]`];
   if((it.brief||[]).length)L.push('',...it.brief.map((x,i)=>`${i+1}. ${x}`));
   L.push('',`■ 요약\n${it.summary}`);
