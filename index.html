@@ -590,6 +590,43 @@ html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gr
 #p-insp.bk-esc .chip.sel,#p-insp.bk-esc .opt.sel{background:#0D9488;border-color:#0D9488;box-shadow:0 0 10px rgba(13,148,136,.35)}
 .bk-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;color:#fff}
 .bk-tag.esc{background:#0D9488}.bk-tag.elv{background:#6D28D9}.bk-tag.std{background:#D97706}.bk-tag.judg{background:#E11D48}
+.ai-fab{position:absolute;right:12px;top:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px 0 6px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.38);color:#fff;font-size:12px;font-weight:800;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.14);transition:transform .15s,background .15s}
+.ai-fab:active{transform:scale(.96)}.ai-fab:hover{background:rgba(255,255,255,.28)}
+.ai-fab-dot{width:26px;height:26px;border-radius:999px;background:#fff;display:grid;place-items:center;font-size:13px;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:aiPulse 2.6s infinite}
+@keyframes aiPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+#ihCover #ihTitle,#ihCover #ihDesc{padding-right:118px}
+.ai-sheet{background:#FAFAFC;color:#1F2937;box-shadow:0 -12px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.dark .ai-sheet{background:#17162B;color:#ECEBFA}
+#aiWrap.on .ai-sheet{transform:none}#aiWrap #aiDim{opacity:0;transition:opacity .28s}#aiWrap.on #aiDim{opacity:1}
+.ai-line{border-color:#ECEAF3}.dark .ai-line{border-color:#2C2A48}
+.ai-sub{color:#6B7280}.dark .ai-sub{color:#A5A3C4}
+.ai-ava{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,#EDE9FE,#E0F2FE)}
+.dark .ai-ava{background:linear-gradient(135deg,#3B3270,#1E3A5F)}
+.ai-ghost{min-height:34px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:700;color:#6D28D9;background:#F3F0FF}.dark .ai-ghost{color:#C4B5FD;background:#2A2550}
+.ai-x{width:36px;height:36px;border-radius:999px;font-size:15px;color:#6B7280;background:#F1F1F5}.dark .ai-x{background:#25233F;color:#BDBBD8}
+.ai-msg{display:flex;gap:8px;align-items:flex-end}.ai-msg.u{justify-content:flex-end}
+.ai-b{max-width:86%;padding:10px 13px;border-radius:18px;font-size:var(--aifs,14.5px);line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap}
+.ai-msg.u .ai-b{background:#7C3AED;color:#fff;border-bottom-right-radius:6px}
+.ai-msg.a .ai-b{background:#fff;border:1px solid #ECEAF3;border-bottom-left-radius:6px;box-shadow:0 1px 2px rgba(17,24,39,.04)}
+.dark .ai-msg.a .ai-b{background:#201E38;border-color:#2C2A48}
+.ai-mini{width:28px;height:28px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:14px;background:#EDE9FE}.dark .ai-mini{background:#2A2550}
+.ai-fix{display:inline-flex;flex-wrap:wrap;gap:4px;margin:0 0 6px;font-size:11.5px;font-weight:700;color:#0F766E;background:#E6FAF6;border-radius:10px;padding:4px 8px;white-space:normal}
+.dark .ai-fix{color:#5EEAD4;background:#0F2E2B}
+.ai-note{margin-top:8px;font-size:12px;color:#92400E;background:#FFF7E6;border-radius:10px;padding:6px 9px;white-space:normal}.dark .ai-note{color:#FCD34D;background:#2E2410}
+.ai-cites{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;white-space:normal}
+.ai-cite{display:inline-flex;align-items:center;gap:5px;min-height:34px;max-width:100%;padding:0 11px;border-radius:999px;font-size:12px;font-weight:700;background:#F5F3FF;color:#5B21B6;border:1px solid #E4DEFC;text-align:left}
+.ai-cite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;font-weight:600;opacity:.85}
+.ai-cite.esc{background:#ECFDF8;color:#0F766E;border-color:#CCF2E8}.ai-cite.std{background:#FFF7ED;color:#B45309;border-color:#FCE3C4}.ai-cite.judg{background:#FFF1F3;color:#BE123C;border-color:#FAD3DA}
+.dark .ai-cite{background:#2A2550;color:#DDD6FE;border-color:#3B3470}.dark .ai-cite.esc{background:#0F2E2B;color:#5EEAD4;border-color:#164E47}.dark .ai-cite.std{background:#2E2410;color:#FCD34D;border-color:#4A3A16}.dark .ai-cite.judg{background:#33151C;color:#FDA4AF;border-color:#5A2230}
+.ai-foot{margin-top:6px;font-size:10.5px;color:#9CA3AF;white-space:normal}
+.ai-dots{display:inline-flex;gap:4px;align-items:center;height:20px}.ai-dots i{width:6px;height:6px;border-radius:99px;background:#A78BFA;animation:aiDot 1.2s infinite}.ai-dots i:nth-child(2){animation-delay:.15s}.ai-dots i:nth-child(3){animation-delay:.3s}
+@keyframes aiDot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.ai-ex{display:block;width:100%;text-align:left;min-height:46px;padding:10px 14px;border-radius:14px;font-size:13.5px;background:#fff;border:1px solid #ECEAF3}.dark .ai-ex{background:#201E38;border-color:#2C2A48}
+.ai-ex:active{transform:scale(.99)}
+.ai-in{resize:none;min-height:46px;max-height:120px;padding:12px 14px;border-radius:22px;font-size:15px;line-height:1.45;background:#fff;border:1px solid #E4E2EE;outline:none}
+.ai-in:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.2)}.dark .ai-in{background:#201E38;border-color:#2C2A48;color:#ECEBFA}
+.ai-send{width:46px;height:46px;flex:none;border-radius:999px;background:#7C3AED;color:#fff;font-size:20px;font-weight:900}.ai-send:disabled{opacity:.4}
+@media (prefers-reduced-motion:reduce){.ai-sheet,#aiWrap #aiDim{transition:none}.ai-fab-dot,.ai-dots i{animation:none}}
 .sb-sheet{background:#fff;color:#1E1B4B;box-shadow:0 -12px 40px rgba(0,0,0,.28);transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .dark .sb-sheet{background:#1E1B3A;color:#F3F0FF}
 #sbSheetWrap.on .sb-sheet{transform:none}
@@ -890,6 +927,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="ihCover" class="rounded-2xl overflow-hidden text-white p-4 relative transition-colors duration-300">
     <div class="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10" aria-hidden="true"></div>
     <div class="absolute right-12 -bottom-14 w-28 h-28 rounded-full bg-white/10" aria-hidden="true"></div>
+    <button id="aiStdBtn" type="button" class="ai-fab" aria-label="기준 AI에게 물어보기"><span class="ai-fab-dot" aria-hidden="true">✨</span><span>AI에게 묻기</span></button>
     <div class="relative">
       <div class="text-[11px] font-bold opacity-85">부산동부지사 · 기준 자료실</div>
       <div id="ihTitle" class="text-xl font-black mt-0.5">안전기준 연혁집</div>
@@ -1206,6 +1244,23 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 </div>
 
 <!-- 연혁집 조항 바텀시트 (토스 방식) -->
+<div id="aiWrap" class="hidden fixed inset-0" style="z-index:113" aria-hidden="true">
+  <div id="aiDim" class="absolute inset-0 bg-black/45"></div>
+  <section id="aiSheet" class="absolute left-0 right-0 bottom-0 max-w-xl mx-auto rounded-t-3xl ai-sheet flex flex-col" role="dialog" aria-modal="true" aria-label="기준 AI" style="height:88vh;height:88dvh">
+    <div class="shrink-0 pt-2.5 pb-1"><div class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 mx-auto"></div></div>
+    <div class="shrink-0 px-4 pb-3 flex items-center gap-3 border-b ai-line">
+      <span class="ai-ava" aria-hidden="true">🤖</span>
+      <div class="flex-1 min-w-0"><b class="block text-[15px]">기준 AI</b><span class="block text-[11px] ai-sub">안전기준 · 표준화 · 판정지침, 3가지 지침에서만 답해요</span></div>
+      <button id="aiNew" type="button" class="ai-ghost" aria-label="대화 새로 시작">새 대화</button>
+      <button id="aiClose" type="button" class="ai-x" aria-label="닫기">✕</button>
+    </div>
+    <div id="aiBody" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 overscroll-contain" aria-live="polite"></div>
+    <form id="aiForm" class="shrink-0 px-3 pt-2 border-t ai-line flex items-end gap-2" style="padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))" autocomplete="off">
+      <textarea id="aiQ" rows="1" maxlength="300" class="ai-in flex-1" placeholder="예) 조속기 점검 기준이 뭐야?" aria-label="질문 입력"></textarea>
+      <button id="aiSend" type="submit" class="ai-send" aria-label="보내기">↑</button>
+    </form>
+  </section>
+</div>
 <div id="sbSheetWrap" class="hidden fixed inset-0 z-[114]" aria-hidden="true">
   <div id="sbSheetDim" class="absolute inset-0 bg-black/45"></div>
   <section id="sbSheet" class="absolute left-0 right-0 bottom-0 max-w-xl mx-auto rounded-t-3xl sb-sheet flex flex-col" role="dialog" aria-modal="true" aria-label="조항 상세" style="max-height:92vh;max-height:92dvh">
@@ -3692,10 +3747,98 @@ function sbRenderSheet(){
 }
 function sbCloseSheet(fromPop){
   if(!sbSheetId)return;const w=$('#sbSheetWrap');w.classList.remove('on');w.setAttribute('aria-hidden','true');
-  setTimeout(()=>{if(!sbSheetId)w.classList.add('hidden')},300);sbSheetId=null;document.body.style.overflow='';
+  setTimeout(()=>{if(!sbSheetId)w.classList.add('hidden')},300);sbSheetId=null;document.body.style.overflow=aiOn?'hidden':'';
   if(!fromPop&&history.state&&history.state.sheet){try{history.back()}catch(e){}}
 }
 $('#sbSheetDim').onclick=()=>sbCloseSheet();
+/* ===== 기준 AI 챗봇: 3가지 지침(안전기준 별표22·24 / 표준화 / 판정지침) 조항 안에서만 답함 =====
+   ① AI가 헷갈린 말을 공식 용어로 풀이 → ② 앱이 4개 자료에서 조항을 직접 찾음 → ③ 찾은 조항만 주고 답하게 함 */
+let aiOn=false,aiBusy=false,aiLog=[],aiCites={};
+const AI_EX=['조속기 점검할 때 기준이 뭐야?','에스컬레이터 스커트 틈새 몇 mm까지 돼?','브레이크 라이닝 마모되면 불합격이야?','피트에 물 고여 있으면 어떻게 판정해?'];
+async function sbEnsure(b){const B=SBS[b];if(B.state==='ready')return;
+  for(let i=0;i<60&&B.state==='loading';i++)await new Promise(r=>setTimeout(r,150));if(B.state==='ready')return;
+  const r=await fetch('data/'+b+'.json?v='+DATAV,{cache:'force-cache'});if(!r.ok)throw new Error('자료를 못 불러왔어요');const j=await r.json();if(B.state!=='ready')sbIngest(b,j.meta,j.clauses)}
+function aiRetrieve(q,kw){
+  const STOP=new Set(['기준','뭐야','뭐','어떻게','몇','되나','돼','하나','해','알려줘','관련','경우','있으면','없으면','이야','인가','무엇','얼마','판정','검사','내용','때','할때']);
+  const raw=[...(kw.terms||[]),...String(q).split(/[\s,?!.]+/)];
+  const groups=[],seen=new Set();
+  raw.forEach(w=>{w=String(w||'').replace(/(은|는|이|가|을|를|에|의|도|에서|으로|로|이야|야|요)$/,'').trim();const n=sbN(w);if(n.length<2||STOP.has(n)||seen.has(n))return;seen.add(n);
+    groups.push({n,id:/^[0-9]+(\.[0-9]+)+$/.test(n),alts:sbExpand(n),w:(kw.terms||[]).some(t=>sbN(t)===n)?1.3:1})});
+  if(!groups.length)return [];
+  const pref=new Set(kw.books&&kw.books.length?kw.books:Object.keys(BOOKS)),all=[];
+  Object.keys(BOOKS).forEach(b=>{const B=SBS[b];if(B.state!=='ready')return;const res=[];
+    B.list.forEach(c=>{if(!c.cur)return;let s=0,hit=0;
+      groups.forEach(g=>{if(g.id){const IDS=c.nos&&c.nos.length?c.nos:(c.ids||[c.id]);if(IDS.some(x=>x===g.n||x.startsWith(g.n+'.'))){s+=IDS.includes(g.n)?400:150;hit++}return}
+        const a=g.alts.find(x=>c._h.includes(x)||c._c.includes(x));if(!a)return;hit++;
+        s+=(c._h.includes(a)?40:0)*g.w+Math.min(sbCnt(c._c,a),4)*7*g.w});
+      if(!hit)return;s*=hit*hit;if(pref.has(b))s*=1.6;res.push({b,c,s})});
+    res.sort((x,y)=>y.s-x.s);all.push(...res.slice(0,6))});
+  all.sort((x,y)=>y.s-x.s);const top=all.slice(0,12);const best=top.length?top[0].s:0;
+  return top.filter(x=>x.s>=best*0.08);
+}
+function aiCiteKey(b,c){return b+':'+c.id}
+function aiPayload(list){aiCites={};return list.map(({b,c})=>{const k=aiCiteKey(b,c);aiCites[k]={b,id:c.id,t:c.t};
+  const lab=BOOKS[b].kind==='연혁집'?`${BOOKS[b].name} 안전기준 ${BOOKS[b].code}`:BOOKS[b].name;
+  const x=(b==='judg'?`[${c.kind||''} · ${c.vl||''}${c.cid?` · 기준 ${c.cid}`:''}] `:'')+(c.cur||'')+(c.ap?` ${c.ap}`:'');
+  return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,900)}})}
+function aiRender(){
+  const bd=$('#aiBody');
+  if(!aiLog.length){bd.innerHTML=`<div class="text-center pt-2 pb-1"><div class="ai-ava mx-auto !w-14 !h-14 !text-[28px] !rounded-2xl">🤖</div>
+    <b class="block mt-3 text-[16px]">무엇이든 편하게 물어보세요</b><p class="text-[12.5px] ai-sub mt-1 leading-relaxed">현장 말·옛날 이름으로 물어도 알아들어요.<br>답은 <b>3가지 지침</b>에 적힌 내용만 알려 드려요.</p></div>
+    <div class="flex flex-wrap justify-center gap-1.5 text-[11px] font-bold my-3"><span class="ai-cite">🛗 엘리베이터 별표22</span><span class="ai-cite esc">🪜 에스컬레이터 별표24</span><span class="ai-cite std">📋 표준화</span><span class="ai-cite judg">⚖️ 판정지침</span></div>
+    <div class="space-y-2">${AI_EX.map(x=>`<button type="button" class="ai-ex" data-aiex="${esc(x)}">💬 ${esc(x)}</button>`).join('')}</div>`;return}
+  bd.innerHTML=aiLog.map(m=>{
+    if(m.r==='u')return `<div class="ai-msg u"><div class="ai-b">${esc(m.t)}</div></div>`;
+    if(m.wait)return `<div class="ai-msg a"><span class="ai-mini">🤖</span><div class="ai-b"><span class="ai-dots"><i></i><i></i><i></i></span> <span class="text-[12px] ai-sub">${esc(m.wait)}</span></div></div>`;
+    const fix=(m.fix||[]).filter(f=>f.from&&f.to&&sbN(f.from)!==sbN(f.to)).slice(0,3);
+    return `<div class="ai-msg a"><span class="ai-mini">🤖</span><div class="ai-b">${fix.length?`<div class="ai-fix">🔁 ${fix.map(f=>`‘${esc(f.from)}’ → ‘${esc(f.to)}’`).join(', ')} 뜻으로 이해했어요</div>\n`:''}${esc(m.t)}${m.note&&!fix.length?`<div class="ai-note">💡 ${esc(m.note)}</div>`:''}${(m.cites||[]).length?`<div class="ai-cites">${m.cites.map(k=>{const c=m.cmap[k];if(!c)return '';return `<button type="button" class="ai-cite ${c.b}" data-aicite="${esc(k)}">${BOOKS[c.b].icon} ${esc(c.id)}<span>${esc(c.t||'')}</span></button>`}).join('')}</div>`:''}${m.terms&&m.terms.length&&!m.found?`<div class="ai-cites"><button type="button" class="ai-cite" data-aisrch="${esc(m.terms.slice(0,2).join(' '))}">🔍 ‘${esc(m.terms.slice(0,2).join(' '))}’ 직접 찾아보기</button></div>`:''}${m.found?`<div class="ai-foot">조항 칩을 누르면 원문이 열려요 · 판정 전 원문을 꼭 확인하세요</div>`:''}</div></div>`}).join('');
+  bd.scrollTop=bd.scrollHeight;
+}
+function aiOpen(){aiOn=true;const w=$('#aiWrap');w.classList.remove('hidden');w.setAttribute('aria-hidden','false');requestAnimationFrame(()=>w.classList.add('on'));
+  document.body.style.overflow='hidden';aiRender();try{history.pushState({aichat:1},'')}catch(e){}
+  Object.keys(BOOKS).forEach(b=>sbEnsure(b).catch(()=>{}));setTimeout(()=>{if(!matchMedia('(pointer:coarse)').matches)$('#aiQ').focus()},300)}
+function aiClose(fromPop){if(!aiOn)return;aiOn=false;const w=$('#aiWrap');w.classList.remove('on');w.setAttribute('aria-hidden','true');setTimeout(()=>{if(!aiOn)w.classList.add('hidden')},300);
+  if(!sbSheetId)document.body.style.overflow='';if(!fromPop&&history.state&&history.state.aichat){try{history.back()}catch(e){}}}
+async function aiCall(body){
+  const u=String(window.AI_URL||'').trim();if(!u)throw new Error('AI 서버 주소가 설정되지 않았어요.');
+  const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인 후 사용할 수 있어요.');
+  const r=await fetchO(u.replace(/\/$/,'')+'/std',{method:'POST',headers:{'Authorization':'Bearer '+await fu.getIdToken(),'Content-Type':'application/json'},body:JSON.stringify(body)},40000);
+  const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||('서버 오류 '+r.status));return j}
+async function aiAsk(q){
+  q=String(q||'').trim().slice(0,300);if(!q||aiBusy)return;aiBusy=true;$('#aiSend').disabled=true;$('#aiQ').value='';aiAuto();
+  const hist=aiLog.filter(m=>!m.wait).slice(-4).map(m=>({r:m.r,t:m.t}));
+  aiLog.push({r:'u',t:q});const W={r:'a',wait:'질문 뜻을 살펴보는 중…'};aiLog.push(W);aiRender();
+  const done=m=>{const i=aiLog.indexOf(W);aiLog.splice(i,1,{r:'a',...m});aiRender()};
+  try{
+    const syn=SYN.map(g=>g.join('=')).slice(0,120);
+    const kw=await aiCall({step:'kw',q,hist,syn});
+    if(!kw.std){done({t:'저는 승강기 기준(안전기준 · 검사방법 표준화 · 판정지침)에 관한 질문만 답할 수 있어요.\n예) “조속기 점검 기준이 뭐야?”처럼 물어봐 주세요.'});return}
+    W.wait='지침에서 조항을 찾는 중…';aiRender();
+    await Promise.all(Object.keys(BOOKS).map(b=>sbEnsure(b).catch(()=>{})));
+    const list=aiRetrieve(q,kw);
+    if(!list.length){done({t:'지침에서 해당 내용을 찾지 못했어요.\n장치 이름이나 검사 항목을 조금 바꿔서 다시 물어봐 주세요.',fix:kw.fix,terms:kw.terms,found:false});return}
+    const clauses=aiPayload(list),cmap={...aiCites};
+    W.wait='찾은 조항으로 답을 정리하는 중…';aiRender();
+    const an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses});
+    const cites=[...new Set((an.cites||[]).filter(k=>cmap[k]))].slice(0,6);
+    done({t:String(an.answer||'').replace(/\*\*/g,'').trim()||'지침에서 해당 내용을 찾지 못했어요.',note:an.found?an.note:'',fix:kw.fix,cites:an.found?cites:[],cmap,terms:kw.terms,found:!!an.found&&cites.length>0});
+  }catch(e){done({t:'⚠️ '+(e.name==='AbortError'?'응답이 늦어요. 잠시 후 다시 물어봐 주세요.':(e.message||e))})}
+  finally{aiBusy=false;$('#aiSend').disabled=false}
+}
+function aiAuto(){const t=$('#aiQ');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
+$('#aiStdBtn').onclick=aiOpen;$('#aiClose').onclick=()=>aiClose();$('#aiDim').onclick=()=>aiClose();
+$('#aiNew').onclick=()=>{if(aiBusy)return;aiLog=[];aiRender()};
+$('#aiForm').onsubmit=e=>{e.preventDefault();aiAsk($('#aiQ').value)};
+$('#aiQ').addEventListener('input',aiAuto);
+$('#aiQ').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();aiAsk($('#aiQ').value)}});
+$('#aiBody').addEventListener('click',e=>{const g=a=>e.target.closest('['+a+']');let b;
+  if(b=g('data-aiex')){aiAsk(b.dataset.aiex);return}
+  if(b=g('data-aisrch')){const q=b.dataset.aisrch;aiClose();ihTab='std';renderInsp();setTimeout(()=>sbSubmit(q),350);return}
+  if(b=g('data-aicite')){const m=aiLog.find(x=>x.cmap&&x.cmap[b.dataset.aicite]),c=m&&m.cmap[b.dataset.aicite];if(!c)return;
+    if(sbBook!==c.b)sbSetBook(c.b);if(ihTab!=='std'){ihTab='std';renderInsp()}setTimeout(()=>sbOpenSheet(c.id),60)}});
+window.addEventListener('popstate',e=>{if(aiOn&&!sbSheetId&&!(e.state&&(e.state.aichat||e.state.sheet)))aiClose(true)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&aiOn&&!sbSheetId)aiClose()},true);
+
 window.addEventListener('popstate',e=>{if(sbSheetId&&!(e.state&&e.state.sheet))sbCloseSheet(true)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sbSheetId&&!sbvPage)sbCloseSheet()});
 /* 손가락으로 내려서 닫기 */

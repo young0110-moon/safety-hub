@@ -6,6 +6,7 @@
           ③ /equip : 장비 사진을 Gemini 로 보고 장비 종류·기기번호·교정일을 읽어 줌 (사진은 저장하지 않음)
           ④ 매월 1일 아침 9시: 교정 만료 알림(담당자·세트 사용자) / 매일 저녁 6시 반: 반납 늦음 알림 (Cron 트리거)
           ⑤ /remind : 관리자가 교정 만료 알림을 지금 바로 보내기
+          ⑥ /std : '기준이 뭐더라?' AI 챗봇 — 3가지 지침 조항 안에서만 답함
    보안:
      · Gemini 키는 이 코드에 없음 → Cloudflare 의 비밀 변수 GEMINI_KEY 에만 저장
      · 푸시용 Firebase 서비스 계정 키도 비밀 변수 FIREBASE_SA 에만 저장
@@ -122,6 +123,32 @@ export default {
       return out({ ok: true, ...r.data });
     }
 
+    // ── 기준 AI 챗봇 (3가지 지침 안에서만 답함) ──
+    if (new URL(req.url).pathname === '/std') {
+      let q = {}; try { q = await req.json(); } catch (e) {}
+      const ask = String(q.q || '').trim().slice(0, 300);
+      if (!ask) return out({ error: '질문이 비어 있어요.' }, 400);
+      const hist = (Array.isArray(q.hist) ? q.hist : []).slice(-4).map(h => (h.r === 'u' ? '직원: ' : 'AI: ') + String(h.t || '').slice(0, 300)).join('\n');
+      if (q.step === 'kw') {
+        const syn = (Array.isArray(q.syn) ? q.syn : []).map(x => String(x).slice(0, 60)).slice(0, 120).join(' / ');
+        const body = {
+          contents: [{ role: 'user', parts: [{ text: STD_KW_PROMPT + '\n\n[앱 용어 사전(같은 뜻 묶음)]\n' + syn + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask }] }],
+          generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: STD_KW_SCHEMA }
+        };
+        const r = await gemini(env, body);
+        if (r.error) return out(r, r.status || 502);
+        return out({ ok: true, ...r.data });
+      }
+      const cl = (Array.isArray(q.clauses) ? q.clauses : []).slice(0, 16).map(c => `[${String(c.k || '').slice(0, 40)}] (${String(c.b || '').slice(0, 40)}) ${String(c.t || '').slice(0, 120)}\n${String(c.x || '').slice(0, 900)}`).join('\n\n');
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
+        generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
+      };
+      const r = await gemini(env, body);
+      if (r.error) return out(r, r.status || 502);
+      return out({ ok: true, ...r.data });
+    }
+
     // ── 장비 사진 인식 ──
     if (new URL(req.url).pathname === '/equip') {
       let q = {}; try { q = await req.json(); } catch (e) {}
@@ -203,6 +230,41 @@ async function gemini(env, body) {
   }
   return { error: last || 'AI 호출 실패', status: 502 };
 }
+
+/* ===================== 기준 AI 챗봇 ===================== */
+const STD_KW_PROMPT = `너는 한국승강기안전공단 검사원이 쓰는 '기준 찾기' 도우미야. 직원 질문을 읽고 지침에서 찾을 검색어를 만들어.
+지침은 3가지야: ① 승강기 안전기준(엘리베이터 별표22 · 에스컬레이터/무빙워크 별표24) ② 엘리베이터 검사방법 표준화 모음 ③ 승강기 설치검사 및 안전검사 결과 판정지침.
+- 직원은 현장 말·옛 이름·영어·줄임말·오타를 섞어 써. (예: 조속기→과속조절기, 홀도어→승강장문, 세이프티→추락방지안전장치, 버퍼→완충기, 핸드레일→손잡이, 비상등→비상조명, 피트→피트, 카운터→균형추, ACOP→상승과속방지장치, UCMP→개문출발방지장치, 인터록→잠금장치, 데마케이션→경계선)
+- 뜻을 짐작해서 지침에 실제 쓰이는 공식 용어로 바꿔. 앞 대화가 있으면 이어지는 질문으로 이해해 (예: "그럼 에스컬레이터는?").
+- std: 승강기 기준·검사·판정에 관한 질문이면 true. 날씨·잡담·개인 상담·다른 분야면 false.
+- mean: 직원이 묻는 뜻을 한 문장으로 바르게 풀어 써 (공식 용어 사용).
+- terms: 지침 검색용 낱말 2~8개 (공식 용어 먼저, 현장 말도 1~2개). 조항 번호가 있으면 그대로 (예: "5.3.5").
+- books: 찾아볼 자료 — elv(엘리베이터 안전기준), esc(에스컬레이터 안전기준), std(표준화), judg(판정지침). 애매하면 여러 개.
+- fix: 직원이 쓴 말을 공식 용어로 바꾼 짝 목록 {from, to}. 바꾼 게 없으면 빈 배열.`;
+const STD_KW_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    std: { type: 'BOOLEAN' }, mean: { type: 'STRING' },
+    terms: { type: 'ARRAY', items: { type: 'STRING' } },
+    books: { type: 'ARRAY', items: { type: 'STRING', enum: ['elv', 'esc', 'std', 'judg'] } },
+    fix: { type: 'ARRAY', items: { type: 'OBJECT', properties: { from: { type: 'STRING' }, to: { type: 'STRING' } }, required: ['from', 'to'] } }
+  },
+  required: ['std', 'mean', 'terms', 'books', 'fix']
+};
+const STD_ANS_PROMPT = `너는 한국승강기안전공단 부산동부지사의 '기준 AI'야. 아래 [찾은 조항]에 적힌 내용만으로 직원 질문에 답해.
+규칙:
+1. [찾은 조항]에 없는 내용은 절대 지어내지 마. 너의 생각·경험·추측·권고를 보태지 마.
+2. 조항에 답이 없으면 found=false 로 하고, answer 에 "지침에서 해당 내용을 찾지 못했어요." 와 함께 어떤 말로 다시 물어보면 좋을지 한 줄만.
+3. 숫자·단위·조건(예: 몇 mm 이상, 몇 초 이내)은 조항 글자 그대로 옮겨.
+4. 판정지침 내용이면 판정(불합격·조건부합격 등)을 분명히 적어.
+5. 쉬운 말로, 짧게: 핵심 1~2문장 + 필요하면 "• " 로 시작하는 줄 3개 이내. 마크다운 굵게(**)·표는 쓰지 마.
+6. 답에 쓴 조항은 cites 에 [ ] 안의 키 그대로 넣어 (예: "elv:5.3.5"). 쓰지 않은 조항은 넣지 마.
+7. 직원이 단어를 잘못 썼으면 note 에 "‘조속기’는 지침에서 ‘과속조절기’라고 해요" 처럼 한 줄. 없으면 "".`;
+const STD_ANS_SCHEMA = {
+  type: 'OBJECT',
+  properties: { found: { type: 'BOOLEAN' }, answer: { type: 'STRING' }, note: { type: 'STRING' }, cites: { type: 'ARRAY', items: { type: 'STRING' } } },
+  required: ['found', 'answer', 'note', 'cites']
+};
 
 /* ===================== 교정성적서 읽기 ===================== */
 const CERT_PROMPT = `너는 한국 교정기관이 발행한 '교정성적서(Calibration Certificate)'를 읽는 사람이야. 파일 속 성적서마다 아래 값을 그대로 옮겨 적어 JSON으로만 답해.
