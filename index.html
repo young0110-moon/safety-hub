@@ -343,6 +343,12 @@ html.mint #p-talk,html.mint #p-talkv{--ta:#0F9D8A;--ta2:#2DD4BF}
 .bd-row em{font-style:normal;font-size:12px;font-weight:800;color:#6D28D9;background:#F5F1FF;padding:6px 10px;border-radius:10px;white-space:nowrap}.dark .bd-row em{background:#2E2A5A;color:#DDD6FE}
 .nt-ev{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .nt-evb{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:99px;background:#EDE9FE;color:#5B21B6}.dark .nt-evb{background:#312E81;color:#DDD6FE}
+.im-grp{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.im-g{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:14px;background:#FAF8FF;border:1px solid #EEE7FB;min-height:58px}.dark .im-g{background:#25215A;border-color:#3B3780}
+.im-g.on{background:#F1EAFF;border-color:#A78BFA}.dark .im-g.on{background:#3B2C7A;border-color:#8B5CF6}
+.im-g b{display:block;font-size:13px;font-weight:900}.im-g small{display:block;font-size:10.5px;opacity:.65;margin-top:1px;line-height:1.3}
+.im-ck{width:22px;height:22px;border-radius:7px;border:2px solid #C4B5FD;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex:none}.im-g.on .im-ck{background:#7C3AED;border-color:#7C3AED}
+.im-g:last-child:nth-child(odd){grid-column:1/-1}
 .man-qr{display:flex;align-items:center;gap:8px;min-height:50px;padding:10px 14px;margin-top:6px;border-radius:14px;background:#1E1B4B;color:#FDE68A;font-size:14px;text-decoration:none}.dark .man-qr{background:#312E81}
 .man-one{margin-top:10px;padding:10px 12px;border-radius:12px;background:#ECFDF5;border:1px solid #6EE7B7;font-size:13px}.dark .man-one{background:#052E16;border-color:#166534}
 .man-sec{margin-top:10px;border-radius:14px;background:#fff;border:1px solid rgba(124,58,237,.18);padding:4px 14px}.dark .man-sec{background:#1E1B4B}
@@ -1803,24 +1809,35 @@ async function eqImportOpen(){
     <div class="eq-ai mt-2">2026.10.28 기준 교정성적서 ${J.equips.reduce((a,x)=>a+x.certs.length,0)}장을 읽어 정리한 내용이에요.<br>
     장비 <b>${J.equips.length}대</b> (세트 ${new Set(J.equips.map(x=>x.set).filter(Boolean)).size}개 + 단독 ${J.equips.filter(x=>!x.set).length}대) · 장비 종류 <b>${J.types.length}가지</b><br>
     교정일 + 교정 주기(종류별 1년·2년, 📄 장비별 자료 탭에서 정함)를 교정 만료일로 넣어요 → 이미 지남 <b class="text-red-500">${over}대</b> · 30일 안 <b class="text-amber-600">${soon}대</b></div>
-    <label class="flex items-start gap-2 mt-3 text-[13px]"><input id="imE" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비 목록 등록</b><br><span class="opacity-75">이미 있는 기기번호(${ex}대)는 교정일·성적서 정보만 새로 고쳐요. 담당자는 나로 들어가요.</span></span></label>
+    <span class="eq-lbl mt-3">어디를 불러올까요? <span class="font-normal opacity-70">(여러 개 골라도 돼요)</span></span>
+    <div id="imGrp" class="im-grp"></div>
+    <button type="button" id="imAll" class="mt-1.5 text-[12.5px] font-black text-purple-700 dark:text-purple-300 min-h-[36px]">☑️ 전체 고르기</button>
+    <label class="flex items-start gap-2 mt-3 text-[13px]"><input id="imE" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비 목록 등록</b><br><span class="opacity-75">이미 있는 기기번호(${ex}대)는 교정일·성적서 정보만 새로 고쳐요.</span></span></label>
     <label class="flex items-start gap-2 mt-2 text-[13px]"><input id="imT" type="checkbox" checked class="w-5 h-5 mt-0.5"> <span><b>장비별 자료 ${J.types.length}가지 등록</b><br><span class="opacity-75">용도·사용 방법·주의·교정 항목. 이미 있는 종류는 비어 있는 칸만 채워요.</span></span></label>
     <span class="eq-lbl mt-3">성적서 파일도 붙이기 (선택)</span>
     <label class="at-pick">🗜️ 교정성적서 zip 파일 고르기<input id="imZip" type="file" accept=".zip,application/zip" class="sr-only"></label>
     <div id="imZipTx" class="text-[12px] opacity-75 mt-1">고르면 장비마다 성적서 PDF가 붙어 '받기'로 볼 수 있어요. (약 40MB, PC에서 하면 더 빨라요)</div>
     <div id="imProg" class="hidden mt-3"><div class="eq-prog"><i style="width:0"></i></div><div id="imProgTx" class="text-[12px] font-bold mt-1"></div></div>
     <button type="button" id="imGo" class="mt-3 w-full min-h-[50px] rounded-xl bg-[#D97706] text-white font-black text-sm">📥 불러오기</button>`);
-  let zip=null;
-  $('#imZip').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;$('#imZipTx').textContent='zip 읽는 중…';try{zip=await eqZip(f);const want=J.equips.flatMap(x=>x.certs.map(c=>c.f)),got=want.filter(k=>zip[k]||zip['@'+k.split('/').pop()]).length;$('#imZipTx').innerHTML=`🗜️ ${esc(f.name)} · 성적서 <b>${got}/${want.length}</b>장 찾음`}catch(e){zip=null;$('#imZipTx').textContent='zip을 읽지 못했어요: '+(e.message||e)}};
+  let zip=null;const sel=new Set(),G=[...new Set(J.equips.map(x=>x.set||'_'))].sort((a,b)=>a==='_'?1:b==='_'?-1:a.localeCompare(b));
+  const zipHas=x=>x.certs.filter(c=>zip&&(zip[c.f]||zip['@'+c.f.split('/').pop()])).length;
+  const grpDraw=()=>{$('#imGrp').innerHTML=G.map(g=>{const L=J.equips.filter(x=>(x.set||'_')===g),reg=L.filter(x=>E.some(e=>eqN(e.no)===eqN(x.no))),fil=L.filter(x=>{const e=E.find(e=>eqN(e.no)===eqN(x.no));return e&&(e.files||[]).length}).length,zc=zip?L.reduce((a,x)=>a+zipHas(x),0):0,on=sel.has(g);
+      return `<button type="button" data-img="${esc(g)}" class="im-g${on?' on':''}"><span class="im-ck">${on?'✓':''}</span><span class="flex-1 min-w-0 text-left"><b>${g==='_'?'🗄️ 그 외 보관 장비':'📦 '+esc(g)}</b><small>장비 ${L.length}대 · 등록 ${reg.length} · 성적서 ${fil}${zip?` · zip ${zc}장`:''}</small></span></button>`}).join('');
+    $('#imAll').textContent=sel.size===G.length?'☐ 모두 해제':'☑️ 전체 고르기';const n=J.equips.filter(x=>sel.has(x.set||'_')).length;$('#imGo').textContent=sel.size?`📥 고른 ${sel.size}곳 · 장비 ${n}대 불러오기`:'📥 위에서 세트를 골라 주세요'};
+  $('#imGrp').onclick=ev=>{const b=ev.target.closest('[data-img]');if(!b)return;const g=b.dataset.img;sel.has(g)?sel.delete(g):sel.add(g);grpDraw()};
+  $('#imAll').onclick=()=>{if(sel.size===G.length)sel.clear();else G.forEach(g=>sel.add(g));grpDraw()};
+  grpDraw();
+  $('#imZip').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;$('#imZipTx').textContent='zip 읽는 중…';try{zip=await eqZip(f);const want=J.equips.flatMap(x=>x.certs.map(c=>c.f)),got=want.filter(k=>zip[k]||zip['@'+k.split('/').pop()]).length;$('#imZipTx').innerHTML=`🗜️ ${esc(f.name)} · 성적서 <b>${got}/${want.length}</b>장 찾음`;grpDraw()}catch(e){zip=null;$('#imZipTx').textContent='zip을 읽지 못했어요: '+(e.message||e)}};
   $('#imGo').onclick=async()=>{const b=$('#imGo');if(b.disabled)return;if(!db)return toast('로그인한 뒤에 할 수 있어요.','error');
-    const doE=$('#imE').checked,doT=$('#imT').checked;if(!doE&&!doT&&!zip)return toast('할 일을 하나 이상 골라 주세요.','error');
+    const doE=$('#imE').checked,doT=$('#imT').checked;if(!sel.size&&!doT)return toast('불러올 세트(또는 그 외 보관 장비)를 골라 주세요.','error');if(!doE&&!doT&&!zip)return toast('할 일을 하나 이상 골라 주세요.','error');
+    const LIST=J.equips.filter(x=>sel.has(x.set||'_'));
     b.disabled=true;$('#imProg').classList.remove('hidden');const bar=$('#imProg i'),tx=$('#imProgTx');let n=0,add=0,upd=0,fil=0,err=0;
-    const total=(doT?J.types.length:0)+(doE||zip?J.equips.length:0),step=t=>{n++;bar.style.width=Math.round(n/total*100)+'%';tx.textContent=t+` (${n}/${total})`};
+    const total=(doT?J.types.length:0)+(doE||zip?LIST.length:0),step=t=>{n++;bar.style.width=Math.round(n/total*100)+'%';tx.textContent=t+` (${n}/${total})`};
     try{
       if(doT)for(const t of J.types){const o=(D.equipTypes||[]).find(x=>eqN(x.name)===eqN(t.name));
         if(!o)await put('equipTypes',{...t,files:[],by:myId,at:Date.now()});else{const fill={};['desc','howto','check','cal'].forEach(k=>{if(!o[k]&&t[k])fill[k]=t[k]});if(Object.keys(fill).length)await patch('equipTypes',o.id,fill)}
         step('장비 자료: '+t.name)}
-      for(const x of (doE||zip?J.equips:[])){
+      for(const x of (doE||zip?LIST:[])){
         let o=(D.equips||[]).find(e=>eqN(e.no)===eqN(x.no));let id=o&&o.id;
         /* 성적서는 종류(소음·진동 등)마다 가장 최근 1부만 */
         const xc=eqLatest({certs:[...((o&&o.certs)||[]),...x.certs]}).certs,keepC=new Set(xc.map(c=>c.c)),newC=x.certs.filter(c=>keepC.has(c.c));
