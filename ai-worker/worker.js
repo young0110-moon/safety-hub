@@ -154,7 +154,8 @@ export default {
           contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + (Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
         };
-        const r = await gemini(env, body);
+        let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } });
+        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body);
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, keys: (r.data.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
       }
@@ -174,9 +175,11 @@ export default {
         contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (q.redo ? '\n\n[다시 쓰기] 앞선 답에 조항 원문에 없는 숫자가 있었어: ' + String(q.redo).slice(0, 200) + ' → 숫자는 반드시 [찾은 조항] 글자 그대로만 써.' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
-      const r = await gemini(env, body);   // 답변: 가벼운 모델(빠름) — 정확한 모델 업그레이드는 응답 지연으로 취소
+      // 답변: 가벼운 모델 + 생각(thinking) 짧게 → 응답 시간 단축. 이 설정을 모델이 거절하면 설정 없이 다시
+      let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } });
+      if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body);
       if (r.error) return out(r, r.status || 502);
-      return out({ ok: true, ...r.data });
+      return out({ ok: true, model: r.model, ...r.data });
     }
 
     // ── 장비 사진 인식 ──
