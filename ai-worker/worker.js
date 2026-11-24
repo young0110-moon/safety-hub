@@ -148,17 +148,24 @@ export default {
       const ask = String(q.q || '').trim().slice(0, 300);
       if (!ask) return out({ error: '질문이 비어 있어요.' }, 400);
       const hist = (Array.isArray(q.hist) ? q.hist : []).slice(-4).map(h => (h.r === 'u' ? '직원: ' : 'AI: ') + String(h.t || '').slice(0, 300)).join('\n');
-      if (q.step === 'pick') {   // ⑤ 넓게 찾기: 조항 제목 목록 전체에서 AI가 관련 조항 고르기
+      if (q.step === 'pick') {   // 한 번에: 뜻 풀이(std·mean·terms·fix) + 조항 목록 전체에서 관련 조항 고르기(keys)
         const idx = String(q.index || '').slice(0, 160000);
+        const syn = Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '';
         const body = {
-          contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + (Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
-          generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
+          contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + syn + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
+          generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: {
+            type: 'OBJECT', properties: {
+              std: { type: 'BOOLEAN' }, mean: { type: 'STRING' },
+              terms: { type: 'ARRAY', items: { type: 'STRING' } },
+              fix: { type: 'ARRAY', items: { type: 'OBJECT', properties: { from: { type: 'STRING' }, to: { type: 'STRING' } }, required: ['from', 'to'] } },
+              keys: { type: 'ARRAY', items: { type: 'STRING' } }
+            }, required: ['std', 'mean', 'terms', 'fix', 'keys'] } }
         };
-        let r = await gemRace(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 9000);
-        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemRace(env, body, 9000);
-        if (r.error) r = await gemini(env, body, 9000);
-        if (r.error) return out(r, r.status || 502);
-        return out({ ok: true, keys: (r.data.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
+        let r = await gemRace(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 10000);
+        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemRace(env, body, 10000);
+        if (r.error) return out({ ok: true, keys: [], std: true, mean: '', terms: [], fix: [], fallback: r.error });   // 실패해도 앱이 직접 찾은 조항으로 계속
+        const d = r.data || {};
+        return out({ ok: true, model: r.model, std: d.std !== false, mean: String(d.mean || '').slice(0, 300), terms: (d.terms || []).map(t => String(t).slice(0, 40)).slice(0, 10), fix: (d.fix || []).slice(0, 5), keys: (d.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
       }
       if (q.step === 'kw') {
         const syn = (Array.isArray(q.syn) ? q.syn : []).map(x => String(x).slice(0, 60)).slice(0, 120).join(' / ');
@@ -180,7 +187,7 @@ export default {
       // 답변: 가벼운 모델 + 생각(thinking) 짧게 → 응답 시간 단축. 이 설정을 모델이 거절하면 설정 없이 다시
       let r = await gemRace(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 12000);
       if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemRace(env, body, 12000);
-      if (r.error) r = await gemini(env, body, 12000);
+      if (r.error) r = await gemTimed(env, body, ['gemini-3-flash-preview'], 12000);
       if (r.error) return out(r, r.status || 502);
       return out({ ok: true, model: r.model, ...r.data });
     }
@@ -366,12 +373,14 @@ const STD_KW_SCHEMA = {
   },
   required: ['std', 'mean', 'terms', 'books', 'fix']
 };
-const STD_PICK_PROMPT = `너는 승강기 검사 기준 목록에서 질문과 관련된 조항을 고르는 사람이야.
-아래 [조항 목록]은 3가지 지침(안전기준 별표22·24, 검사방법 표준화, 판정지침)의 조항 키와 제목이야.
-직원 질문에 답하는 데 필요한 조항을 관련 높은 순서로 최대 12개 골라 keys 에 키를 글자 그대로 넣어.
-- 현장 말·옛 이름·오타도 뜻으로 이해해서 골라 (예: 조속기=과속조절기, 홀도어=승강장문).
-- 기준 내용(안전기준)과 판정(판정지침)·적용 해석(표준화)을 함께 묻는 질문이면 각각에서 골라.
-- 목록에 없는 키는 만들지 마.`;
+const STD_PICK_PROMPT = `너는 승강기 검사원이 쓰는 '기준 찾기' 도우미야. 직원 질문을 이해하고, 아래 [조항 목록]에서 관련 조항을 골라.
+지침은 3가지야: ① 승강기 안전기준(엘리베이터 별표22 · 에스컬레이터/무빙워크 별표24) ② 엘리베이터 검사방법 표준화 ③ 설치·안전검사 결과 판정지침.
+- std: 승강기 기준·검사·판정에 관한 질문이면 true. 날씨·잡담·개인 상담·다른 분야면 false (이때 keys 는 빈 배열).
+- 직원은 현장 말·옛 이름·영어·줄임말·오타·띄어쓰기 없는 말을 섞어 써. [현장 말 사전]과 네 지식으로 뜻을 풀어 (예: 조속기→과속조절기, 홀도어→승강장문, 레벨링→착상, 인터폰→비상통화장치). 앞 대화가 있으면 이어지는 질문으로 이해해.
+- mean: 직원이 묻는 뜻을 공식 용어로 한 문장.
+- terms: 지침 검색용 낱말 2~8개 (공식 용어 먼저).
+- fix: 직원이 쓴 말을 공식 용어로 바꾼 짝 {from,to}. 없으면 빈 배열.
+- keys: 질문에 답하는 데 필요한 조항을 관련 높은 순서로 최대 12개, 목록의 키를 글자 그대로. 기준 내용(안전기준)과 판정(판정지침)·적용 해석(표준화)을 함께 묻는 질문이면 각각에서 골라. 목록에 없는 키는 만들지 마.`;
 const STD_ANS_PROMPT = `너는 한국승강기안전공단 부산동부지사의 '기준 AI'야. 아래 [찾은 조항]에 적힌 내용만으로 직원 질문에 답해.
 규칙:
 1. [찾은 조항]에 없는 내용은 절대 지어내지 마. 너의 생각·경험·추측·권고를 보태지 마.

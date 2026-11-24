@@ -3964,7 +3964,9 @@ async function aiAsk(q){
       if(Object.keys(cmap).length){done({t:hit.a,cites:Object.keys(cmap),cmap,found:true,q,cached:true,fb:'cached'});return}}}
     await Promise.all(Object.keys(BOOKS).map(b=>sbEnsure(b).catch(()=>{})));
     /* ④ 뜻 풀이와 '조항 목록에서 고르기'를 동시에 → 기다리는 단계 하나 줄임 */
-    const [kw,pk]=await Promise.all([aiCall({step:'kw',q,hist,syn},20000),aiCall({step:'pick',q,syn,index:aiIndex(Object.keys(BOOKS))},15000).catch(()=>({keys:[]}))]);
+    /* ④ AI 호출 한 번으로 뜻 풀이 + 조항 고르기 (실패·지연이면 앱이 직접 찾은 조항으로 계속) */
+    const pk=await aiCall({step:'pick',q,hist,syn,index:aiIndex(Object.keys(BOOKS))},16000).catch(()=>({keys:[],std:true,terms:[],fix:[],mean:''}));
+    const kw={std:pk.std!==false,mean:pk.mean||'',terms:pk.terms||[],fix:pk.fix||[],books:[]};
     if(!kw.std){done({t:'저는 승강기 기준(안전기준 · 검사방법 표준화 · 판정지침)에 관한 질문만 답할 수 있어요.\n예) “조속기 점검 기준이 뭐야?”처럼 물어봐 주세요.'});return}
     W.wait='지침에서 찾은 조항을 살펴보는 중…';aiRender();
     const local=aiRetrieve(q,kw),cases=aiSimCases(q),picks=(pk.keys||[]).map(aiByKey).filter(x=>x&&x.c);
