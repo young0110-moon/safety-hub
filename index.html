@@ -3902,9 +3902,9 @@ function aiPayload(list,q,kw){aiCites={};const keys=aiKeys(q,kw);return list.map
   return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,1500)}})}
 const isDocBook=b=>!!(BOOKS[b]&&BOOKS[b].doc);
 /* ② 숫자 검사: 답에 나온 숫자가 근거 조항(현행+연혁) 글에 실제로 있는지 */
-const AI_U=/(\d+(?:[.,]\d+)?)\s*(㎜|mm|㎝|cm|m\/s|㎧|m\/min|㎏|kg|kN|N|J|lx|룩스|MΩ|㏁|Ω|V|A|%|초|분|배|개|명|°|도|m|s)(?![a-zA-Z가-힣])/g;
+const AI_U=/(\d+(?:[.,]\d+)?)\s*(㎜|mm|㎝|cm|m\/s|㎧|m\/min|㎏|kg|kN|N|J|lx|룩스|MΩ|㏁|Ω|V|A|%|초|분|배|개|명|°|m|s)(?![a-zA-Z])/g;
 function aiNums(t){t=String(t||'').replace(/㎜/g,'mm').replace(/㎝/g,'cm').replace(/㎧/g,'m/s').replace(/㎏/g,'kg').replace(/㏁/g,'MΩ').replace(/룩스/g,'lx');const out=[];
-  t.replace(/(\d{4})\s*[.년\-]\s*(\d{1,2})\s*[.월\-]\s*(\d{1,2})\s*일?/g,(m,y,mo,d)=>{out.push(`${y}.${+mo}.${+d}`);return ' '}).replace(AI_U,(m,n,u)=>{out.push(String(+n.replace(',',''))+u);return ' '});return out}
+  t.replace(/(\d{4})\s*[.년\-]\s*(\d{1,2})\s*[.월\-]\s*(\d{1,2})\s*일?/g,(m,y,mo,d)=>{out.push(`${y}.${+mo}.${+d}`);return ' '}).replace(/(\d+(?:\.\d+)?)\s*(?:~|～|∼|〜|-|–|에서)\s*(?=\d+(?:\.\d+)?\s*(㎜|mm|㎝|cm|㎏|kg|kN|N|J|lx|%|초|°|m\/s|m))/g,(m,n,u)=>{out.push(String(+n)+u.replace('㎜','mm').replace('㎝','cm').replace('㎏','kg'));return ' '}).replace(AI_U,(m,n,u)=>{out.push(String(+n.replace(',',''))+u);return ' '});return out}
 function aiCheckNums(ans,keys){const src=new Set();keys.forEach(k=>{const x=aiByKey(k);if(!x||!x.c)return;const c=x.c;
     aiNums([c.cur,c.ap,c.t,...(c.hist||[]).map(h=>(h.x||'')+' '+(h.lab||''))].join(' ')).forEach(n=>src.add(n));[c.from,...(c.hist||[]).flatMap(h=>[h.from,h.to])].filter(Boolean).forEach(d=>src.add(fmtYmd(d)))});
   return [...new Set(aiNums(ans))].filter(n=>!src.has(n))}
@@ -3982,9 +3982,9 @@ async function aiAsk(q){
     let an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints},45000);
     let cites=[...new Set((an.cites||[]).filter(k=>cmap[k]))].slice(0,6);
     /* ② 숫자 검사 → 원문에 없는 숫자가 있으면 한 번 다시 쓰게 함 */
-    let bad=an.found?aiCheckNums(an.answer,cites.length?cites:Object.keys(cmap)):[];
+    let bad=an.found?aiCheckNums(an.answer,Object.keys(cmap)):[];
     if(bad.length&&Date.now()-T0<20000){W.wait='숫자를 원문과 대조해 다시 확인하는 중…';aiRender();
-      try{const an2=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints,redo:bad.join(', ')},45000);const c2=[...new Set((an2.cites||[]).filter(k=>cmap[k]))].slice(0,6);const b2=an2.found?aiCheckNums(an2.answer,c2.length?c2:Object.keys(cmap)):[];
+      try{const an2=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints,redo:bad.join(', ')},45000);const c2=[...new Set((an2.cites||[]).filter(k=>cmap[k]))].slice(0,6);const b2=an2.found?aiCheckNums(an2.answer,Object.keys(cmap)):[];
         if(an2.found&&c2.length&&b2.length<bad.length){an=an2;cites=c2;bad=b2}}catch(e){}}
     const found=!!an.found&&cites.length>0;if(!found)stdLogMiss(q,'none');
     done({t:String(an.answer||'').replace(/\*\*/g,'').trim()||'지침에서 해당 내용을 찾지 못했어요.',note:an.found?an.note:'',fix:kw.fix,cites:an.found?cites:[],cmap,terms:kw.terms,found,q,learned:cases.length>0,badNums:found?bad:[]});
