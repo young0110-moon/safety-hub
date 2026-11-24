@@ -590,11 +590,26 @@ html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gr
 #p-insp.bk-esc .chip.sel,#p-insp.bk-esc .opt.sel{background:#0D9488;border-color:#0D9488;box-shadow:0 0 10px rgba(13,148,136,.35)}
 .bk-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;color:#fff}
 .bk-tag.esc{background:#0D9488}.bk-tag.elv{background:#6D28D9}.bk-tag.std{background:#D97706}.bk-tag.judg{background:#E11D48}
-.ai-fab{position:absolute;right:12px;top:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px 0 6px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.38);color:#fff;font-size:12px;font-weight:800;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.14);transition:transform .15s,background .15s}
-.ai-fab:active{transform:scale(.96)}.ai-fab:hover{background:rgba(255,255,255,.28)}
-.ai-fab-dot{width:26px;height:26px;border-radius:999px;background:#fff;display:grid;place-items:center;font-size:13px;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:aiPulse 2.6s infinite}
 @keyframes aiPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
-#ihCover #ihTitle,#ihCover #ihDesc{padding-right:118px}
+.ai-bar{display:flex;align-items:center;gap:6px;min-height:52px;padding:5px 5px 5px 14px;border-radius:999px;background:#fff;position:relative;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.ai-bar::before{content:"";position:absolute;inset:-2px;border-radius:999px;padding:2px;background:linear-gradient(90deg,#F472B6,#A78BFA,#60A5FA,#34D399,#F472B6);background-size:300% 100%;animation:aiRing 6s linear infinite;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes aiRing{to{background-position:300% 0}}
+.ai-bar-ic{font-size:18px;flex:none}
+.ai-bar input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#1F2937;font-size:15px;font-weight:600;height:42px}
+.ai-bar input::placeholder{color:#8B8AA6;font-weight:500}
+.ai-bar-go{flex:none;width:42px;height:42px;border-radius:999px;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;font-size:16px;display:grid;place-items:center}
+.dark .ai-bar{background:#1E1B3A}.dark .ai-bar input{color:#F3F0FF}
+.ai-bar-chips button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;font-size:11.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32);white-space:nowrap}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+.ai-bot{position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;flex-direction:column;align-items:center;gap:3px}
+.ai-bot-face{width:60px;height:60px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(135deg,#8B5CF6,#3B82F6);box-shadow:0 10px 24px rgba(91,33,182,.38),inset 0 -3px 0 rgba(0,0,0,.12);animation:aiBob 3.2s ease-in-out infinite}
+.ai-bot-lab{font-size:10.5px;font-weight:900;color:#5B21B6;background:#fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.dark .ai-bot-lab{background:#2A2550;color:#DDD6FE}
+.ai-bot-tip{position:absolute;right:68px;top:10px;white-space:nowrap;font-size:12px;font-weight:800;color:#3B0764;background:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.16);transition:opacity .3s,transform .3s}
+.ai-bot-tip.off{opacity:0;transform:translateX(6px);pointer-events:none}
+.dark .ai-bot-tip{background:#2A2550;color:#F3F0FF}
+@keyframes aiBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.ai-bar::before,.ai-bot-face{animation:none}}
 .ai-sheet{background:#FAFAFC;color:#1F2937;box-shadow:0 -12px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .dark .ai-sheet{background:#17162B;color:#ECEBFA}
 #aiWrap.on .ai-sheet{transform:none}#aiWrap #aiDim{opacity:0;transition:opacity .28s}#aiWrap.on #aiDim{opacity:1}
@@ -924,14 +939,22 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- 안전기준 연혁집 (밴드형: 안전기준 · 즐겨찾기) -->
 <section id="p-insp" class="page pt-3 space-y-3" data-title="기준이 뭐더라?">
+  <button id="aiStdBtn" type="button" class="ai-bot" aria-label="기준 AI 챗봇 열기"><span class="ai-bot-tip" id="aiBotTip">궁금한 기준, 저에게 물어보세요!</span><span class="ai-bot-face" aria-hidden="true"><svg viewBox="0 0 32 32" width="30" height="30"><path d="M6 8.5A4.5 4.5 0 0 1 10.5 4h11A4.5 4.5 0 0 1 26 8.5v8a4.5 4.5 0 0 1-4.5 4.5H15l-5.6 4.6c-.7.5-1.4.1-1.4-.7V21A4.5 4.5 0 0 1 6 16.5z" fill="#fff"/><circle cx="12" cy="12.6" r="1.7" fill="#7C3AED"/><circle cx="16" cy="12.6" r="1.7" fill="#7C3AED"/><circle cx="20" cy="12.6" r="1.7" fill="#7C3AED"/></svg></span><span class="ai-bot-lab">AI 상담</span></button>
   <div id="ihCover" class="rounded-2xl overflow-hidden text-white p-4 relative transition-colors duration-300">
     <div class="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10" aria-hidden="true"></div>
     <div class="absolute right-12 -bottom-14 w-28 h-28 rounded-full bg-white/10" aria-hidden="true"></div>
-    <button id="aiStdBtn" type="button" class="ai-fab" aria-label="기준 AI에게 물어보기"><span class="ai-fab-dot" aria-hidden="true">✨</span><span>AI에게 묻기</span></button>
-    <div class="relative">
+        <div class="relative">
       <div class="text-[11px] font-bold opacity-85">부산동부지사 · 기준 자료실</div>
       <div id="ihTitle" class="text-xl font-black mt-0.5">안전기준 연혁집</div>
       <div id="ihDesc" class="text-xs opacity-90 mt-0.5">조항별 연혁을 찾고, 건축허가일에 맞는 기준을 확인해요</div>
+      <form id="aiBar" class="ai-bar mt-3" autocomplete="off" role="search" aria-label="기준 AI에게 질문">
+        <span class="ai-bar-ic" aria-hidden="true">✨</span>
+        <input id="aiBarQ" type="text" maxlength="300" enterkeyhint="send" placeholder="AI에게 기준을 물어보세요" aria-label="AI에게 질문 입력">
+        <button type="submit" class="ai-bar-go" aria-label="AI에게 질문 보내기">➤</button>
+      </form>
+      <div class="ai-bar-chips flex gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+        <button type="button" data-aiq="에스컬레이터 스커트 틈새 몇 mm까지 돼?">스커트 틈새 기준</button><button type="button" data-aiq="브레이크 라이닝 마모되면 불합격이야?">브레이크 마모 판정</button><button type="button" data-aiq="피트에 물 고여 있으면 어떻게 판정해?">피트 침수 판정</button>
+      </div>
       <div id="sbBooks" class="grid grid-cols-4 gap-1 mt-3 p-1 rounded-2xl bg-black/20" role="tablist" aria-label="연혁집 선택"></div>
       <div id="ihStats" class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-bold mt-2 tabular-nums"></div>
     </div>
@@ -967,7 +990,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="ihFav" class="hidden space-y-3"></div>
   <div id="ihFig" class="hidden space-y-3"></div>
 </section>
-<button id="sbTop" type="button" class="hidden fixed right-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(86px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
+<button id="sbTop" type="button" class="hidden fixed left-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(86px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
 
 <!-- FOOD -->
 <section id="p-food" class="page pt-4 space-y-4" data-title="맛집 공유">
@@ -3603,7 +3626,8 @@ function sbSubmit(q,noFix){
   if(q&&sbAutoSave){sbRecent=[q,...sbRecent.filter(x=>x!==q)].slice(0,10);store.set('koelsa_sb_recent',sbRecent)}
   renderStd(true);$('#sbClear').classList.toggle('hidden',!q);
 }
-function renderInsp(){
+let aiTipT=0;function aiTip(){const t=document.getElementById('aiBotTip');if(!t)return;t.classList.remove('off');clearTimeout(aiTipT);aiTipT=setTimeout(()=>t.classList.add('off'),6000)}
+function renderInsp(){aiTip();
   document.querySelectorAll('.ih-tab').forEach(b=>{const on=b.dataset.iht===ihTab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
   $('#ihStd').classList.toggle('hidden',ihTab!=='std');$('#ihFav').classList.toggle('hidden',ihTab!=='fav');$('#ihFig').classList.toggle('hidden',ihTab!=='fig');
   renderBookSwitch();renderIhStats();sbLoad();renderStd();
@@ -3868,7 +3892,10 @@ async function aiAsk(q){
   finally{aiBusy=false;$('#aiSend').disabled=false}
 }
 function aiAuto(){const t=$('#aiQ');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
-$('#aiStdBtn').onclick=aiOpen;$('#aiClose').onclick=()=>aiClose();$('#aiDim').onclick=()=>aiClose();
+$('#aiStdBtn').onclick=()=>{$('#aiBotTip').classList.add('off');aiOpen()};
+$('#aiBar').onsubmit=e=>{e.preventDefault();const q=$('#aiBarQ').value.trim();$('#aiBarQ').value='';$('#aiBarQ').blur();aiOpen();if(q)setTimeout(()=>aiAsk(q),320)};
+document.querySelectorAll('[data-aiq]').forEach(b=>b.onclick=()=>{aiOpen();setTimeout(()=>aiAsk(b.dataset.aiq),320)});
+$('#aiClose').onclick=()=>aiClose();$('#aiDim').onclick=()=>aiClose();
 $('#aiNew').onclick=()=>{if(aiBusy)return;aiLog=[];aiRender()};
 $('#aiForm').onsubmit=e=>{e.preventDefault();aiAsk($('#aiQ').value)};
 $('#aiQ').addEventListener('input',aiAuto);
