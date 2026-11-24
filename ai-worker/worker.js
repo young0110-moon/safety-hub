@@ -169,7 +169,7 @@ export default {
         return out({ ok: true, ...r.data });
       }
       const cases = (Array.isArray(q.cases) ? q.cases : []).slice(0, 4).map(c => `- 질문: ${String(c.q || '').slice(0, 150)} → 정답 조항: ${(Array.isArray(c.k) ? c.k : []).slice(0, 4).map(x => String(x).slice(0, 80)).join(', ')}`).join('\n');
-      const cl = (Array.isArray(q.clauses) ? q.clauses : []).slice(0, 16).map(c => `[${String(c.k || '').slice(0, 40)}] (${String(c.b || '').slice(0, 40)}) ${String(c.t || '').slice(0, 120)}\n${String(c.x || '').slice(0, 900)}`).join('\n\n');
+      const cl = (Array.isArray(q.clauses) ? q.clauses : []).slice(0, 16).map(c => `[${String(c.k || '').slice(0, 40)}] (${String(c.b || '').slice(0, 40)}) ${String(c.t || '').slice(0, 120)}\n${String(c.x || '').slice(0, 1500)}`).join('\n\n');
       const body = {
         contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
@@ -328,6 +328,7 @@ const STD_ANS_PROMPT = `너는 한국승강기안전공단 부산동부지사의
 4. 판정지침 내용이면 판정(불합격·조건부합격 등)을 분명히 적어.
 5. 쉬운 말로, 짧게: 핵심 1~2문장 + 필요하면 "• " 로 시작하는 줄 3개 이내. 마크다운 굵게(**)·표는 쓰지 마.
 6. 답에 쓴 조항은 cites 에 [ ] 안의 키 그대로 넣어 (예: "elv:5.3.5"). 쓰지 않은 조항은 넣지 마.
+8. 조항에 [연혁]이 있으면 그걸로 "언제부터 적용됐는지"(건축허가일 기준)를 답할 수 있어. 예) "2013.9.15 이후 건축허가분부터 유리문에 적용, 2017.1.28 이후 모든 자동 수평 개폐식 문으로 확대". 연혁에 없는 날짜는 지어내지 마.
 7. 직원이 단어를 잘못 썼으면 note 에 "‘조속기’는 지침에서 ‘과속조절기’라고 해요" 처럼 한 줄. 없으면 "".`;
 const STD_ANS_SCHEMA = {
   type: 'OBJECT',
