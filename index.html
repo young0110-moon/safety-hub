@@ -3940,10 +3940,10 @@ function aiOpen(){aiOn=true;const w=$('#aiWrap');w.classList.remove('hidden');w.
   Object.keys(BOOKS).forEach(b=>sbEnsure(b).catch(()=>{}));setTimeout(()=>{if(!matchMedia('(pointer:coarse)').matches)$('#aiQ').focus()},300)}
 function aiClose(fromPop){if(!aiOn)return;aiOn=false;const w=$('#aiWrap');w.classList.remove('on');w.setAttribute('aria-hidden','true');setTimeout(()=>{if(!aiOn)w.classList.add('hidden')},300);
   if(!sbSheetId)document.body.style.overflow='';if(!fromPop&&history.state&&history.state.aichat){try{history.back()}catch(e){}}}
-async function aiCall(body){
+async function aiCall(body,ms){
   const u=String(window.AI_URL||'').trim();if(!u)throw new Error('AI 서버 주소가 설정되지 않았어요.');
   const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인 후 사용할 수 있어요.');
-  const r=await fetchO(u.replace(/\/$/,'')+'/std',{method:'POST',headers:{'Authorization':'Bearer '+await fu.getIdToken(),'Content-Type':'application/json'},body:JSON.stringify(body)},40000);
+  const r=await fetchO(u.replace(/\/$/,'')+'/std',{method:'POST',headers:{'Authorization':'Bearer '+await fu.getIdToken(),'Content-Type':'application/json'},body:JSON.stringify(body)},ms||40000);
   const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||('서버 오류 '+r.status));return j}
 async function aiAsk(q){
   q=String(q||'').trim().slice(0,300);if(!q||aiBusy)return;aiBusy=true;aiView='chat';$('#aiSend').disabled=true;$('#aiQ').value='';aiAuto();
@@ -3951,12 +3951,12 @@ async function aiAsk(q){
   aiLog.push({r:'u',t:q});const W={r:'a',wait:'질문 뜻을 살펴보는 중…'};aiLog.push(W);aiRender();
   const done=m=>{const i=aiLog.indexOf(W);aiLog.splice(i,1,{r:'a',id:'a'+Date.now(),...m});aiRender()};
   try{
-    stdSynSync();const syn=(window.STD_GROUPS||SYN).map(g=>g.join('=')).slice(-160);
+    const T0=Date.now();stdSynSync();const syn=(window.STD_GROUPS||SYN).map(g=>g.join('=')).slice(-160);
     if(!aiNoCache){const hit=aiCacheHit(q);if(hit){const cmap={};hit.k.forEach(k=>{const x=aiByKey(k);if(x&&x.c)cmap[k]={b:x.b,id:x.c.id,t:x.c.t}});
       if(Object.keys(cmap).length){done({t:hit.a,cites:Object.keys(cmap),cmap,found:true,q,cached:true,fb:'cached'});return}}}
     await Promise.all(Object.keys(BOOKS).map(b=>sbEnsure(b).catch(()=>{})));
     /* ④ 뜻 풀이와 '조항 목록에서 고르기'를 동시에 → 기다리는 단계 하나 줄임 */
-    const [kw,pk]=await Promise.all([aiCall({step:'kw',q,hist,syn}),aiCall({step:'pick',q,syn,index:aiIndex(Object.keys(BOOKS))}).catch(()=>({keys:[]}))]);
+    const [kw,pk]=await Promise.all([aiCall({step:'kw',q,hist,syn},20000),aiCall({step:'pick',q,syn,index:aiIndex(Object.keys(BOOKS))},15000).catch(()=>({keys:[]}))]);
     if(!kw.std){done({t:'저는 승강기 기준(안전기준 · 검사방법 표준화 · 판정지침)에 관한 질문만 답할 수 있어요.\n예) “조속기 점검 기준이 뭐야?”처럼 물어봐 주세요.'});return}
     W.wait='지침에서 찾은 조항을 살펴보는 중…';aiRender();
     const local=aiRetrieve(q,kw),cases=aiSimCases(q),picks=(pk.keys||[]).map(aiByKey).filter(x=>x&&x.c);
@@ -3971,12 +3971,12 @@ async function aiAsk(q){
     const clauses=aiPayload(L,q,kw),cmap={...aiCites};
     W.wait='찾은 조항으로 답을 정리하는 중…';aiRender();
     const caseHints=cases.map(c=>({q:c.q,k:c.k.map(k=>{const x=aiByKey(k);return x&&x.c?`${BOOKS[x.b].name} ${x.c.id} ${x.c.t||''}`:k})}));
-    let an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints});
+    let an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints},45000);
     let cites=[...new Set((an.cites||[]).filter(k=>cmap[k]))].slice(0,6);
     /* ② 숫자 검사 → 원문에 없는 숫자가 있으면 한 번 다시 쓰게 함 */
     let bad=an.found?aiCheckNums(an.answer,cites.length?cites:Object.keys(cmap)):[];
-    if(bad.length){W.wait='숫자를 원문과 대조해 다시 확인하는 중…';aiRender();
-      try{const an2=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints,redo:bad.join(', ')});const c2=[...new Set((an2.cites||[]).filter(k=>cmap[k]))].slice(0,6);const b2=an2.found?aiCheckNums(an2.answer,c2.length?c2:Object.keys(cmap)):[];
+    if(bad.length&&Date.now()-T0<20000){W.wait='숫자를 원문과 대조해 다시 확인하는 중…';aiRender();
+      try{const an2=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints,redo:bad.join(', ')},45000);const c2=[...new Set((an2.cites||[]).filter(k=>cmap[k]))].slice(0,6);const b2=an2.found?aiCheckNums(an2.answer,c2.length?c2:Object.keys(cmap)):[];
         if(an2.found&&c2.length&&b2.length<bad.length){an=an2;cites=c2;bad=b2}}catch(e){}}
     const found=!!an.found&&cites.length>0;if(!found)stdLogMiss(q,'none');
     done({t:String(an.answer||'').replace(/\*\*/g,'').trim()||'지침에서 해당 내용을 찾지 못했어요.',note:an.found?an.note:'',fix:kw.fix,cites:an.found?cites:[],cmap,terms:kw.terms,found,q,learned:cases.length>0,badNums:found?bad:[]});

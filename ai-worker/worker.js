@@ -174,7 +174,7 @@ export default {
         contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (q.redo ? '\n\n[다시 쓰기] 앞선 답에 조항 원문에 없는 숫자가 있었어: ' + String(q.redo).slice(0, 200) + ' → 숫자는 반드시 [찾은 조항] 글자 그대로만 써.' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
-      const r = await gemRec(env, body);   // 답변은 더 정확한 flash 모델 우선 (사용량 막히면 가벼운 모델로)
+      const r = await gemTimed(env, body, ['gemini-3-flash-preview', 'gemini-2.5-flash'], 22000);   // 답변: 정확한 flash 우선, 22초 넘으면 가벼운 모델로
       if (r.error) return out(r, r.status || 502);
       return out({ ok: true, ...r.data });
     }
@@ -252,6 +252,26 @@ const TR_PROMPT = `너는 한국어 회의 녹음 받아쓰기 담당자야. 첨
 - 개인 전화번호·주민번호는 "(개인정보 생략)".`;
 const TR_SCHEMA = { type: 'OBJECT', properties: { lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['lines'] };
 
+/* 시간 제한이 있는 Gemini 호출: 앞 모델이 늦으면(시간 초과) 다음 모델로, 끝까지 늦으면 가벼운 모델로 */
+async function gemTimed(env, body, models, deadlineMs) {
+  const end = Date.now() + deadlineMs; let last = '';
+  for (const m of models) {
+    const left = end - Date.now(); if (left < 2500) break;
+    const ac = new AbortController(); const t = setTimeout(() => ac.abort(), left);
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body), signal: ac.signal
+      });
+      clearTimeout(t);
+      if (!r.ok) { last = m + ' HTTP ' + r.status; continue; }
+      const j = await r.json().catch(() => ({}));
+      const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
+      try { return { data: JSON.parse(txt), model: m }; } catch (e) { last = m + ' JSON'; continue; }
+    } catch (e) { clearTimeout(t); last = m + ' 시간 초과'; }
+  }
+  const r = await gemini(env, body);   // 마지막: 가벼운 모델(빠름)
+  return r.error ? { error: r.error + (last ? ' (' + last + ')' : ''), status: r.status } : r;
+}
 /* 녹음 정리용 Gemini 호출: 정확도 좋은 모델부터, 사용량이 막히거나 안 되면 다음 모델 */
 async function gemRec(env, body) {
   let last = '', quota = false;
