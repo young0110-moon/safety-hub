@@ -148,6 +148,16 @@ export default {
       const ask = String(q.q || '').trim().slice(0, 300);
       if (!ask) return out({ error: '질문이 비어 있어요.' }, 400);
       const hist = (Array.isArray(q.hist) ? q.hist : []).slice(-4).map(h => (h.r === 'u' ? '직원: ' : 'AI: ') + String(h.t || '').slice(0, 300)).join('\n');
+      if (q.step === 'pick') {   // ⑤ 넓게 찾기: 조항 제목 목록 전체에서 AI가 관련 조항 고르기
+        const idx = String(q.index || '').slice(0, 160000);
+        const body = {
+          contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
+          generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
+        };
+        const r = await gemini(env, body);
+        if (r.error) return out(r, r.status || 502);
+        return out({ ok: true, keys: (r.data.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
+      }
       if (q.step === 'kw') {
         const syn = (Array.isArray(q.syn) ? q.syn : []).map(x => String(x).slice(0, 60)).slice(0, 120).join(' / ');
         const body = {
@@ -158,9 +168,10 @@ export default {
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, ...r.data });
       }
+      const cases = (Array.isArray(q.cases) ? q.cases : []).slice(0, 4).map(c => `- 질문: ${String(c.q || '').slice(0, 150)} → 정답 조항: ${(Array.isArray(c.k) ? c.k : []).slice(0, 4).map(x => String(x).slice(0, 80)).join(', ')}`).join('\n');
       const cl = (Array.isArray(q.clauses) ? q.clauses : []).slice(0, 16).map(c => `[${String(c.k || '').slice(0, 40)}] (${String(c.b || '').slice(0, 40)}) ${String(c.t || '').slice(0, 120)}\n${String(c.x || '').slice(0, 900)}`).join('\n\n');
       const body = {
-        contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
+        contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
       const r = await gemini(env, body);
@@ -303,6 +314,12 @@ const STD_KW_SCHEMA = {
   },
   required: ['std', 'mean', 'terms', 'books', 'fix']
 };
+const STD_PICK_PROMPT = `너는 승강기 검사 기준 목록에서 질문과 관련된 조항을 고르는 사람이야.
+아래 [조항 목록]은 3가지 지침(안전기준 별표22·24, 검사방법 표준화, 판정지침)의 조항 키와 제목이야.
+직원 질문에 답하는 데 필요한 조항을 관련 높은 순서로 최대 12개 골라 keys 에 키를 글자 그대로 넣어.
+- 현장 말·옛 이름·오타도 뜻으로 이해해서 골라 (예: 조속기=과속조절기, 홀도어=승강장문).
+- 기준 내용(안전기준)과 판정(판정지침)·적용 해석(표준화)을 함께 묻는 질문이면 각각에서 골라.
+- 목록에 없는 키는 만들지 마.`;
 const STD_ANS_PROMPT = `너는 한국승강기안전공단 부산동부지사의 '기준 AI'야. 아래 [찾은 조항]에 적힌 내용만으로 직원 질문에 답해.
 규칙:
 1. [찾은 조항]에 없는 내용은 절대 지어내지 마. 너의 생각·경험·추측·권고를 보태지 마.
