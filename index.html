@@ -601,8 +601,11 @@ html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gr
 .dark .ai-bar{background:#1E1B3A}.dark .ai-bar input{color:#F3F0FF}
 .ai-bar-chips button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;font-size:11.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32);white-space:nowrap}
 .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
-.ai-bot{position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;flex-direction:column;align-items:center;gap:3px}
-.ai-bot-face{width:60px;height:60px;border-radius:999px;display:grid;place-items:center;background:linear-gradient(135deg,#8B5CF6,#3B82F6);box-shadow:0 10px 24px rgba(91,33,182,.38),inset 0 -3px 0 rgba(0,0,0,.12);animation:aiBob 3.2s ease-in-out infinite}
+.ai-bot{position:fixed;right:12px;top:calc(92px + env(safe-area-inset-top,0px));z-index:45;transition:top .25s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.ai-bot-face{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:conic-gradient(from 210deg,#6366F1,#A855F7,#EC4899,#F59E0B,#22D3EE,#6366F1);box-shadow:0 8px 22px rgba(99,102,241,.42),inset 0 0 0 2px rgba(255,255,255,.35);animation:aiGlow 4s ease-in-out infinite}
+.ai-bot.low{top:calc(120px + env(safe-area-inset-top,0px))}
+#ihCover #ihTitle,#ihCover #ihDesc{padding-right:64px}
+@keyframes aiGlow{0%,100%{box-shadow:0 8px 22px rgba(99,102,241,.42),inset 0 0 0 2px rgba(255,255,255,.35)}50%{box-shadow:0 8px 26px rgba(236,72,153,.45),inset 0 0 0 2px rgba(255,255,255,.55)}}
 .ai-bot-lab{font-size:10.5px;font-weight:900;color:#5B21B6;background:#fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .dark .ai-bot-lab{background:#2A2550;color:#DDD6FE}
 .ai-bot-tip{position:absolute;right:68px;top:10px;white-space:nowrap;font-size:12px;font-weight:800;color:#3B0764;background:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.16);transition:opacity .3s,transform .3s}
@@ -939,7 +942,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- 안전기준 연혁집 (밴드형: 안전기준 · 즐겨찾기) -->
 <section id="p-insp" class="page pt-3 space-y-3" data-title="기준이 뭐더라?">
-  <button id="aiStdBtn" type="button" class="ai-bot" aria-label="기준 AI 챗봇 열기"><span class="ai-bot-tip" id="aiBotTip">궁금한 기준, 저에게 물어보세요!</span><span class="ai-bot-face" aria-hidden="true"><svg viewBox="0 0 32 32" width="30" height="30"><path d="M6 8.5A4.5 4.5 0 0 1 10.5 4h11A4.5 4.5 0 0 1 26 8.5v8a4.5 4.5 0 0 1-4.5 4.5H15l-5.6 4.6c-.7.5-1.4.1-1.4-.7V21A4.5 4.5 0 0 1 6 16.5z" fill="#fff"/><circle cx="12" cy="12.6" r="1.7" fill="#7C3AED"/><circle cx="16" cy="12.6" r="1.7" fill="#7C3AED"/><circle cx="20" cy="12.6" r="1.7" fill="#7C3AED"/></svg></span><span class="ai-bot-lab">AI 상담</span></button>
+  <button id="aiStdBtn" type="button" class="ai-bot" aria-label="기준 AI 챗봇 열기"><span class="ai-bot-face" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><defs><linearGradient id="aiSp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#E0E7FF"/></linearGradient></defs><path d="M14 4.5c.6 4.8 2.7 7 7.5 7.6-4.8.6-6.9 2.8-7.5 7.6-.6-4.8-2.7-7-7.5-7.6 4.8-.6 6.9-2.8 7.5-7.6z" fill="url(#aiSp)"/><path d="M23.5 17.5c.3 2.4 1.4 3.5 3.8 3.8-2.4.3-3.5 1.4-3.8 3.8-.3-2.4-1.4-3.5-3.8-3.8 2.4-.3 3.5-1.4 3.8-3.8z" fill="#fff" opacity=".9"/><circle cx="9" cy="24" r="1.6" fill="#fff" opacity=".75"/></svg></span><span class="ai-bot-lab">AI 상담</span></button>
   <div id="ihCover" class="rounded-2xl overflow-hidden text-white p-4 relative transition-colors duration-300">
     <div class="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10" aria-hidden="true"></div>
     <div class="absolute right-12 -bottom-14 w-28 h-28 rounded-full bg-white/10" aria-hidden="true"></div>
@@ -3626,8 +3629,7 @@ function sbSubmit(q,noFix){
   if(q&&sbAutoSave){sbRecent=[q,...sbRecent.filter(x=>x!==q)].slice(0,10);store.set('koelsa_sb_recent',sbRecent)}
   renderStd(true);$('#sbClear').classList.toggle('hidden',!q);
 }
-let aiTipT=0;function aiTip(){const t=document.getElementById('aiBotTip');if(!t)return;t.classList.remove('off');clearTimeout(aiTipT);aiTipT=setTimeout(()=>t.classList.add('off'),6000)}
-function renderInsp(){aiTip();
+function renderInsp(){
   document.querySelectorAll('.ih-tab').forEach(b=>{const on=b.dataset.iht===ihTab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
   $('#ihStd').classList.toggle('hidden',ihTab!=='std');$('#ihFav').classList.toggle('hidden',ihTab!=='fav');$('#ihFig').classList.toggle('hidden',ihTab!=='fig');
   renderBookSwitch();renderIhStats();sbLoad();renderStd();
@@ -3892,7 +3894,7 @@ async function aiAsk(q){
   finally{aiBusy=false;$('#aiSend').disabled=false}
 }
 function aiAuto(){const t=$('#aiQ');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
-$('#aiStdBtn').onclick=()=>{$('#aiBotTip').classList.add('off');aiOpen()};
+$('#aiStdBtn').onclick=aiOpen;
 $('#aiBar').onsubmit=e=>{e.preventDefault();const q=$('#aiBarQ').value.trim();$('#aiBarQ').value='';$('#aiBarQ').blur();aiOpen();if(q)setTimeout(()=>aiAsk(q),320)};
 document.querySelectorAll('[data-aiq]').forEach(b=>b.onclick=()=>{aiOpen();setTimeout(()=>aiAsk(b.dataset.aiq),320)});
 $('#aiClose').onclick=()=>aiClose();$('#aiDim').onclick=()=>aiClose();
@@ -4018,6 +4020,7 @@ document.addEventListener('click',async e=>{
     return}
 });
 window.addEventListener('scroll',()=>{const on=cur==='insp'&&ihTab==='std'&&window.scrollY>600;$('#sbTop').classList.toggle('hidden',!on)},{passive:true});
+window.addEventListener('scroll',()=>{if(cur==='insp')$('#aiStdBtn').classList.toggle('low',window.scrollY>60)},{passive:true});
 $('#sbTop').onclick=()=>{$('#sbSearchWrap').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('#sbQ').focus(),350)};
 
 /* ===== 맛집 공유 (상호명 · 전화번호 · 주소 + 분류·지역·추천) ===== */
