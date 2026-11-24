@@ -602,10 +602,12 @@ html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gr
 .ai-bar-chips button{flex:none;min-height:32px;padding:0 12px;border-radius:999px;font-size:11.5px;font-weight:700;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32);white-space:nowrap}
 .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
 .ai-bot{position:fixed;right:12px;top:calc(92px + env(safe-area-inset-top,0px));z-index:45;transition:top .25s;display:flex;flex-direction:column;align-items:center;gap:3px}
-.ai-bot-face{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:conic-gradient(from 210deg,#6366F1,#A855F7,#EC4899,#F59E0B,#22D3EE,#6366F1);box-shadow:0 8px 22px rgba(99,102,241,.42),inset 0 0 0 2px rgba(255,255,255,.35);animation:aiGlow 4s ease-in-out infinite}
+.ai-bot-face{width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:#fff;border:2.5px solid #A78BFA;overflow:hidden;box-shadow:0 8px 22px rgba(99,102,241,.42),inset 0 0 0 2px rgba(255,255,255,.35);animation:aiGlow 4s ease-in-out infinite}
 .ai-bot.low{top:calc(120px + env(safe-area-inset-top,0px))}
 #ihCover #ihTitle,#ihCover #ihDesc{padding-right:64px}
-@keyframes aiGlow{0%,100%{box-shadow:0 8px 22px rgba(99,102,241,.42),inset 0 0 0 2px rgba(255,255,255,.35)}50%{box-shadow:0 8px 26px rgba(236,72,153,.45),inset 0 0 0 2px rgba(255,255,255,.55)}}
+.ai-bot-face img{width:52px;height:auto;margin-top:4px;animation:aiBob 3.2s ease-in-out infinite}
+.dark .ai-bot-face{background:#EEF6FF}
+@keyframes aiGlow{0%,100%{box-shadow:0 6px 18px rgba(99,102,241,.35)}50%{box-shadow:0 6px 22px rgba(56,189,248,.5)}}
 .ai-bot-lab{font-size:10.5px;font-weight:900;color:#5B21B6;background:#fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .dark .ai-bot-lab{background:#2A2550;color:#DDD6FE}
 .ai-bot-tip{position:absolute;right:68px;top:10px;white-space:nowrap;font-size:12px;font-weight:800;color:#3B0764;background:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.16);transition:opacity .3s,transform .3s}
@@ -618,7 +620,7 @@ html.mint .to-indigo-700,html.mint .to-purple-700,html.mint .to-blue-700{--tw-gr
 #aiWrap.on .ai-sheet{transform:none}#aiWrap #aiDim{opacity:0;transition:opacity .28s}#aiWrap.on #aiDim{opacity:1}
 .ai-line{border-color:#ECEAF3}.dark .ai-line{border-color:#2C2A48}
 .ai-sub{color:#6B7280}.dark .ai-sub{color:#A5A3C4}
-.ai-ava{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,#EDE9FE,#E0F2FE)}
+.ai-ava{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:19px;overflow:hidden;background:linear-gradient(135deg,#EDE9FE,#E0F2FE)}
 .dark .ai-ava{background:linear-gradient(135deg,#3B3270,#1E3A5F)}
 .ai-ghost{min-height:34px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:700;color:#6D28D9;background:#F3F0FF}.dark .ai-ghost{color:#C4B5FD;background:#2A2550}
 .ai-x{width:36px;height:36px;border-radius:999px;font-size:15px;color:#6B7280;background:#F1F1F5}.dark .ai-x{background:#25233F;color:#BDBBD8}
@@ -942,7 +944,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 
 <!-- 안전기준 연혁집 (밴드형: 안전기준 · 즐겨찾기) -->
 <section id="p-insp" class="page pt-3 space-y-3" data-title="기준이 뭐더라?">
-  <button id="aiStdBtn" type="button" class="ai-bot" aria-label="기준 AI 챗봇 열기"><span class="ai-bot-face" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><defs><linearGradient id="aiSp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#E0E7FF"/></linearGradient></defs><path d="M14 4.5c.6 4.8 2.7 7 7.5 7.6-4.8.6-6.9 2.8-7.5 7.6-.6-4.8-2.7-7-7.5-7.6 4.8-.6 6.9-2.8 7.5-7.6z" fill="url(#aiSp)"/><path d="M23.5 17.5c.3 2.4 1.4 3.5 3.8 3.8-2.4.3-3.5 1.4-3.8 3.8-.3-2.4-1.4-3.5-3.8-3.8 2.4-.3 3.5-1.4 3.8-3.8z" fill="#fff" opacity=".9"/><circle cx="9" cy="24" r="1.6" fill="#fff" opacity=".75"/></svg></span><span class="ai-bot-lab">AI 상담</span></button>
+  <button id="aiStdBtn" type="button" class="ai-bot" aria-label="기준 AI 챗봇 열기"><span class="ai-bot-face" aria-hidden="true"><img src="eli.png" alt=""></span><span class="ai-bot-lab">AI 상담</span></button>
   <div id="ihCover" class="rounded-2xl overflow-hidden text-white p-4 relative transition-colors duration-300">
     <div class="absolute -right-10 -top-12 w-40 h-40 rounded-full bg-white/10" aria-hidden="true"></div>
     <div class="absolute right-12 -bottom-14 w-28 h-28 rounded-full bg-white/10" aria-hidden="true"></div>
@@ -1275,7 +1277,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <section id="aiSheet" class="absolute left-0 right-0 bottom-0 max-w-xl mx-auto rounded-t-3xl ai-sheet flex flex-col" role="dialog" aria-modal="true" aria-label="기준 AI" style="height:88vh;height:88dvh">
     <div class="shrink-0 pt-2.5 pb-1"><div class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 mx-auto"></div></div>
     <div class="shrink-0 px-4 pb-3 flex items-center gap-3 border-b ai-line">
-      <span class="ai-ava" aria-hidden="true">🤖</span>
+      <span class="ai-ava" aria-hidden="true"><img src="eli.png" alt="" style="width:34px"></span>
       <div class="flex-1 min-w-0"><b class="block text-[15px]">기준 AI</b><span class="block text-[11px] ai-sub">안전기준 · 표준화 · 판정지침, 3가지 지침에서만 답해요</span></div>
       <button id="aiNew" type="button" class="ai-ghost" aria-label="대화 새로 시작">새 대화</button>
       <button id="aiClose" type="button" class="ai-x" aria-label="닫기">✕</button>
@@ -3851,15 +3853,15 @@ function aiPayload(list){aiCites={};return list.map(({b,c})=>{const k=aiCiteKey(
   return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,900)}})}
 function aiRender(){
   const bd=$('#aiBody');
-  if(!aiLog.length){bd.innerHTML=`<div class="text-center pt-2 pb-1"><div class="ai-ava mx-auto !w-14 !h-14 !text-[28px] !rounded-2xl">🤖</div>
+  if(!aiLog.length){bd.innerHTML=`<div class="text-center pt-2 pb-1"><div class="ai-ava mx-auto !w-16 !h-16 !rounded-2xl"><img src="eli.png" alt="" style="width:52px"></div>
     <b class="block mt-3 text-[16px]">무엇이든 편하게 물어보세요</b><p class="text-[12.5px] ai-sub mt-1 leading-relaxed">현장 말·옛날 이름으로 물어도 알아들어요.<br>답은 <b>3가지 지침</b>에 적힌 내용만 알려 드려요.</p></div>
     <div class="flex flex-wrap justify-center gap-1.5 text-[11px] font-bold my-3"><span class="ai-cite">🛗 엘리베이터 별표22</span><span class="ai-cite esc">🪜 에스컬레이터 별표24</span><span class="ai-cite std">📋 표준화</span><span class="ai-cite judg">⚖️ 판정지침</span></div>
     <div class="space-y-2">${AI_EX.map(x=>`<button type="button" class="ai-ex" data-aiex="${esc(x)}">💬 ${esc(x)}</button>`).join('')}</div>`;return}
   bd.innerHTML=aiLog.map(m=>{
     if(m.r==='u')return `<div class="ai-msg u"><div class="ai-b">${esc(m.t)}</div></div>`;
-    if(m.wait)return `<div class="ai-msg a"><span class="ai-mini">🤖</span><div class="ai-b"><span class="ai-dots"><i></i><i></i><i></i></span> <span class="text-[12px] ai-sub">${esc(m.wait)}</span></div></div>`;
+    if(m.wait)return `<div class="ai-msg a"><span class="ai-mini"><img src="eli.png" alt="" style="width:24px"></span><div class="ai-b"><span class="ai-dots"><i></i><i></i><i></i></span> <span class="text-[12px] ai-sub">${esc(m.wait)}</span></div></div>`;
     const fix=(m.fix||[]).filter(f=>f.from&&f.to&&sbN(f.from)!==sbN(f.to)).slice(0,3);
-    return `<div class="ai-msg a"><span class="ai-mini">🤖</span><div class="ai-b">${fix.length?`<div class="ai-fix">🔁 ${fix.map(f=>`‘${esc(f.from)}’ → ‘${esc(f.to)}’`).join(', ')} 뜻으로 이해했어요</div>\n`:''}${esc(m.t)}${m.note&&!fix.length?`<div class="ai-note">💡 ${esc(m.note)}</div>`:''}${(m.cites||[]).length?`<div class="ai-cites">${m.cites.map(k=>{const c=m.cmap[k];if(!c)return '';return `<button type="button" class="ai-cite ${c.b}" data-aicite="${esc(k)}">${BOOKS[c.b].icon} ${esc(c.id)}<span>${esc(c.t||'')}</span></button>`}).join('')}</div>`:''}${m.terms&&m.terms.length&&!m.found?`<div class="ai-cites"><button type="button" class="ai-cite" data-aisrch="${esc(m.terms.slice(0,2).join(' '))}">🔍 ‘${esc(m.terms.slice(0,2).join(' '))}’ 직접 찾아보기</button></div>`:''}${m.found?`<div class="ai-foot">조항 칩을 누르면 원문이 열려요 · 판정 전 원문을 꼭 확인하세요</div>`:''}</div></div>`}).join('');
+    return `<div class="ai-msg a"><span class="ai-mini"><img src="eli.png" alt="" style="width:24px"></span><div class="ai-b">${fix.length?`<div class="ai-fix">🔁 ${fix.map(f=>`‘${esc(f.from)}’ → ‘${esc(f.to)}’`).join(', ')} 뜻으로 이해했어요</div>\n`:''}${esc(m.t)}${m.note&&!fix.length?`<div class="ai-note">💡 ${esc(m.note)}</div>`:''}${(m.cites||[]).length?`<div class="ai-cites">${m.cites.map(k=>{const c=m.cmap[k];if(!c)return '';return `<button type="button" class="ai-cite ${c.b}" data-aicite="${esc(k)}">${BOOKS[c.b].icon} ${esc(c.id)}<span>${esc(c.t||'')}</span></button>`}).join('')}</div>`:''}${m.terms&&m.terms.length&&!m.found?`<div class="ai-cites"><button type="button" class="ai-cite" data-aisrch="${esc(m.terms.slice(0,2).join(' '))}">🔍 ‘${esc(m.terms.slice(0,2).join(' '))}’ 직접 찾아보기</button></div>`:''}${m.found?`<div class="ai-foot">조항 칩을 누르면 원문이 열려요 · 판정 전 원문을 꼭 확인하세요</div>`:''}</div></div>`}).join('');
   bd.scrollTop=bd.scrollHeight;
 }
 function aiOpen(){aiOn=true;const w=$('#aiWrap');w.classList.remove('hidden');w.setAttribute('aria-hidden','false');requestAnimationFrame(()=>w.classList.add('on'));
