@@ -995,7 +995,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
   <div id="ihFav" class="hidden space-y-3"></div>
   <div id="ihFig" class="hidden space-y-3"></div>
 </section>
-<button id="sbTop" type="button" class="hidden fixed left-4 z-40 min-h-[44px] px-4 rounded-full bg-[#6D28D9] text-white text-xs font-bold shadow-lg" style="bottom:calc(86px + env(safe-area-inset-bottom,0px))">🔍 검색 돌아가기</button>
+
 
 <!-- FOOD -->
 <section id="p-food" class="page pt-4 space-y-4" data-title="맛집 공유">
@@ -4021,9 +4021,7 @@ document.addEventListener('click',async e=>{
     else if(t==='fs-'){sbFs=Math.max(11,sbFs-1);store.set('koelsa_sb_fs',sbFs);renderStd(true);sbRenderSheet()}
     return}
 });
-window.addEventListener('scroll',()=>{const on=cur==='insp'&&ihTab==='std'&&window.scrollY>600;$('#sbTop').classList.toggle('hidden',!on)},{passive:true});
 window.addEventListener('scroll',()=>{if(cur==='insp')$('#aiStdBtn').classList.toggle('low',window.scrollY>60)},{passive:true});
-$('#sbTop').onclick=()=>{$('#sbSearchWrap').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('#sbQ').focus(),350)};
 
 /* ===== 맛집 공유 (상호명 · 전화번호 · 주소 + 분류·지역·추천) ===== */
 const FCATS=['한식','국밥·탕','백반·정식','면·분식','중식','일식','고기','카페','기타'];
