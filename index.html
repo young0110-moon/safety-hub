@@ -3838,12 +3838,19 @@ const AI_EX=['조속기 점검할 때 기준이 뭐야?','에스컬레이터 스
 async function sbEnsure(b){const B=SBS[b];if(B.state==='ready')return;
   for(let i=0;i<60&&B.state==='loading';i++)await new Promise(r=>setTimeout(r,150));if(B.state==='ready')return;
   const r=await fetch('data/'+b+'.json?v='+DATAV,{cache:'force-cache'});if(!r.ok)throw new Error('자료를 못 불러왔어요');const j=await r.json();if(B.state!=='ready')sbIngest(b,j.meta,j.clauses)}
+let aiWordSet=null;
+function aiSplit(n){if(!aiWordSet||aiWordSet._n!==SYNMAP.size){aiWordSet=new Set();SYNMAP.forEach((g,k)=>{if(k.length>=2)aiWordSet.add(k)});Object.keys(BOOKS).forEach(b=>{const V=SBS[b]&&SBS[b].vocab;if(V)V.forEach((o,k)=>{if(k.length>=2&&k.length<=8)aiWordSet.add(k)})});aiWordSet._n=SYNMAP.size}
+  const out=[];let i=0;while(i<n.length){let best='';for(let L=Math.min(8,n.length-i);L>=2;L--){const w=n.slice(i,i+L);if(aiWordSet.has(w)){best=w;break}}if(best){out.push(best);i+=best.length}else i++}
+  const keep=out.filter(p=>!out.some(o=>o!==p&&sbExpand(o).some(x=>x!==p&&x.includes(p))));
+  return keep.length>=2||(keep.length===1&&keep[0]!==n)?keep:[]}
 function aiRetrieve(q,kw){
   const STOP=new Set(['기준','뭐야','뭐','어떻게','몇','되나','돼','하나','해','알려줘','관련','경우','있으면','없으면','이야','인가','무엇','얼마','판정','검사','내용','때','할때']);
   const raw=[...(kw.terms||[]),...String(q).split(/[\s,?!.]+/)];
   const groups=[],seen=new Set();
   raw.forEach(w=>{w=String(w||'').replace(/(은|는|이|가|을|를|에|의|도|에서|으로|로|이야|야|요)$/,'').trim();const n=sbN(w);if(n.length<2||STOP.has(n)||seen.has(n))return;seen.add(n);
-    groups.push({n,id:/^[0-9]+(\.[0-9]+)+$/.test(n),alts:sbExpand(n),w:(kw.terms||[]).some(t=>sbN(t)===n)?1.3:1})});
+    groups.push({n,id:/^[0-9]+(\.[0-9]+)+$/.test(n),alts:sbExpand(n),w:(kw.terms||[]).some(t=>sbN(t)===n)?1.3:1});
+    /* 띄어쓰기 없이 붙여 쓴 말(예: 어린이손끼임, 승강장문틈새) → 아는 낱말로 나눠서도 찾기 */
+    if(n.length>=4&&!SYNMAP.has(n))aiSplit(n).forEach(part=>{if(seen.has(part)||STOP.has(part))return;seen.add(part);groups.push({n:part,id:false,alts:sbExpand(part),w:part.length>=4||sbExpand(part).length>1?1.2:.4})})});
   if(!groups.length)return [];
   const pref=new Set(kw.books&&kw.books.length?kw.books:Object.keys(BOOKS)),all=[];
   Object.keys(BOOKS).forEach(b=>{const B=SBS[b];if(B.state!=='ready')return;const res=[];
