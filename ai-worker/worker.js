@@ -154,8 +154,8 @@ export default {
           contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + (Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
         };
-        let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } });
-        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body);
+        let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 7000);
+        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body, 7000);
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, keys: (r.data.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
       }
@@ -165,7 +165,7 @@ export default {
           contents: [{ role: 'user', parts: [{ text: STD_KW_PROMPT + '\n\n[앱 용어 사전(같은 뜻 묶음)]\n' + syn + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: STD_KW_SCHEMA }
         };
-        const r = await gemini(env, body);
+        const r = await gemini(env, body, 6000);
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, ...r.data });
       }
@@ -176,8 +176,8 @@ export default {
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
       // 답변: 가벼운 모델 + 생각(thinking) 짧게 → 응답 시간 단축. 이 설정을 모델이 거절하면 설정 없이 다시
-      let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } });
-      if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body);
+      let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 10000);
+      if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body, 10000);
       if (r.error) return out(r, r.status || 502);
       return out({ ok: true, model: r.model, ...r.data });
     }
@@ -297,12 +297,18 @@ async function gemRec(env, body) {
 }
 
 /* Gemini 호출 (모델 이름이 바뀌면 다음 모델로) */
-async function gemini(env, body) {
+async function gemini(env, body, tmo) {
   let last = '';
   for (const m of (env.MODEL ? [env.MODEL, ...MODELS] : MODELS)) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
-    });
+    // tmo(ms): 모델이 붐벼서 늦으면 기다리지 않고 다음 모델로 (기준 AI용)
+    const ac = tmo ? new AbortController() : null, tt = tmo ? setTimeout(() => ac.abort(), tmo) : 0;
+    let r;
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined
+      });
+    } catch (e) { clearTimeout(tt); last = `모델 ${m} 응답 지연`; continue; }
+    clearTimeout(tt);
     if (r.status === 404) { last = `모델 ${m} 없음`; continue; }
     const j = await r.json().catch(() => ({}));
     if (r.status === 429) return { error: '오늘 AI 무료 사용량을 다 썼어요.', code: 'quota', status: 429 };
@@ -351,7 +357,7 @@ const STD_ANS_PROMPT = `너는 한국승강기안전공단 부산동부지사의
 4. 판정지침 내용이면 판정(불합격·조건부합격 등)을 분명히 적어.
 5. 쉬운 말로, 짧게: 핵심 1~2문장 + 필요하면 "• " 로 시작하는 줄 3개 이내. 마크다운 굵게(**)·표는 쓰지 마.
 6. 답에 쓴 조항은 cites 에 [ ] 안의 키 그대로 넣어 (예: "elv:5.3.5"). 쓰지 않은 조항은 넣지 마.
-8. 조항에 [연혁]이 있으면 그걸로 "언제부터 적용됐는지"(건축허가일 기준)를 답할 수 있어. 예) "2013.9.15 이후 건축허가분부터 유리문에 적용, 2017.1.28 이후 모든 자동 수평 개폐식 문으로 확대". 연혁에 없는 날짜는 지어내지 마.
+8. 조항에 [연혁]이 있으면 그걸로 "언제부터 적용됐는지"(건축허가일 기준)를 답할 수 있어. 예) "2013.9.15 이후 건축허가분부터 유리문에 적용, 2017.1.28 이후 모든 자동 수평 개폐식 문으로 확대". 연혁에 없는 날짜는 지어내지 마. [연혁]에서 '(질문 내용 없음)'으로 표시된 시기는 그 기준이 없던 때야. 질문 내용이 처음 나오는 시기를 도입 시기로 답해.
 7. 직원이 단어를 잘못 썼으면 note 에 "‘조속기’는 지침에서 ‘과속조절기’라고 해요" 처럼 한 줄. 없으면 "".`;
 const STD_ANS_SCHEMA = {
   type: 'OBJECT',

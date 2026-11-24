@@ -3896,8 +3896,8 @@ function aiPayload(list,q,kw){aiCites={};const keys=aiKeys(q,kw);return list.map
   const lab=BOOKS[b].kind==='연혁집'?`${BOOKS[b].name} 안전기준 ${BOOKS[b].code}`:BOOKS[b].name;
   let x=(b==='judg'?`[${c.kind||''} · ${c.vl||''}${c.cid?` · 기준 ${c.cid}`:''}] `:'')+aiExcerpt(c.cur||'',keys,900)+(c.ap?` ${c.ap}`:'');
   if(!isDocBook(b)&&(c.from||(c.hist||[]).length)){
-    x+=`\n[연혁] 현행 기준: ${c.from?fmtYmd(c.from)+' 이후 건축허가분':'현행'}`;
-    (c.hist||[]).slice(0,6).forEach(h=>{const ex=String(h.x||'');const has=[...keys[0],...keys[1]].some(kk=>sbN(ex).includes(kk));x+=`\n- 종전(${h.lab||((h.from?fmtYmd(h.from):'')+'~'+(h.to?fmtYmd(h.to):''))})${has?': '+aiExcerpt(ex,keys,260).replace(/\s+/g,' '):''}`});
+    x+=`\n[연혁] 현행 기준: ${c.from?fmtYmd(c.from)+' 이후 건축허가분':'현행'}${[...keys[0],...keys[1]].some(kk=>sbN(c.cur||'').includes(kk))?'':' (질문 내용 없음)'}`;
+    (c.hist||[]).slice(0,6).forEach(h=>{const ex=String(h.x||'');const has=[...keys[0],...keys[1]].some(kk=>sbN(ex).includes(kk));x+=`\n- 종전(${h.lab||((h.from?fmtYmd(h.from):'')+'~'+(h.to?fmtYmd(h.to):''))})${has?': '+aiExcerpt(ex,keys,260).replace(/\s+/g,' '):' (질문 내용 없음)'}`});
   }
   return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,1500)}})}
 const isDocBook=b=>!!(BOOKS[b]&&BOOKS[b].doc);
