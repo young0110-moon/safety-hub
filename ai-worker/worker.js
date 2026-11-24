@@ -174,7 +174,7 @@ export default {
         contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (q.redo ? '\n\n[다시 쓰기] 앞선 답에 조항 원문에 없는 숫자가 있었어: ' + String(q.redo).slice(0, 200) + ' → 숫자는 반드시 [찾은 조항] 글자 그대로만 써.' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
-      const r = await gemTimed(env, body, ['gemini-3-flash-preview', 'gemini-2.5-flash'], 22000);   // 답변: 정확한 flash 우선, 22초 넘으면 가벼운 모델로
+      const r = await gemini(env, body);   // 답변: 가벼운 모델(빠름) — 정확한 모델 업그레이드는 응답 지연으로 취소
       if (r.error) return out(r, r.status || 502);
       return out({ ok: true, ...r.data });
     }
