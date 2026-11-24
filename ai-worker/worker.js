@@ -154,8 +154,9 @@ export default {
           contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + (Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
         };
-        let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 7000);
-        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body, 7000);
+        let r = await gemRace(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 9000);
+        if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemRace(env, body, 9000);
+        if (r.error) r = await gemini(env, body, 9000);
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, keys: (r.data.keys || []).map(k => String(k).slice(0, 60)).slice(0, 14) });
       }
@@ -165,7 +166,8 @@ export default {
           contents: [{ role: 'user', parts: [{ text: STD_KW_PROMPT + '\n\n[앱 용어 사전(같은 뜻 묶음)]\n' + syn + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: STD_KW_SCHEMA }
         };
-        const r = await gemini(env, body, 6000);
+        let r = await gemRace(env, body, 7000);
+        if (r.error) r = await gemini(env, body, 7000);
         if (r.error) return out(r, r.status || 502);
         return out({ ok: true, ...r.data });
       }
@@ -176,8 +178,9 @@ export default {
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
       // 답변: 가벼운 모델 + 생각(thinking) 짧게 → 응답 시간 단축. 이 설정을 모델이 거절하면 설정 없이 다시
-      let r = await gemini(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 10000);
-      if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemini(env, body, 10000);
+      let r = await gemRace(env, { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: { thinkingLevel: 'low' } } }, 12000);
+      if (r.error && /thinking|Unknown name|Invalid JSON payload/i.test(r.error)) r = await gemRace(env, body, 12000);
+      if (r.error) r = await gemini(env, body, 12000);
       if (r.error) return out(r, r.status || 502);
       return out({ ok: true, model: r.model, ...r.data });
     }
@@ -255,6 +258,26 @@ const TR_PROMPT = `너는 한국어 회의 녹음 받아쓰기 담당자야. 첨
 - 개인 전화번호·주민번호는 "(개인정보 생략)".`;
 const TR_SCHEMA = { type: 'OBJECT', properties: { lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['lines'] };
 
+/* 기준 AI용: 가벼운 모델 두 개에 동시에 묻고 먼저 온 답을 씀 → 한쪽이 붐벼도 기다리지 않음 (사용량은 2배) */
+async function gemRace(env, body, tmo) {
+  const ms = env.MODEL ? [env.MODEL, MODELS[0]] : MODELS.slice(0, 2);
+  const acs = ms.map(() => new AbortController());
+  const one = (m, i) => new Promise(async (ok, no) => {
+    const t = setTimeout(() => acs[i].abort(), tmo);
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body), signal: acs[i].signal
+      });
+      clearTimeout(t);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return no(new Error((j.error && j.error.message) || ('HTTP ' + r.status)));
+      const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
+      ok({ data: JSON.parse(txt), model: m });
+    } catch (e) { clearTimeout(t); no(e); }
+  });
+  try { const r = await Promise.any(ms.map(one)); acs.forEach(a => { try { a.abort(); } catch (e) {} }); return r; }
+  catch (e) { const msg = String((e.errors && e.errors[0] && e.errors[0].message) || e.message || e); return { error: msg, status: 502 }; }
+}
 /* 시간 제한이 있는 Gemini 호출: 앞 모델이 늦으면(시간 초과) 다음 모델로, 끝까지 늦으면 가벼운 모델로 */
 async function gemTimed(env, body, models, deadlineMs) {
   const end = Date.now() + deadlineMs; let last = '';

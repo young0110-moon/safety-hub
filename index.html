@@ -3881,7 +3881,7 @@ async function stdLogMiss(q,why){try{const L=[...stdMiss().filter(x=>x.q!==q),{q
 function aiKeys(q,kw){const STOP=new Set(['기준','몇년','몇년도','언제','적용','알려줘','뭐야','어떻게','관련','내용','부터','이후','이전']);
   const norm=w=>sbN(String(w||'').replace(/(은|는|이|가|을|를|에|의|도|에서|으로|로|이야|야|요|인지|이에요|예요|뭐야|알려줘)$/,''));
   const exp=L=>{const S=new Set();L.forEach(n=>{if(n.length<2||STOP.has(n))return;sbExpand(n).forEach(a=>{if(a.length>=2&&!STOP.has(a))S.add(a)})});return [...S]};
-  const t1=exp(String(q||'').split(/[\s,?!.]+/).map(norm)),t2=exp(((kw&&kw.terms)||[]).map(norm)).filter(x=>!t1.includes(x));
+  const qw=String(q||'').split(/[\s,?!.]+/).map(norm);qw.slice().forEach(n=>{if(n.length>=4&&!SYNMAP.has(n))aiSplit(n).forEach(p=>qw.push(p))});const t1=exp(qw),t2=exp(((kw&&kw.terms)||[]).map(norm)).filter(x=>!t1.includes(x));
   const t3=[];[...t1,...t2].forEach(n=>{if(n.length>=4)for(let k=0;k+2<=n.length;k++){const g=n.slice(k,k+2);if(!STOP.has(g)&&!t3.includes(g))t3.push(g)}});
   return [t1,t2,t3]}
 function aiExcerpt(t,tiers,max){t=String(t||'');if(t.length<=max)return t;
@@ -3896,8 +3896,8 @@ function aiPayload(list,q,kw){aiCites={};const keys=aiKeys(q,kw);return list.map
   const lab=BOOKS[b].kind==='연혁집'?`${BOOKS[b].name} 안전기준 ${BOOKS[b].code}`:BOOKS[b].name;
   let x=(b==='judg'?`[${c.kind||''} · ${c.vl||''}${c.cid?` · 기준 ${c.cid}`:''}] `:'')+aiExcerpt(c.cur||'',keys,900)+(c.ap?` ${c.ap}`:'');
   if(!isDocBook(b)&&(c.from||(c.hist||[]).length)){
-    x+=`\n[연혁] 현행 기준: ${c.from?fmtYmd(c.from)+' 이후 건축허가분':'현행'}${[...keys[0],...keys[1]].some(kk=>sbN(c.cur||'').includes(kk))?'':' (질문 내용 없음)'}`;
-    (c.hist||[]).slice(0,6).forEach(h=>{const ex=String(h.x||'');const has=[...keys[0],...keys[1]].some(kk=>sbN(ex).includes(kk));x+=`\n- 종전(${h.lab||((h.from?fmtYmd(h.from):'')+'~'+(h.to?fmtYmd(h.to):''))})${has?': '+aiExcerpt(ex,keys,260).replace(/\s+/g,' '):' (질문 내용 없음)'}`});
+    x+=`\n[연혁] 현행 기준: ${c.from?fmtYmd(c.from)+' 이후 건축허가분':'현행'}${(keys[0].length?keys[0]:keys[1]).some(kk=>sbN(c.cur||'').includes(kk))?'':' (질문 내용 없음)'}`;
+    (c.hist||[]).slice(0,6).forEach(h=>{const ex=String(h.x||'');const has=(keys[0].length?keys[0]:keys[1]).some(kk=>sbN(ex).includes(kk));x+=`\n- 종전(${h.lab||((h.from?fmtYmd(h.from):'')+'~'+(h.to?fmtYmd(h.to):''))})${has?': '+aiExcerpt(ex,keys,260).replace(/\s+/g,' '):' (질문 내용 없음)'}`});
   }
   return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,1500)}})}
 const isDocBook=b=>!!(BOOKS[b]&&BOOKS[b].doc);
