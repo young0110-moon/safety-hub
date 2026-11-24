@@ -151,7 +151,7 @@ export default {
       if (q.step === 'pick') {   // ⑤ 넓게 찾기: 조항 제목 목록 전체에서 AI가 관련 조항 고르기
         const idx = String(q.index || '').slice(0, 160000);
         const body = {
-          contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
+          contents: [{ role: 'user', parts: [{ text: STD_PICK_PROMPT + (Array.isArray(q.syn) && q.syn.length ? '\n\n[현장 말 사전(같은 뜻 묶음)]\n' + q.syn.map(x => String(x).slice(0, 80)).slice(0, 200).join(' / ') : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (Array.isArray(q.terms) && q.terms.length ? '\n(검색어: ' + q.terms.slice(0, 10).map(t => String(t).slice(0, 30)).join(', ') + ')' : '') + '\n\n[조항 목록 — 키|제목]\n' + idx }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: { type: 'OBJECT', properties: { keys: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['keys'] } }
         };
         const r = await gemini(env, body);
@@ -171,7 +171,7 @@ export default {
       const cases = (Array.isArray(q.cases) ? q.cases : []).slice(0, 4).map(c => `- 질문: ${String(c.q || '').slice(0, 150)} → 정답 조항: ${(Array.isArray(c.k) ? c.k : []).slice(0, 4).map(x => String(x).slice(0, 80)).join(', ')}`).join('\n');
       const cl = (Array.isArray(q.clauses) ? q.clauses : []).slice(0, 16).map(c => `[${String(c.k || '').slice(0, 40)}] (${String(c.b || '').slice(0, 40)}) ${String(c.t || '').slice(0, 120)}\n${String(c.x || '').slice(0, 1500)}`).join('\n\n');
       const body = {
-        contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
+        contents: [{ role: 'user', parts: [{ text: STD_ANS_PROMPT + (hist ? '\n\n[앞 대화]\n' + hist : '') + '\n\n[직원 질문]\n' + ask + (q.mean ? '\n(질문 뜻 풀이: ' + String(q.mean).slice(0, 200) + ')' : '') + (q.redo ? '\n\n[다시 쓰기] 앞선 답에 조항 원문에 없는 숫자가 있었어: ' + String(q.redo).slice(0, 200) + ' → 숫자는 반드시 [찾은 조항] 글자 그대로만 써.' : '') + (cases ? '\n\n[지사 직원이 확인한 비슷한 질문의 정답 조항 — 어떤 조항을 봐야 하는지 참고만 하고, 답은 [찾은 조항] 글로만]\n' + cases : '') + '\n\n[찾은 조항]\n' + (cl || '(없음)') }] }],
         generationConfig: { temperature: 0.1, responseMimeType: 'application/json', responseSchema: STD_ANS_SCHEMA }
       };
       const r = await gemini(env, body);

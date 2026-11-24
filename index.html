@@ -3825,8 +3825,8 @@ function sbCloseSheet(fromPop){
 $('#sbSheetDim').onclick=()=>sbCloseSheet();
 /* ===== 기준 AI 챗봇: 3가지 지침(안전기준 별표22·24 / 표준화 / 판정지침) 조항 안에서만 답함 =====
    ① AI가 헷갈린 말을 공식 용어로 풀이 → ② 앱이 4개 자료에서 조항을 직접 찾음 → ③ 찾은 조항만 주고 답하게 함 */
-let aiOn=false,aiBusy=false,aiLog=[],aiCites={};let aiView='chat',aiDictPre={};
-function aiFbHTML(m){if(!m.q||!m.id)return '';
+let aiOn=false,aiBusy=false,aiLog=[],aiCites={};let aiView='chat',aiDictPre={},aiNoCache=false;
+function aiFbHTML(m){if(!m.q||!m.id||m.cached)return '';
   if(m.fb==='up')return `<div class="ai-fb done">👍 고마워요! 이 답을 정답 사례로 기억할게요.</div>`;
   if(m.fb==='fixed')return `<div class="ai-fb done">✅ 알려 주신 조항을 정답으로 기억했어요. 다음엔 먼저 찾아볼게요.</div>`;
   if(m.fb==='down'){const R=m.fr||[];return `<div class="ai-fix-box"><div class="text-[12px] font-black mb-1.5">맞는 조항을 알려 주세요</div>
@@ -3893,6 +3893,26 @@ function aiPayload(list,q,kw){aiCites={};const keys=aiKeys(q,kw);return list.map
   }
   return {k,b:lab,t:c.t,x:x.replace(/\s+\n/g,'\n').slice(0,1500)}})}
 const isDocBook=b=>!!(BOOKS[b]&&BOOKS[b].doc);
+/* ② 숫자 검사: 답에 나온 숫자가 근거 조항(현행+연혁) 글에 실제로 있는지 */
+const AI_U=/(\d+(?:[.,]\d+)?)\s*(㎜|mm|㎝|cm|m\/s|㎧|m\/min|㎏|kg|kN|N|J|lx|룩스|MΩ|㏁|Ω|V|A|%|초|분|배|개|명|°|도|m|s)(?![a-zA-Z가-힣])/g;
+function aiNums(t){t=String(t||'').replace(/㎜/g,'mm').replace(/㎝/g,'cm').replace(/㎧/g,'m/s').replace(/㎏/g,'kg').replace(/㏁/g,'MΩ').replace(/룩스/g,'lx');const out=[];
+  t.replace(/(\d{4})\s*[.년\-]\s*(\d{1,2})\s*[.월\-]\s*(\d{1,2})\s*일?/g,(m,y,mo,d)=>{out.push(`${y}.${+mo}.${+d}`);return ' '}).replace(AI_U,(m,n,u)=>{out.push(String(+n.replace(',',''))+u);return ' '});return out}
+function aiCheckNums(ans,keys){const src=new Set();keys.forEach(k=>{const x=aiByKey(k);if(!x||!x.c)return;const c=x.c;
+    aiNums([c.cur,c.ap,c.t,...(c.hist||[]).map(h=>(h.x||'')+' '+(h.lab||''))].join(' ')).forEach(n=>src.add(n));[c.from,...(c.hist||[]).flatMap(h=>[h.from,h.to])].filter(Boolean).forEach(d=>src.add(fmtYmd(d)))});
+  return [...new Set(aiNums(ans))].filter(n=>!src.has(n))}
+/* ③ 관련 판정·표준화 조항 자동 연결: 안전기준 조항 번호 → 판정지침(별표22/24)·표준화 항목 */
+let aiLinkIdx=null;
+function aiLinks(b,id){if(!aiLinkIdx){aiLinkIdx={elv:new Map(),esc:new Map()};
+    const J=SBS.judg,S=SBS.std;
+    (J&&J.list||[]).forEach(c=>{const book=c.code==='별표24'||/에스컬레이터|무빙/.test(c.kind||'')?'esc':(c.code==='별표22'||/^엘리베이터$/.test(c.kind||'')?'elv':null);if(!book)return;(c.nos&&c.nos.length?c.nos:[c.cid]).filter(Boolean).forEach(n=>{const m=aiLinkIdx[book];(m.get(n)||m.set(n,[]).get(n)).push({b:'judg',c})})});
+    (S&&S.list||[]).forEach(c=>(c.ids||[c.id]).forEach(n=>{n=String(n).split('#')[0];const m=aiLinkIdx.elv;(m.get(n)||m.set(n,[]).get(n)).push({b:'std',c})}))}
+  const m=aiLinkIdx[b];if(!m)return [];const out=[];let p=String(id);
+  while(p){(m.get(p)||[]).forEach(x=>out.push(x));if(out.length)break;const i=p.lastIndexOf('.');if(i<0)break;p=p.slice(0,i)}
+  return out}
+/* ⑤ 확인된 답 바로 보여 주기: 👍 받은 답과 거의 같은 질문 */
+function aiCacheHit(q){const A=aiBig(q);if(A.size<3)return null;let best=null;
+  stdCases().filter(c=>c.a&&c.ok).forEach(c=>{const B=aiBig(c.q);let x=0;A.forEach(t=>{if(B.has(t))x++});const s=x/Math.max(A.size,B.size);if(s>=.85&&(!best||s>best.s))best={c,s}});
+  return best&&best.c}
 function aiRender(){
   const bd=$('#aiBody');
   if(aiView==='dict'){const L=stdSynList(),M=stdMiss(),C=stdCases();
@@ -3912,7 +3932,7 @@ function aiRender(){
     if(m.r==='u')return `<div class="ai-msg u"><div class="ai-b">${esc(m.t)}</div></div>`;
     if(m.wait)return `<div class="ai-msg a"><span class="ai-mini"><img src="eli.png" alt="" style="width:24px"></span><div class="ai-b"><span class="ai-dots"><i></i><i></i><i></i></span> <span class="text-[12px] ai-sub">${esc(m.wait)}</span></div></div>`;
     const fix=(m.fix||[]).filter(f=>f.from&&f.to&&sbN(f.from)!==sbN(f.to)).slice(0,3);
-    return `<div class="ai-msg a"><span class="ai-mini"><img src="eli.png" alt="" style="width:24px"></span><div class="ai-b">${fix.length?`<div class="ai-fix">🔁 ${fix.map(f=>`‘${esc(f.from)}’ → ‘${esc(f.to)}’`).join(', ')} 뜻으로 이해했어요</div>\n`:''}${esc(m.t)}${m.note&&!fix.length?`<div class="ai-note">💡 ${esc(m.note)}</div>`:''}${(m.cites||[]).length?`<div class="ai-cites">${m.cites.map(k=>{const c=m.cmap[k];if(!c)return '';return `<button type="button" class="ai-cite ${c.b}" data-aicite="${esc(k)}">${BOOKS[c.b].icon} ${esc(c.id)}<span>${esc(c.t||'')}</span></button>`}).join('')}</div>`:''}${m.terms&&m.terms.length&&!m.found?`<div class="ai-cites"><button type="button" class="ai-cite" data-aisrch="${esc(m.terms.slice(0,2).join(' '))}">🔍 ‘${esc(m.terms.slice(0,2).join(' '))}’ 직접 찾아보기</button></div>`:''}${m.found?`<div class="ai-foot">조항 칩을 누르면 원문이 열려요 · 판정 전 원문을 꼭 확인하세요</div>`:''}${m.learned?`<div class="ai-foot">📚 지사 직원이 확인한 정답 사례를 참고했어요</div>`:''}${aiFbHTML(m)}</div></div>`}).join('');
+    return `<div class="ai-msg a"><span class="ai-mini"><img src="eli.png" alt="" style="width:24px"></span><div class="ai-b">${fix.length?`<div class="ai-fix">🔁 ${fix.map(f=>`‘${esc(f.from)}’ → ‘${esc(f.to)}’`).join(', ')} 뜻으로 이해했어요</div>\n`:''}${esc(m.t)}${m.note&&!fix.length?`<div class="ai-note">💡 ${esc(m.note)}</div>`:''}${(m.cites||[]).length?`<div class="ai-cites">${m.cites.map(k=>{const c=m.cmap[k];if(!c)return '';return `<button type="button" class="ai-cite ${c.b}" data-aicite="${esc(k)}">${BOOKS[c.b].icon} ${esc(c.id)}<span>${esc(c.t||'')}</span></button>`}).join('')}</div>`:''}${m.terms&&m.terms.length&&!m.found?`<div class="ai-cites"><button type="button" class="ai-cite" data-aisrch="${esc(m.terms.slice(0,2).join(' '))}">🔍 ‘${esc(m.terms.slice(0,2).join(' '))}’ 직접 찾아보기</button></div>`:''}${m.found?`<div class="ai-foot">조항 칩을 누르면 원문이 열려요 · 판정 전 원문을 꼭 확인하세요</div>`:''}${m.learned?`<div class="ai-foot">📚 지사 직원이 확인한 정답 사례를 참고했어요</div>`:''}${(m.badNums||[]).length?`<div class="ai-note">⚠️ 원문에서 확인되지 않은 숫자: ${esc(m.badNums.join(', '))} — 조항 원문을 꼭 확인하세요</div>`:''}${m.cached?`<div class="ai-fb done">📚 지사에서 👍 확인된 답이에요 <button type="button" data-airedo="${esc(m.q)}" style="margin-left:auto">🔄 AI로 다시 찾기</button></div>`:''}${aiFbHTML(m)}</div></div>`}).join('');
   bd.scrollTop=bd.scrollHeight;
 }
 function aiOpen(){aiOn=true;const w=$('#aiWrap');w.classList.remove('hidden');w.setAttribute('aria-hidden','false');requestAnimationFrame(()=>w.classList.add('on'));
@@ -3932,24 +3952,34 @@ async function aiAsk(q){
   const done=m=>{const i=aiLog.indexOf(W);aiLog.splice(i,1,{r:'a',id:'a'+Date.now(),...m});aiRender()};
   try{
     stdSynSync();const syn=(window.STD_GROUPS||SYN).map(g=>g.join('=')).slice(-160);
-    const kw=await aiCall({step:'kw',q,hist,syn});
-    if(!kw.std){done({t:'저는 승강기 기준(안전기준 · 검사방법 표준화 · 판정지침)에 관한 질문만 답할 수 있어요.\n예) “조속기 점검 기준이 뭐야?”처럼 물어봐 주세요.'});return}
-    W.wait='지침 전체에서 조항을 찾는 중…';aiRender();
+    if(!aiNoCache){const hit=aiCacheHit(q);if(hit){const cmap={};hit.k.forEach(k=>{const x=aiByKey(k);if(x&&x.c)cmap[k]={b:x.b,id:x.c.id,t:x.c.t}});
+      if(Object.keys(cmap).length){done({t:hit.a,cites:Object.keys(cmap),cmap,found:true,q,cached:true,fb:'cached'});return}}}
     await Promise.all(Object.keys(BOOKS).map(b=>sbEnsure(b).catch(()=>{})));
-    const local=aiRetrieve(q,kw),cases=aiSimCases(q);
-    const books=kw.books&&kw.books.length?[...new Set(kw.books)].filter(b=>BOOKS[b]):Object.keys(BOOKS);
-    let picks=[];try{const pk=await aiCall({step:'pick',q,mean:kw.mean,terms:kw.terms,index:aiIndex(books)});picks=(pk.keys||[]).map(aiByKey).filter(x=>x&&x.c)}catch(e){}
+    /* ④ 뜻 풀이와 '조항 목록에서 고르기'를 동시에 → 기다리는 단계 하나 줄임 */
+    const [kw,pk]=await Promise.all([aiCall({step:'kw',q,hist,syn}),aiCall({step:'pick',q,syn,index:aiIndex(Object.keys(BOOKS))}).catch(()=>({keys:[]}))]);
+    if(!kw.std){done({t:'저는 승강기 기준(안전기준 · 검사방법 표준화 · 판정지침)에 관한 질문만 답할 수 있어요.\n예) “조속기 점검 기준이 뭐야?”처럼 물어봐 주세요.'});return}
+    W.wait='지침에서 찾은 조항을 살펴보는 중…';aiRender();
+    const local=aiRetrieve(q,kw),cases=aiSimCases(q),picks=(pk.keys||[]).map(aiByKey).filter(x=>x&&x.c);
     const seen=new Set(),list=[];
     const add=x=>{if(!x||!x.c)return;const k=x.b+':'+x.c.id;if(seen.has(k))return;seen.add(k);list.push({b:x.b,c:x.c})};
-    cases.forEach(c=>c.k.forEach(k=>add(aiByKey(k))));picks.forEach(add);local.slice(0,8).forEach(add);local.slice(8).forEach(add);
+    cases.forEach(c=>c.k.forEach(k=>add(aiByKey(k))));picks.slice(0,10).forEach(add);local.slice(0,6).forEach(add);
+    /* ③ 고른 안전기준 조항에 딸린 판정·표준화 항목 함께 */
+    list.filter(x=>x.b==='elv'||x.b==='esc').slice(0,5).forEach(x=>aiLinks(x.b,x.c.id).slice(0,2).forEach(add));
+    local.slice(6).forEach(add);
     const L=list.slice(0,16);
     if(!L.length){stdLogMiss(q,'none');done({t:'지침에서 해당 내용을 찾지 못했어요.\n장치 이름이나 검사 항목을 조금 바꿔서 다시 물어봐 주세요.',fix:kw.fix,terms:kw.terms,found:false,q});return}
     const clauses=aiPayload(L,q,kw),cmap={...aiCites};
     W.wait='찾은 조항으로 답을 정리하는 중…';aiRender();
-    const an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:cases.map(c=>({q:c.q,k:c.k.map(k=>{const x=aiByKey(k);return x&&x.c?`${BOOKS[x.b].name} ${x.c.id} ${x.c.t||''}`:k})}))});
-    const cites=[...new Set((an.cites||[]).filter(k=>cmap[k]))].slice(0,6);
+    const caseHints=cases.map(c=>({q:c.q,k:c.k.map(k=>{const x=aiByKey(k);return x&&x.c?`${BOOKS[x.b].name} ${x.c.id} ${x.c.t||''}`:k})}));
+    let an=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints});
+    let cites=[...new Set((an.cites||[]).filter(k=>cmap[k]))].slice(0,6);
+    /* ② 숫자 검사 → 원문에 없는 숫자가 있으면 한 번 다시 쓰게 함 */
+    let bad=an.found?aiCheckNums(an.answer,cites.length?cites:Object.keys(cmap)):[];
+    if(bad.length){W.wait='숫자를 원문과 대조해 다시 확인하는 중…';aiRender();
+      try{const an2=await aiCall({step:'ans',q,hist,mean:kw.mean,clauses,cases:caseHints,redo:bad.join(', ')});const c2=[...new Set((an2.cites||[]).filter(k=>cmap[k]))].slice(0,6);const b2=an2.found?aiCheckNums(an2.answer,c2.length?c2:Object.keys(cmap)):[];
+        if(an2.found&&c2.length&&b2.length<bad.length){an=an2;cites=c2;bad=b2}}catch(e){}}
     const found=!!an.found&&cites.length>0;if(!found)stdLogMiss(q,'none');
-    done({t:String(an.answer||'').replace(/\*\*/g,'').trim()||'지침에서 해당 내용을 찾지 못했어요.',note:an.found?an.note:'',fix:kw.fix,cites:an.found?cites:[],cmap,terms:kw.terms,found,q,learned:cases.length>0});
+    done({t:String(an.answer||'').replace(/\*\*/g,'').trim()||'지침에서 해당 내용을 찾지 못했어요.',note:an.found?an.note:'',fix:kw.fix,cites:an.found?cites:[],cmap,terms:kw.terms,found,q,learned:cases.length>0,badNums:found?bad:[]});
   }catch(e){done({t:'⚠️ '+(e.name==='AbortError'?'응답이 늦어요. 잠시 후 다시 물어봐 주세요.':(e.message||e))})}
   finally{aiBusy=false;$('#aiSend').disabled=false}
 }
@@ -3966,13 +3996,14 @@ $('#aiQ').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isC
 $('#aiBody').addEventListener('click',e=>{const g=a=>e.target.closest('['+a+']');let b;
   const mOf=id=>aiLog.find(x=>x.id===id);
   if(b=g('data-aiback')){aiView='chat';aiRender();return}
+  if(b=g('data-airedo')){aiNoCache=true;aiAsk(b.dataset.airedo).finally(()=>{aiNoCache=false});return}
   if(b=g('data-sdadd')){const A=($('#sdA').value||'').trim(),B=($('#sdB').value||'').trim();if(!A||!B||sbN(A)===sbN(B))return toast('현장 말과 지침 용어를 둘 다 적어 주세요.','error');
     const L=[...stdSynList().filter(x=>sbN(x[0])!==sbN(A)),[A,B]].slice(-300);stdSave('stdSyn',L).then(()=>{stdSynSync();aiDictPre={};toast(`‘${A}’ → ‘${B}’ 사전에 넣었어요. 바로 적용돼요.`,'ok');aiRender()}).catch(err=>toast(errMsg(err),'error'));return}
   if(b=g('data-sddel')){const A=b.dataset.sddel;stdSave('stdSyn',stdSynList().filter(x=>x[0]!==A)).then(()=>{stdSynSync();aiRender()}).catch(err=>toast(errMsg(err),'error'));return}
   if(b=g('data-sdpre')){aiDictPre={a:'',b:''};aiRender();const i=$('#sdA');if(i){i.focus();toast('질문 속 헷갈린 말을 왼쪽에, 지침 용어를 오른쪽에 적어 주세요.')}return}
   if(b=g('data-sdmiss')){const at=+b.dataset.sdmiss;stdSave('stdMiss',stdMiss().filter(x=>x.at!==at)).then(aiRender).catch(()=>{});return}
   if(b=g('data-fb')){const [k,id]=b.dataset.fb.split('|'),m=mOf(id);if(!m)return;
-    if(k==='up'){m.fb='up';aiRender();const C=[...stdCases().filter(c=>c.q!==m.q),{q:m.q,k:(m.cites||[]).slice(0,4),ok:1,at:Date.now(),by:myId}].slice(-200);if((m.cites||[]).length)stdSave('stdCases',C).catch(()=>{})}
+    if(k==='up'){m.fb='up';aiRender();const C=[...stdCases().filter(c=>c.q!==m.q),{q:m.q,k:(m.cites||[]).slice(0,4),a:String(m.t||'').slice(0,700),ok:1,at:Date.now(),by:myId}].slice(-200);if((m.cites||[]).length)stdSave('stdCases',C).catch(()=>{})}
     else{m.fb='down';m.fq=(m.terms||[]).slice(0,2).join(' ');m.fr=aiRetrieve(m.fq,{terms:m.terms||[],books:[]}).slice(0,6);aiRender();stdLogMiss(m.q,'bad')}return}
   if(b=g('data-fbgo')){const m=mOf(b.dataset.fbgo),i=document.querySelector(`[data-fbq="${b.dataset.fbgo}"]`);if(!m||!i)return;m.fq=i.value.trim();m.fr=m.fq?aiRetrieve(m.fq,{terms:[m.fq],books:[]}).slice(0,6):[];aiRender();return}
   if(b=g('data-fbpick')){const [id,k]=b.dataset.fbpick.split('|'),m=mOf(id);if(!m)return;
