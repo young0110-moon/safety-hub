@@ -1125,6 +1125,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <section id="p-members" class="page pt-4 space-y-3" data-title="멤버">
   <div id="mOnline" class="text-xs font-bold px-1 flex items-center gap-1.5"></div>
   <div id="mPraise"></div>
+  <div id="mMe" class="card !p-0 overflow-hidden"></div>
   <input id="mSearch" class="inp" placeholder="🔍 이름·직급·팀 검색">
   <div id="mList" class="card !p-0 divide-y divide-purple-400/20 overflow-hidden"></div>
 </section>
@@ -1340,7 +1341,7 @@ const DEV=BUILD.indexOf('_'+'_')===0;
 /* 연혁집 등 데이터 파일 버전: 데이터가 바뀔 때만 바뀜 (배포 때 자동 기록) → 쓸데없이 다시 받지 않음 */
 const DATAV=(v=>v.indexOf('_'+'_')===0?'dev':v)('__DATAV__');
 const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
-const RANKS=['지사장','부장','차장','과장','대리','주임','사원','기타'];
+const RANKS=['지사장','부장','팀장','차장','과장','대리','주임','사원','기타'];
 
 function toast(msg,type='info'){
   const t=document.createElement('div');
@@ -1382,6 +1383,8 @@ async function put(c,data,id){
   if(db){if(id){await db.doc(c+'/'+id).set(data);return id}const r=await db.collection(c).add(data);return r.id}
   id=id||uid();const row={id,...data},i=D[c].findIndex(x=>x.id===id);if(i>=0)D[c][i]=row;else D[c].push(row);saveLocal(c);changed(c);return id;
 }
+/* 내 프로필 저장: 다른 칸(승인 상태·코드·이메일 등)은 그대로 두고 바꾼 칸만 합쳐 저장 */
+async function saveMyProfile(data){if(db){await db.doc('members/'+myId).set(data,{merge:true});return}const r=D.members.find(x=>x.id===myId);if(r)Object.assign(r,data);saveLocal('members');changed('members')}
 async function patch(c,id,data){if(db)return db.doc(c+'/'+id).update(data);const r=D[c].find(x=>x.id===id);if(r)Object.assign(r,data);saveLocal(c);changed(c)}
 async function del(c,id){if(db)return db.doc(c+'/'+id).delete();D[c]=D[c].filter(x=>x.id!==id);saveLocal(c);changed(c)}
 const errMsg=e=>(e&&(e.code==='permission-denied'||e.code==='permission_denied'))?'권한이 없어요. 지사 멤버로 가입된 계정인지 확인하세요.':'저장하지 못했습니다'+(e&&e.code?' ('+e.code+')':'')+'. 잠시 후 다시 시도하세요.';
@@ -1506,7 +1509,7 @@ function renderProfile(){
 }
 function fillProfile(){const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||''}
 $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
-  try{await put('members',{name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim(),at:(me()||{}).at||Date.now()},myId);toast('프로필을 저장했습니다.','ok')}catch(e){toast(errMsg(e),'error')}};
+  try{await saveMyProfile({name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim()});toast('프로필을 저장했습니다.','ok')}catch(e){toast(errMsg(e),'error')}};
 let outArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
@@ -2938,10 +2941,24 @@ function renderMembers(){
   const on=D.members.filter(isOnline).length;
   const pr=mbCard('칭찬게시');$('#mPraise').innerHTML=(pr?`<button type="button" data-mcard="칭찬게시" class="w-full min-h-[46px] rounded-xl bg-[#FEF3C7] text-[#92400E] font-black text-sm dark:bg-[#422006] dark:text-[#FDE68A]">👏 칭찬 게시판 QR</button>`:'')
     +(isAdmin?`<label class="mt-2 w-full min-h-[42px] rounded-xl border border-purple-400/50 text-purple-700 dark:text-purple-300 font-bold text-[13px] flex items-center justify-center cursor-pointer">🪪 명함 QR 불러오기 (관리자 · zip이나 사진)<input id="mCardPick" type="file" accept=".zip,application/zip,image/*" multiple class="sr-only"></label>`:'');
+  {const m=me()||{},op=mbEditOpen;$('#mMe').innerHTML=op?`<div class="p-4 space-y-2.5"><div class="flex items-center justify-between"><b class="text-sm">✏️ 내 정보 수정</b><button type="button" data-mbedit="close" class="text-xs font-bold opacity-70 min-h-[36px] px-2">닫기 ✕</button></div>
+      <label class="block text-[12px] font-bold">이름<input id="meName" class="inp mt-1" maxlength="12" value="${esc(m.name||'')}"></label>
+      <label class="block text-[12px] font-bold">직급<select id="meRank" class="inp mt-1">${RANKS.map(r=>`<option${(m.rank||'사원')===r?' selected':''}>${r}</option>`).join('')}</select></label>
+      <label class="block text-[12px] font-bold">팀<input id="meTeam" class="inp mt-1" maxlength="20" placeholder="예: 검사1팀" value="${esc(m.team||'')}"></label>
+      <label class="block text-[12px] font-bold">전화번호<input id="meTel" class="inp mt-1" type="tel" inputmode="tel" maxlength="20" placeholder="010-0000-0000" value="${esc(m.tel||'')}"></label>
+      <button type="button" data-mbedit="save" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white text-sm font-black">💾 저장</button></div>`
+    :`<button type="button" data-mbedit="open" class="w-full flex items-center gap-3 p-3 text-left min-h-[56px]"><span class="mem-av on">${PERSON}</span><span class="flex-1 min-w-0"><b class="text-sm block truncate">${esc(m.name||'내 정보')} <span class="text-xs opacity-70">${esc(m.rank||'')}</span></b><span class="text-[11px] opacity-70 truncate block">${esc([m.team||'팀 미입력',m.tel||'전화번호 미입력'].join(' · '))}</span></span><span class="text-[12px] font-black text-purple-700 dark:text-purple-300 shrink-0">✏️ 내 정보 수정</span></button>`}
   $('#mOnline').innerHTML=`<span class="mem-on-dot"></span> 지금 접속 중 <b>${on}명</b><span class="opacity-60">/ 전체 ${D.members.length}명</span>`;
   $('#mList').innerHTML=list.length?list.map(m=>{const o=isOnline(m);return `<div class="flex items-center gap-3 p-3 ${o?'':'mem-off'}"><span class="mem-av ${o?'on':''}" title="${o?'접속 중':'미접속'}">${PERSON}${o?'<i class="mem-live"></i>':''}</span><div class="flex-1 min-w-0"><div class="text-sm font-bold truncate">${esc(m.name)} <span class="text-xs font-bold opacity-70">${esc(m.rank||'')}</span>${m.id===myId?' <span class="mem-me">나</span>':''}${mbCard(m.name)?` <button type="button" data-mcard="${esc(m.name)}" class="mem-card" aria-label="${esc(m.name)} 명함 QR 보기">🪪 명함</button>`:''}</div><div class="text-[11px] opacity-70 truncate"><span class="mem-st ${o?'on':''}">${o?'● 접속 중':agoShort(m.seen)}</span> · ${esc(m.team||'팀 미입력')}${m.tel?' · <span class="select-all">'+esc(m.tel)+'</span>':''}</div></div>${m.tel?`<a href="tel:${esc(m.tel.replace(/[^0-9+]/g,''))}" aria-label="${esc(m.name)}에게 전화" class="mem-call"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7.2 3.6c.5-.4 1.2-.3 1.6.2l2 2.6c.4.5.3 1.2-.1 1.6l-1.2 1.1a.9.9 0 0 0-.2 1c.9 1.9 2.4 3.5 4.3 4.4.4.2.8.1 1.1-.2l1.1-1.2c.4-.4 1.1-.5 1.6-.1l2.6 2c.5.4.6 1.1.2 1.6l-1.3 1.7c-.8 1-2.2 1.4-3.4 1A17 17 0 0 1 4.9 8.8c-.4-1.2 0-2.6 1-3.4z"/></svg></a>`:''}</div>`}).join(''):'<p class="p-4 text-sm opacity-70">'+(q?'검색 결과가 없습니다.':'아직 가입한 멤버가 없습니다.')+'</p>';
 }
 $('#mSearch').oninput=renderMembers;
+var mbEditOpen=false;
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-mbedit]');if(!b)return;const k=b.dataset.mbedit;
+  if(k==='open'){mbEditOpen=true;renderMembers();setTimeout(()=>{const i=$('#meName');i&&i.focus()},50);return}
+  if(k==='close'){mbEditOpen=false;renderMembers();return}
+  if(k==='save'){const name=$('#meName').value.trim(),tel=$('#meTel').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
+    if(tel&&!/^[0-9+\-\s()]{7,20}$/.test(tel))return toast('전화번호는 숫자와 - 만 입력해 주세요.','error');
+    b.disabled=true;try{await saveMyProfile({name,rank:$('#meRank').value,team:$('#meTeam').value.trim(),tel});mbEditOpen=false;toast('내 정보를 수정했어요.','ok');renderMembers();try{renderHomeAcct()}catch(_){}}catch(err){toast(errMsg(err),'error')}b.disabled=false}});
 /* 명함 QR: settings/main.cards = {이름: 명함 링크}. 이름 옆 🪪 → 큰 QR + 명함 열기 */
 let MBC0=null;fetch('data/cards.json?v='+DATAV).then(r=>r.json()).then(j=>{MBC0=j.cards||{};if(cur==='members')renderMembers()}).catch(()=>{MBC0={}});
 const mbCards=()=>({...(MBC0||{}),...(((D.settings.find(x=>x.id==='main')||{}).cards)||{})});
