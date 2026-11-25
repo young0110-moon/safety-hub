@@ -3530,6 +3530,7 @@ const SYN=[['손잡이', '핸드레일', '핸드 레일'], ['과속조절기', '
  ['엘리베이터', '엘베', '엘레베이터', '엘리베타'],
  ['문 개방', '문의 개방', '문 열림', '문열림', '안열리면', '안 열리면', '안열림', '열리지 않'],
  ['손잡이 높이', '핸드레일 높이', '수직 높이'],
+ ['7대 안전장치', '7대', '7대 안전부품', '어린이 손 끼임 방지수단', '승강장문 비상가이드', '상승과속방지수단', '개문출발방지수단', '자동구출운전수단', '이탈방지장치'],
  ['어린이의 손', '어린이 손', '손끼임', '손 끼임', '손가락 끼임', '손 끌림']];
 const SYNMAP=new Map(),SYNRAW=new Map();SYN.forEach(g=>{const G=g.map(sbN);G.forEach((t,i)=>{SYNMAP.set(t,G);if(!SYNRAW.has(t))SYNRAW.set(t,g[i])})});
 /* ① 기준 용어 사전(지사 공용, settings/main.stdSyn = [[현장 말, 지침 용어]]) → 동의어 묶음에 합쳐 검색·AI 모두에 적용 */
@@ -3851,16 +3852,22 @@ function aiRetrieve(q,kw,perBook,total){perBook=perBook||6;total=total||12;
   const STOP=new Set(['기준','뭐야','뭐','어떻게','몇','되나','돼','하나','해','알려줘','관련','경우','있으면','없으면','이야','인가','무엇','얼마','판정','검사','내용','때','할때']);
   const raw=[...(kw.terms||[]),...String(q).split(/[\s,?!.]+/)];
   const groups=[],seen=new Set();
-  raw.forEach(w=>{w=String(w||'').replace(/(은|는|이|가|을|를|에|의|도|에서|으로|로|이야|야|요)$/,'').trim();const n=sbN(w);if((n.length<2&&!SYNMAP.has(n))||!n||STOP.has(n)||seen.has(n))return;seen.add(n);
+  raw.forEach(w=>{const dm=String(w||'').match(/^(\d{2,4})\s*[.년\-]\s*(\d{1,2})\s*[.월\-]\s*(\d{1,2})/);
+    if(dm){const Y=dm[1].length===2?'20'+dm[1]:dm[1],M=+dm[2],D=+dm[3],k=`${Y}년${M}월${D}일`;if(!seen.has(k)){seen.add(k);groups.push({n:k,id:false,alts:[k,`${Y}.${M}.${D}`,`${Y}.${String(M).padStart(2,'0')}.${String(D).padStart(2,'0')}`],w:.6})}return}
+    w=String(w||'').replace(/(은|는|이|가|을|를|에|의|도|에서|으로|로|이야|야|요)$/,'').trim();const n=sbN(w);if((n.length<2&&!SYNMAP.has(n))||!n||STOP.has(n)||seen.has(n))return;seen.add(n);
     groups.push({n,id:/^[0-9]+(\.[0-9]+)+$/.test(n),alts:sbExpand(n),w:(kw.terms||[]).some(t=>sbN(t)===n)?1.3:1});
     /* 띄어쓰기 없이 붙여 쓴 말(예: 어린이손끼임, 승강장문틈새) → 아는 낱말로 나눠서도 찾기 */
     if(n.length>=4&&!SYNMAP.has(n))aiSplit(n).forEach(part=>{if(seen.has(part)||STOP.has(part))return;seen.add(part);groups.push({n:part,id:false,alts:sbExpand(part),w:part.length>=4||sbExpand(part).length>1?1.2:.4})})});
+  /* 두 낱말 묶음이 사전에 있으면(예: '7대 안전장치') 하나의 말로도 찾기 */
+  const ws=String(q).split(/[\s,?!.]+/).map(sbN).filter(Boolean);for(let i=0;i+1<ws.length;i++){const k=ws[i]+ws[i+1];if(SYNMAP.has(k)&&!seen.has(k)){seen.add(k);groups.push({n:k,id:false,alts:sbExpand(k),w:1.5})}}
   if(!groups.length)return [];
   const pref=new Set(kw.books&&kw.books.length?kw.books:Object.keys(BOOKS)),all=[];const wantJ=/판정|불합격|합격|조건부|부적합/.test(q);
   Object.keys(BOOKS).forEach(b=>{const B=SBS[b];if(B.state!=='ready')return;const res=[];
     B.list.forEach(c=>{if(!c.cur)return;let s=0,hit=0;
       groups.forEach(g=>{if(g.id){const IDS=c.nos&&c.nos.length?c.nos:(c.ids||[c.id]);if(IDS.some(x=>x===g.n||x.startsWith(g.n+'.'))){s+=IDS.includes(g.n)?400:150;hit++}return}
-        const a=g.alts.find(x=>c._h.includes(x)||c._c.includes(x));if(!a)return;hit++;
+        let a=g.alts.find(x=>c._h.includes(x)||c._c.includes(x));
+        /* 현행 글에는 없고 연혁(종전 기준·부칙)에만 있는 말도 찾기 — 예: 2017.1.28 기존 승강기 7대 안전장치 */
+        if(!a){const o=g.alts.find(x=>x.length>=3&&c._o.includes(x));if(o){hit++;s+=10*g.w;return}return}hit++;
         s+=(c._h.includes(a)?40:0)*g.w+Math.min(sbCnt(c._c,a),4)*7*g.w});
       if(!hit)return;s*=hit*hit;if(pref.has(b))s*=1.6;if(wantJ&&b==='judg')s*=2;res.push({b,c,s})});
     res.sort((x,y)=>y.s-x.s);all.push(...res.slice(0,perBook))});
