@@ -1663,7 +1663,9 @@ function briefPopup(bf){
 setInterval(()=>{if(cur==="home"&&document.visibilityState==="visible")try{renderHome()}catch(e){}},60*1000);
 function renderHome(){
   renderBanner();renderMini();
-  const pub=D.notices.filter(pubd).sort((a,b)=>b.at-a.at),un=pub.filter(n=>!isRead(n));
+  /* 첫 화면 공지는 '기간 안'인 것만: 달력 날짜가 있으면 그날까지, 없으면 게시 후 7일까지 (공지 목록에는 그대로 남음) */
+  const today=key(new Date()),live=n=>n.evDate?n.evDate>=today:(Date.now()-n.at<7*864e5);
+  const pub=D.notices.filter(n=>pubd(n)&&live(n)).sort((a,b)=>b.at-a.at),un=pub.filter(n=>!isRead(n));
   const top=un.find(n=>n.level==='urgent')||un[0]||pub[0];
   $('#nBanner').classList.toggle('hidden',!top);
   $('#nbTag').textContent=top?(top.level==='urgent'?'긴급 공지':'공지')+(un.length?` · 안 읽음 ${un.length}건`:' · 모두 읽음'):'공지';
