@@ -1587,12 +1587,13 @@ $('#ntAdd').onclick=async()=>{
   const title=$('#ntTitle').value.trim();if(!title)return toast('공지 제목을 입력해 주세요.','error');
   const v=$('#ntAt').value,at=v?new Date(v).getTime():Date.now();
   if(v&&at<Date.now()-6e4)return toast('예약 시간이 이미 지났습니다. 이후 시각을 고르세요.','error');
-  const evD=$('#ntDate').value,evT=$('#ntTime').value;
+  /* 날짜를 안 고르면 게시하는 날 달력에 자동으로 넣음 → 첫 화면에서 내려가도 달력에서 다시 볼 수 있음 */
+  const evPick=$('#ntDate').value,evAuto=!evPick,evD=evPick||key(new Date(at)),evT=$('#ntTime').value;
   try{let ev='';if(evD)ev=await put('events',{date:evD,title,time:evT,cat:'공지',by:myId,at:Date.now()});
-    await put('notices',{title,body:$('#ntBody').value.trim(),level:$('#ntLevel').value,at,by:myId,created:Date.now(),...(evD?{evDate:evD,evTime:evT,ev}:{})});
+    await put('notices',{title,body:$('#ntBody').value.trim(),level:$('#ntLevel').value,at,by:myId,created:Date.now(),...(evD?{evDate:evD,evTime:evT,ev,...(evAuto?{evAuto:true}:{})}:{})});
     if(!v)pushSend('notice','📌 새 공지',title,'#notice');
     $('#ntTitle').value=$('#ntBody').value=$('#ntAt').value=$('#ntDate').value=$('#ntTime').value='';nFilter=v?2:0;renderNotices();
-    toast((v?`${tstr(at)}에 발송되도록 예약했습니다.`:'공지를 게시했습니다.')+(evD?' 달력에도 넣었어요.':''),'ok')}catch(err){toast(errMsg(err),'error')}
+    toast((v?`${tstr(at)}에 발송되도록 예약했습니다.`:'공지를 게시했습니다.')+(evPick?' 달력에도 넣었어요.':' 오늘 날짜 달력에도 남겨 둘게요.'),'ok')}catch(err){toast(errMsg(err),'error')}
 };
 
 /* ===== 긴급 팝업 (SOS · 위험현장 · 공지 · 현장목소리) ===== */
@@ -1663,8 +1664,9 @@ function briefPopup(bf){
 setInterval(()=>{if(cur==="home"&&document.visibilityState==="visible")try{renderHome()}catch(e){}},60*1000);
 function renderHome(){
   renderBanner();renderMini();
-  /* 첫 화면 공지는 '기간 안'인 것만: 달력 날짜가 있으면 그날까지, 없으면 게시 후 7일까지 (공지 목록에는 그대로 남음) */
-  const today=key(new Date()),live=n=>n.evDate?n.evDate>=today:(Date.now()-n.at<7*864e5);
+  /* 첫 화면 공지는 '기간 안'인 것만: 직접 고른 달력 날짜가 있으면 그날까지, 없으면 게시 후 하루(24시간)까지
+     (공지 목록과 달력에는 그대로 남음) */
+  const today=key(new Date()),live=n=>n.evDate&&!n.evAuto?n.evDate>=today:(Date.now()-n.at<864e5);
   const pub=D.notices.filter(n=>pubd(n)&&live(n)).sort((a,b)=>b.at-a.at),un=pub.filter(n=>!isRead(n));
   const top=un.find(n=>n.level==='urgent')||un[0]||pub[0];
   $('#nBanner').classList.toggle('hidden',!top);
