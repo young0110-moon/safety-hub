@@ -2566,6 +2566,55 @@ function recApplyFix(it,list){list=list||recFixes();if(!list.length)return it;
   const R=t=>{t=String(t||'');list.forEach(([a,b])=>{if(a&&t.includes(a))t=t.split(a).join(b)});return t};
   it.title=R(it.title);it.summary=R(it.summary);['brief','points','decisions','safety'].forEach(k=>it[k]=(it[k]||[]).map(R));
   it.dialogue=(it.dialogue||[]).map(d=>({...d,t:R(d.t)}));it.todos=(it.todos||[]).map(t=>({...t,what:R(t.what),who:R(t.who)}));return it}
+/* [학습] AI 원본 ↔ 사람이 고친 정리본을 지사 공용(settings/main.recEdits)에 최근 30건 보관
+   ① 바뀐 말을 찾아 '틀린 말 고치기' 사전 후보로 제안 ② 다음 녹음 정리 때 고친 예시를 AI에게 같이 보냄 */
+const recSnap=it=>({title:String(it.title||''),brief:[...(it.brief||[])].map(String),summary:String(it.summary||'').slice(0,500)});
+const recEdits=()=>{const m=(D.settings||[]).find(x=>x.id==='main');return ((m&&m.recEdits)||[]).filter(x=>x&&x.o&&x.e)};
+const recBig=t=>{t=String(t).replace(/\s+/g,'');const S=new Set();for(let i=0;i<t.length-1;i++)S.add(t.slice(i,i+2));return S};
+const recSim=(a,b)=>{const A=recBig(a),B=recBig(b);if(!A.size||!B.size)return a===b?1:0;let x=0;A.forEach(t=>{if(B.has(t))x++});return 2*x/(A.size+B.size)};
+const recSents=t=>String(t||'').split(/(?<=[.!?다요])\s+/).map(x=>x.trim()).filter(Boolean);
+const recLines=sn=>[sn.title,...sn.brief,...recSents(sn.summary)].map(x=>String(x).trim()).filter(Boolean);
+/* 고친 줄 찾기: 고친 줄마다 가장 비슷한 원본 줄과 짝지음 → [[원본, 수정]] (같은 줄은 뺌) */
+function recPairs(o,e){const used=new Set(),P=[];
+  e.forEach(el=>{if(o.includes(el)){used.add(o.indexOf(el));return}let bi=-1,bs=0;
+    o.forEach((ol,i)=>{if(used.has(i))return;const v=recSim(ol,el);if(v>bs){bs=v;bi=i}});
+    if(bi>=0&&bs>=.45){used.add(bi);P.push([o[bi],el])}});return P}
+/* 짝지은 줄에서 단어 단위로 바뀐 부분만 뽑아 사전 후보로 (숫자·날짜는 그때그때 달라서 뺌) */
+function recWordDiff(a,b){const A=a.split(/\s+/).filter(Boolean),B=b.split(/\s+/).filter(Boolean),n=A.length,m=B.length;
+  if(n*m>4000)return [];const L=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=A[i]===B[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const out=[];let i=0,j=0,da=[],db=[];const flush=()=>{if(da.length&&db.length)out.push([da.join(' '),db.join(' ')]);da=[];db=[]};
+  while(i<n||j<m){if(i<n&&j<m&&A[i]===B[j]){flush();i++;j++}else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j]))db.push(B[j++]);else da.push(A[i++])}
+  flush();return out}
+function recFixCands(o,e){const have=new Set(recFixes().map(x=>x[0])),seen=new Set(),C=[];
+  recPairs(recLines(o),recLines(e)).forEach(([a,b])=>recWordDiff(a,b).forEach(([x,y])=>{
+    if(x.split(' ').length>3||y.split(' ').length>3)return;
+    /* 낱말은 통째로 (앞뒤 글자를 잘라내면 '정밀'처럼 다른 말까지 바뀌어 위험). 끝의 같은 조사만 뗌 */
+    const J=/(을|를|은|는|이|가|에|의|로|으로|도|와|과|에서|까지)$/;let jx=x.match(J),jy=y.match(J);
+    if(jx&&jy&&jx[0]===jy[0]&&x.length-jx[0].length>=2&&y.length-jy[0].length>=2){x=x.slice(0,-jx[0].length);y=y.slice(0,-jy[0].length)}
+    x=x.replace(/^[^가-힣A-Za-z]+|[^가-힣A-Za-z]+$/g,'');y=y.replace(/^[^가-힣A-Za-z]+|[^가-힣A-Za-z]+$/g,'');
+    if(x.length<2||y.length<2||x===y||x.length>20||y.length>20||/\d/.test(x+y)||have.has(x)||seen.has(x))return;
+    seen.add(x);C.push([x,y])}));return C.slice(0,8)}
+/* 공용 보관: 같은 정리본은 덮어씀, 원래대로 되돌리면 지움 */
+async function recSaveEdit(it){if(!db||!it.orig)return;const e=recSnap(it),same=JSON.stringify(e)===JSON.stringify(it.orig);
+  let list=recEdits().filter(x=>x.id!==it.id);if(!same)list=[...list,{id:it.id,at:it.at,by:myId,ed:Date.now(),o:it.orig,e}];list=list.slice(-30);
+  try{await db.doc('settings/main').set({recEdits:list},{merge:true});const m=(D.settings||[]).find(x=>x.id==='main');if(m)m.recEdits=list}catch(err){console.warn('recEdits',err)}}
+/* 다음 정리 때 보낼 예시: 최근 고친 3건에서 고친 줄만 (AI → 고침) */
+function recEditExamples(){const R=recEdits().slice().sort((a,b)=>b.ed-a.ed).slice(0,3);let out='',n=0;
+  for(const x of R){const P=recPairs(recLines(x.o),recLines(x.e)).slice(0,4);for(const [a,b] of P){const ln=`- AI: ${a}\n  고침: ${b}\n`;if(out.length+ln.length>1000)break;out+=ln;n++}}
+  return n?`\n[최근 우리 지사 직원이 AI 정리를 고친 예시 — 고친 쪽의 말투·용어·형식을 따를 것]\n${out}`:''}
+function recFixAsk(C){return new Promise(res=>{const o=document.createElement('div');o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
+  o.style.cssText='position:fixed;inset:0;z-index:130;background:rgba(15,10,40,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+  o.innerHTML=`<div style="width:100%;max-width:380px;background:#fff;color:#1E1B4B;border-radius:22px;padding:22px 18px 16px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+    <div style="font-size:16px;font-weight:900">📘 바뀐 말을 찾았어요</div>
+    <div style="font-size:12.5px;opacity:.75;margin-top:4px;line-height:1.5">사전에 넣으면 다음 녹음부터 AI가 바른 말로 써요. 넣을 것만 골라 주세요.</div>
+    <div style="margin-top:12px;display:grid;gap:6px;max-height:46vh;overflow:auto">${C.map(([a,b],i)=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #DDD6FE;border-radius:12px;font-size:14px"><input type="checkbox" data-i="${i}" checked style="width:18px;height:18px;accent-color:#6D28D9"><span>${esc(a)} → <b style="color:#6D28D9">${esc(b)}</b></span></label>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:14px">
+      <button data-x="0" style="min-height:48px;border-radius:14px;border:1px solid #C4B5FD;font-weight:800;font-size:14px;color:#4C1D95">건너뛰기</button>
+      <button data-x="1" style="min-height:48px;border-radius:14px;background:#6D28D9;color:#fff;font-weight:900;font-size:15px">사전에 넣기</button></div></div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b&&e.target!==o)return;
+    const pick=b&&b.dataset.x==='1'?C.filter((_,i)=>{const c=o.querySelector(`[data-i="${i}"]`);return c&&c.checked}):[];o.remove();res(pick)})})}
 const recFmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 function recPickMime(){if(!window.MediaRecorder)return '';for(const m of ['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
 async function recStart(){
@@ -2590,11 +2639,11 @@ async function recSend(blob){
   aiRec.last={blob,sec};aiRec.st='busy';aiRec.err='';renderRec();
   try{const fu=firebase.auth().currentUser;if(!fu)throw new Error('로그인이 필요해요.');const tk=await fu.getIdToken();
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),300000);
-    const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm','X-Prompt':encodeURIComponent(recPrompt()),'X-Fix':encodeURIComponent(recFixHdr().slice(0,1500))},body:blob,signal:ctl.signal});clearTimeout(to);
+    const r=await fetch(recUrl(),{method:'POST',headers:{'Authorization':'Bearer '+tk,'Content-Type':blob.type||'audio/webm','X-Prompt':encodeURIComponent((recPrompt()+recEditExamples()).slice(0,3900)),'X-Fix':encodeURIComponent(recFixHdr().slice(0,1500))},body:blob,signal:ctl.signal});clearTimeout(to);
     const j=await r.json().catch(()=>({error:'서버 응답을 읽지 못했어요.'}));
     if(!r.ok||!j.ok)throw new Error(j.error||('오류 '+r.status));
     const A=x=>Array.isArray(x)?x:[];
-    const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',brief:A(j.brief),summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};recApplyFix(item);
+    const item={id:'r'+Date.now(),at:Date.now(),sec,title:j.title||'브리핑 정리',brief:A(j.brief),summary:j.summary||'',dialogue:A(j.dialogue),points:A(j.points),decisions:A(j.decisions),todos:A(j.todos).map(t=>({who:t.who||'',what:t.what||'',when:t.when||'',done:false})),safety:A(j.safety)};recApplyFix(item);item.orig=recSnap(item);
     store.set('koelsa_rec',[item,...recSaved()].slice(0,15));aiRec.open=item.id;aiRec.st='idle';aiRec.last=null;toast('AI 정리가 끝났어요.','ok')}
   catch(e){aiRec.st='idle';aiRec.err=e.name==='AbortError'?'시간이 너무 오래 걸려 멈췄어요. 녹음을 짧게 나눠 다시 시도해 주세요.':(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.':(/location is not supported|지역에서 실행/i.test(e.message)?'AI 서버 위치 문제로 정리하지 못했어요. 녹음은 그대로 있으니 잠시 후 [다시 정리]를 눌러 주세요.':(e.message||'정리하지 못했어요.')))}
   renderRec()}
@@ -2663,10 +2712,14 @@ document.addEventListener('click',async e=>{if(cur!=='brief')return;let b;
   if(b=e.target.closest('[data-recedit]')){aiRec.edit=b.dataset.recedit;renderRec();setTimeout(()=>{const t=$('#reBrief');if(t)t.scrollIntoView({block:'center',behavior:'smooth'})},50);return}
   if(b=e.target.closest('[data-receditx]')){aiRec.edit=null;renderRec();return}
   if(b=e.target.closest('[data-recsave]')){const L=recSaved(),it=L.find(x=>x.id===b.dataset.recsave);if(!it)return;
+    if(!it.orig)it.orig=recSnap(it);
     const lines=id=>{const el=$('#'+id);return el?el.value.split('\n').map(x=>x.replace(/^\s*(\d+[.)]|[-•·*])\s*/,'').trim()).filter(Boolean):null};
     it.title=($('#reTitle').value||'').trim()||it.title;const bf=lines('reBrief');if(bf)it.brief=bf;it.summary=($('#reSum').value||'').trim();
     const dc=lines('reDec'),sf=lines('reSafe');if(dc)it.decisions=dc;if(sf)it.safety=sf;it.edited=Date.now();
-    store.set('koelsa_rec',L);aiRec.edit=null;renderRec();toast('수정한 내용을 저장했어요.','ok');return}
+    store.set('koelsa_rec',L);aiRec.edit=null;renderRec();toast('수정한 내용을 저장했어요.','ok');
+    (async()=>{await recSaveEdit(it);const C=recFixCands(it.orig,recSnap(it));if(!C.length)return;const pick=await recFixAsk(C);if(!pick.length)return;
+      const P=new Map(pick),list=[...recFixes().filter(x=>!P.has(x[0])),...pick].slice(-150);
+      try{await db.doc('settings/main').set({recFix:list},{merge:true});const m=D.settings.find(x=>x.id==='main');if(m)m.recFix=list;toast(`사전에 ${pick.length}개 넣었어요. 다음 녹음부터 AI가 기억해요.`,'ok');renderRec()}catch(err){toast(errMsg(err),'error')}})();return}
   if(b=e.target.closest('[data-recfix]')){const id=b.dataset.recfix,A=($('#rfxA').value||'').trim(),Bv=($('#rfxB').value||'').trim();
     if(!A||!Bv||A===Bv)return toast('틀린 말과 바른 말을 둘 다 적어 주세요.','error');
     const L=recSaved(),it=L.find(x=>x.id===id);if(it){recApplyFix(it,[[A,Bv]]);store.set('koelsa_rec',L)}
