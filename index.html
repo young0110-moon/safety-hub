@@ -1169,6 +1169,9 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <label class="block text-[12px] font-bold">이름<input id="pfName" class="inp mt-1" maxlength="12" placeholder="이름"></label>
     <div class="grid grid-cols-2 gap-2"><label class="block text-[12px] font-bold">직급<select id="pfRank" class="inp mt-1"></select></label><label class="block text-[12px] font-bold">부서·팀 / 담당 업무<input id="pfTeam" class="inp mt-1" maxlength="20" placeholder="예: 검사1팀"></label></div>
     <label class="block text-[12px] font-bold">연락처<input id="pfTel" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="SOS 단체 문자를 받으려면 입력"></label>
+    <div class="grid grid-cols-2 gap-2"><label class="block text-[12px] font-bold">사무실 전화<input id="pfOtel" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="051-784-8502"></label><label class="block text-[12px] font-bold">팩스 <span class="opacity-60 font-normal">(선택)</span><input id="pfFax" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="051-000-0000"></label></div>
+    <label class="block text-[12px] font-bold">이메일 <span class="opacity-60 font-normal">(선택)</span><input id="pfCmail" class="inp mt-1" type="email" maxlength="60" inputmode="email" placeholder="name@koelsa.or.kr"></label>
+    <button type="button" id="pfCard" class="w-full min-h-[44px] rounded-xl border-2 border-purple-400/60 text-[13.5px] font-black text-purple-700 dark:text-purple-300">🪪 내 전자명함 보기 (여기 정보로 만들어져요)</button>
     <button id="pfSave" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">프로필 저장</button>
   </div>
   <div class="card space-y-2" id="pfTheme" style="scroll-margin-top:76px">
@@ -1510,11 +1513,15 @@ function renderProfile(){
   if(!pfDirty)fillProfile();
 }
 let pfDirty=false;
-document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#p-profile')&&/^pf(Name|Rank|Team|Tel)$/.test(e.target.id))pfDirty=true});
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#pfCard')){const m=me();if(m)ecOpen(m)}});
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#p-profile')&&/^pf(Name|Rank|Team|Tel|Otel|Fax|Cmail)$/.test(e.target.id))pfDirty=true});
 document.addEventListener('change',e=>{if(/^pf(Rank)$/.test(e.target.id))pfDirty=true});
-function fillProfile(){pfDirty=false;const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||''}
+function fillProfile(){pfDirty=false;const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||'';$('#pfOtel').value=m.otel||'';$('#pfFax').value=m.fax||'';$('#pfCmail').value=m.cmail||''}
 $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
-  try{await saveMyProfile({name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim()});pfDirty=false;toast('프로필을 저장했습니다.','ok');changed()}catch(e){toast(errMsg(e),'error')}};
+  const tel=$('#pfTel').value.trim(),otel=$('#pfOtel').value.trim(),fax=$('#pfFax').value.trim(),cmail=$('#pfCmail').value.trim();
+  for(const v of [tel,otel,fax])if(v&&!/^[0-9+\-\s()]{7,20}$/.test(v))return toast('전화·팩스 번호는 숫자와 - 만 입력해 주세요.','error');
+  if(cmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cmail))return toast('이메일 형식을 확인해 주세요.','error');
+  try{await saveMyProfile({name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel,otel,fax,cmail});pfDirty=false;toast('프로필을 저장했습니다.','ok');changed()}catch(e){toast(errMsg(e),'error')}};
 let outArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
