@@ -48,7 +48,8 @@ jobs:
       - name: 배포 폴더 만들기
         run: |
           mkdir -p site
-          cp -r index.html card.html version.json config.js manifest.webmanifest sw.js icon-192.png icon-512.png icon-maskable-512.png apple-touch-icon.png eli.png manual.pdf tailwind.css vendor lib data README.md site/
+          cp -r index.html card.html guest.js version.json config.js manifest.webmanifest sw.js icon-192.png icon-512.png icon-maskable-512.png apple-touch-icon.png eli.png manual.pdf tailwind.css vendor lib data README.md site/
+          python3 .github/scripts/guest.py index.html site/guest.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
