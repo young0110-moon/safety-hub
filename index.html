@@ -1166,9 +1166,9 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
 <section id="p-profile" class="page pt-4 space-y-4" data-title="내 프로필">
   <div class="card space-y-2">
     <div class="flex items-center gap-3 mb-1"><span id="pAv"></span><div class="min-w-0"><div id="pName" class="font-black truncate"></div><div id="pSub" class="text-xs opacity-70 truncate"></div></div></div>
-    <input id="pfName" class="inp" maxlength="12" placeholder="이름">
-    <div class="grid grid-cols-2 gap-2"><select id="pfRank" class="inp"></select><input id="pfTeam" class="inp" maxlength="16" placeholder="부서·팀"></div>
-    <input id="pfTel" class="inp" maxlength="16" inputmode="tel" placeholder="연락처 (SOS 단체 문자를 받으려면 입력)">
+    <label class="block text-[12px] font-bold">이름<input id="pfName" class="inp mt-1" maxlength="12" placeholder="이름"></label>
+    <div class="grid grid-cols-2 gap-2"><label class="block text-[12px] font-bold">직급<select id="pfRank" class="inp mt-1"></select></label><label class="block text-[12px] font-bold">부서·팀 / 담당 업무<input id="pfTeam" class="inp mt-1" maxlength="20" placeholder="예: 검사1팀"></label></div>
+    <label class="block text-[12px] font-bold">연락처<input id="pfTel" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="SOS 단체 문자를 받으려면 입력"></label>
     <button id="pfSave" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">프로필 저장</button>
   </div>
   <div class="card space-y-2" id="pfTheme" style="scroll-margin-top:76px">
@@ -1506,10 +1506,15 @@ $('#lgForm').onsubmit=async e=>{
 function renderProfile(){
   renderSkins();
   const m=me()||{};$('#pAv').innerHTML=avatar(myId,52);$('#pName').textContent=m.name||'';$('#pSub').textContent=[m.rank,m.team].filter(Boolean).join(' · ');
+  /* 내 정보가 늦게 도착해도 칸이 비어 있지 않게: 고치는 중이 아니면 최신 정보로 다시 채움 */
+  if(!pfDirty)fillProfile();
 }
-function fillProfile(){const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||''}
+let pfDirty=false;
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#p-profile')&&/^pf(Name|Rank|Team|Tel)$/.test(e.target.id))pfDirty=true});
+document.addEventListener('change',e=>{if(/^pf(Rank)$/.test(e.target.id))pfDirty=true});
+function fillProfile(){pfDirty=false;const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||''}
 $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
-  try{await saveMyProfile({name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim()});toast('프로필을 저장했습니다.','ok')}catch(e){toast(errMsg(e),'error')}};
+  try{await saveMyProfile({name,rank:$('#pfRank').value,team:$('#pfTeam').value.trim(),tel:$('#pfTel').value.trim()});pfDirty=false;toast('프로필을 저장했습니다.','ok');changed()}catch(e){toast(errMsg(e),'error')}};
 let outArm=0;
 async function doLogout(){try{await firebase.auth().signOut()}catch(e){}try{['koelsa_wx'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.hash='home';location.reload()}
 function renderHomeAcct(){const m=me()||{},fu=(window.firebase&&firebase.apps&&firebase.apps.length&&firebase.auth().currentUser)||null;
