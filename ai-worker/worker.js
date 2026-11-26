@@ -37,6 +37,8 @@ const REC_GLOSS = `듣기 전에 아래 [지사 용어 사전]을 먼저 읽고,
 3. K휘슬 모의신고 11.27까지 하시기 바랍니다.
 4. 지사장님 교육 출장으로 지난주 12, 13일 결재건은 1팀장님 앞으로 재결재 하시기 바랍니다.
 5. 노사협의회 안건 있으시면 김주희 대리에게 말씀 바랍니다.`;
+/* 받아쓰기용: 예시 문장은 빼고 낱말 사전만 (예시 문장을 주면 안 들리는 녹음에서 예시를 그대로 지어내는 문제가 있었음) */
+const REC_WORDS = REC_GLOSS.split('[우리 지사 전달사항 실제 예시')[0].trim();
 const PROMPT = `너는 한국승강기안전공단 부산동부지사의 회의 기록 담당자야.
 첨부된 녹음은 아침 브리핑(또는 현장 대화)이야. 한국어로 아래 JSON 형식에 맞춰 정리해.
 - brief: 직원들에게 전달·공지·요청한 내용을 번호 목록용 문장으로 (아래 [정리 양식]을 따를 것)
@@ -237,7 +239,7 @@ export default {
     const T0 = Date.now(), left = () => 270000 - (Date.now() - T0);   // 앱은 5분 기다림 → 서버는 4분 30초 안에 끝냄
     // ① 받아쓰기: 생각 최소 · 길이 상한 · 모델마다 시간 제한
     const tr = await gemRec(env, {
-      contents: [{ role: 'user', parts: [{ text: TR_PROMPT + '\n\n' + REC_GLOSS + fixTxt }, audio] }],
+      contents: [{ role: 'user', parts: [{ text: TR_PROMPT + '\n\n' + REC_WORDS + fixTxt }, audio] }],
       generationConfig: { temperature: 0, maxOutputTokens: 16384, responseMimeType: 'application/json', responseSchema: TR_SCHEMA }
     }, { think: 'min', tmo: 100000, deadline: 200000 });
     if (tr.code === 'quota' || tr.code === 'location') return out({ error: tr.error, code: tr.code }, tr.code === 'quota' ? 429 : 502);
@@ -247,7 +249,7 @@ export default {
     // ⑤ 말소리가 거의 없으면 지어내지 않고 다시 녹음 안내
     const UNCLEAR = /\(?\s*(잘\s*안\s*들림|들리지\s*않음|알아들을\s*수\s*없음|음성\s*없음|무음|잡음)\s*\)?/g;
     const said = lines.map(l => l.t.replace(UNCLEAR, '').replace(/[\s.,…·~!?-]/g, '')).join('');
-    if (!tr.error && said.length < 15) return out({ error: '녹음에서 말소리를 거의 알아듣지 못했어요. 휴대폰을 말하는 사람 가까이 두고 다시 녹음해 주세요.', code: 'unclear' }, 422);
+    if (!tr.error && (said.length < 15 || (tr.data && tr.data.speech === '없음'))) return out({ error: '녹음에서 말소리를 거의 알아듣지 못했어요. 휴대폰을 말하는 사람 가까이 두고 다시 녹음해 주세요.', code: 'unclear' }, 422);
     let r;
     if (lines.length) {
       const script = lines.map(l => `${l.s}: ${l.t}`).join('\n').slice(0, 60000);
@@ -276,8 +278,10 @@ const TR_PROMPT = `너는 한국어 회의 녹음 받아쓰기 담당자야. 첨
 - 숫자·날짜·시간·사람 이름·장소는 특히 정확하게. 잘 안 들리면 지어내지 말고 "(잘 안 들림)".
 - 아래 용어 사전과 [고친 말 사전]에 있는 말과 비슷하게 들리면 사전의 바른 말로 적어.
 - 개인 전화번호·주민번호는 "(개인정보 생략)".
-- 사람 말소리가 없거나(잡음·음악·기계음만) 전혀 알아들을 수 없으면 lines 를 빈 배열로. 절대 지어내지 마.`;
-const TR_SCHEMA = { type: 'OBJECT', properties: { lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['lines'] };
+- 먼저 speech 에 녹음 상태를 적어: 사람 말소리가 또렷하면 "있음", 일부만 들리면 "일부", 잡음·음악·기계음·무음뿐이면 "없음".
+- speech 가 "없음"이면 lines 는 빈 배열. 절대 지어내지 마.
+- 용어 사전은 '들린 말의 철자'를 고칠 때만 써. 사전에 있다고 녹음에 없는 내용을 적으면 안 돼.`;
+const TR_SCHEMA = { type: 'OBJECT', propertyOrdering: ['speech', 'lines'], properties: { speech: { type: 'STRING', enum: ['있음', '일부', '없음'] }, lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['speech', 'lines'] };
 
 /* 기준 AI용: 가벼운 모델 두 개에 동시에 묻고 먼저 온 답을 씀 → 한쪽이 붐벼도 기다리지 않음 (사용량은 2배) */
 async function gemRace(env, body, tmo) {
