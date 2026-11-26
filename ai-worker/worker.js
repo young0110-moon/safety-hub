@@ -265,7 +265,7 @@ export default {
     }
     if (!r) r = { error: tr.error || 'AI 정리에 실패했어요.', code: tr.code };
     if (r.error) return out({ error: r.error, code: r.code }, r.code === 'quota' ? 429 : 502);
-    return out({ ok: true, model: (tr.model ? tr.model + ' → ' : '') + r.model, two: !!lines.length, by: user.email || '', at: Date.now(), ...r.data });
+    return out({ ok: true, log: [...(tr.log || []), ...((r && r.log) || [])], model: (tr.model ? tr.model + ' → ' : '') + r.model, two: !!lines.length, by: user.email || '', at: Date.now(), ...r.data });
   }
 };
 
@@ -328,42 +328,43 @@ function recThink(m, think) {
   return null;
 }
 async function gemRec(env, body, opt = {}) {
-  let last = '', quota = false; const end = Date.now() + (opt.deadline || 240000);
+  let last = '', quota = false; const end = Date.now() + (opt.deadline || 240000), log = [];   // log: 모델별 걸린 시간·결과 (속도 점검용)
+  const L = (m, t0, what) => log.push(`${m}:${what}:${Math.round((Date.now() - t0) / 100) / 10}s`);
   for (const m of [...new Set([...REC_MODELS, ...(env.MODEL ? [env.MODEL] : []), ...MODELS])]) {
     let tc = recThink(m, opt.think);
     for (let k = 0; k < 2; k++) {
       const leftMs = end - Date.now(); if (leftMs < 8000) return { error: 'AI 정리가 너무 오래 걸려 멈췄어요. 잠시 후 [다시 정리]를 눌러 주세요.' + (last ? ' (' + last + ')' : '') };
       const ac = new AbortController(), tt = setTimeout(() => ac.abort(), Math.min(opt.tmo || 120000, leftMs));
-      const b = tc ? { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: tc } } : body;
+      const t0 = Date.now(); const b = tc ? { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: tc } } : body;
       let r, j;
       try {
         r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(b), signal: ac.signal
         });
         j = await r.json().catch(() => ({}));
-      } catch (e) { clearTimeout(tt); last = `${m} 시간 초과`; break; }
+      } catch (e) { clearTimeout(tt); last = `${m} 시간 초과`; L(m, t0, 'timeout'); break; }
       clearTimeout(tt);
-      if (r.status === 404) { last = `모델 ${m} 없음`; break; }
-      if (r.status === 429) { quota = true; last = '사용량 초과'; break; }
+      if (r.status === 404) { last = `모델 ${m} 없음`; L(m, t0, '404'); break; }
+      if (r.status === 429) { quota = true; last = '사용량 초과'; L(m, t0, '429'); break; }
       if (!r.ok) {
-        last = (j.error && j.error.message) || ('HTTP ' + r.status);
+        last = (j.error && j.error.message) || ('HTTP ' + r.status); L(m, t0, 'err' + r.status);
         if (/location is not supported/i.test(last)) return { error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요.', code: 'location' };
         if (tc && r.status === 400 && /think|Unknown name|Invalid|not supported/i.test(last)) { tc = null; continue; }   // 생각 설정 거절 → 설정 없이 다시
         break;
       }
       const c0 = (j.candidates || [])[0] || {};
       const txt = (c0.content || {}).parts?.map(p => p.thought ? '' : (p.text || '')).join('') || '';
-      try { return { data: JSON.parse(txt), model: m }; }
+      L(m, t0, 'ok'); try { return { data: JSON.parse(txt), model: m, log }; }
       catch (e) {
         if (c0.finishReason === 'MAX_TOKENS') {   // 길이 상한에서 끊김(반복 고장) → 받아쓰기는 끊긴 데까지 살림
           const got = [...txt.matchAll(/\{\s*"s"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"t"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)].map(x => ({ s: JSON.parse('"' + x[1] + '"'), t: JSON.parse('"' + x[2] + '"') }));
-          if (got.length) return { data: { lines: got }, model: m + '(잘림)' };
+          if (got.length) return { data: { lines: got }, model: m + '(잘림)', log };
         }
         last = 'AI 응답을 읽지 못했어요.'; break;
       }
     }
   }
-  return quota ? { error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' } : { error: 'AI 정리에 실패했어요: ' + last };
+  return quota ? { error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota', log } : { error: 'AI 정리에 실패했어요: ' + last, log };
 }
 
 /* Gemini 호출 (모델 이름이 바뀌면 다음 모델로) */
