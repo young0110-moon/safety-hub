@@ -65,6 +65,9 @@ const SCHEMA = {
   required: ['brief', 'title', 'summary', 'dialogue', 'points', 'decisions', 'todos', 'safety']
 };
 
+/* 2단계(정리)용: 대화 정리는 1단계 받아쓰기를 그대로 쓰므로 다시 쓰지 않음 → 글 쓰는 시간 절약 */
+const SUM_SCHEMA = { ...SCHEMA, properties: Object.fromEntries(Object.entries(SCHEMA.properties).filter(([k]) => k !== 'dialogue')), required: SCHEMA.required.filter(k => k !== 'dialogue') };
+
 export default {
   // Cron 트리거: "0 0 1 * *"(매월 1일 한국 아침 9시: 교정 알림) · "30 9 * * *"(매일 한국 저녁 6시 30분: 반납 늦음)
   async scheduled(ev, env, ctx) { const t = new Date(ev.scheduledTime); ctx.waitUntil(equipReminders(env, t.getUTCDate() === 1 && t.getUTCHours() === 0 ? 'month' : 'return').catch(e => console.log('equip remind', e && e.message))); },
@@ -231,26 +234,36 @@ export default {
     try { fixes = decodeURIComponent(req.headers.get('X-Fix') || '').slice(0, 3000); } catch (e) {}
     const fixTxt = fixes ? '\n\n[고친 말 사전 — 직원들이 직접 고친 말. 왼쪽처럼 들리면 오른쪽으로 적어]\n' + fixes : '';
     const audio = { inline_data: { mime_type: mime, data: b64(buf) } };
+    const T0 = Date.now(), left = () => 270000 - (Date.now() - T0);   // 앱은 5분 기다림 → 서버는 4분 30초 안에 끝냄
+    // ① 받아쓰기: 생각 최소 · 길이 상한 · 모델마다 시간 제한
     const tr = await gemRec(env, {
       contents: [{ role: 'user', parts: [{ text: TR_PROMPT + '\n\n' + REC_GLOSS + fixTxt }, audio] }],
-      generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: TR_SCHEMA }
-    });
+      generationConfig: { temperature: 0, maxOutputTokens: 16384, responseMimeType: 'application/json', responseSchema: TR_SCHEMA }
+    }, { think: 'min', tmo: 100000, deadline: 200000 });
     if (tr.code === 'quota' || tr.code === 'location') return out({ error: tr.error, code: tr.code }, tr.code === 'quota' ? 429 : 502);
-    const lines = tr.data && Array.isArray(tr.data.lines) ? tr.data.lines.filter(l => l && l.t) : [];
+    let lines = tr.data && Array.isArray(tr.data.lines) ? tr.data.lines.filter(l => l && l.t) : [];
+    // 같은 말 반복(고장 난 받아쓰기) 정리: 바로 앞과 같은 줄은 뺌
+    lines = lines.filter((l, i) => !(i && String(l.t).trim() === String(lines[i - 1].t).trim())).map(l => ({ s: String(l.s || '화자'), t: String(l.t).trim() }));
+    // ⑤ 말소리가 거의 없으면 지어내지 않고 다시 녹음 안내
+    const UNCLEAR = /\(?\s*(잘\s*안\s*들림|들리지\s*않음|알아들을\s*수\s*없음|음성\s*없음|무음|잡음)\s*\)?/g;
+    const said = lines.map(l => l.t.replace(UNCLEAR, '').replace(/[\s.,…·~!?-]/g, '')).join('');
+    if (!tr.error && said.length < 15) return out({ error: '녹음에서 말소리를 거의 알아듣지 못했어요. 휴대폰을 말하는 사람 가까이 두고 다시 녹음해 주세요.', code: 'unclear' }, 422);
     let r;
     if (lines.length) {
-      const script = lines.map(l => `${String(l.s || '화자')}: ${String(l.t)}`).join('\n').slice(0, 60000);
+      const script = lines.map(l => `${l.s}: ${l.t}`).join('\n').slice(0, 60000);
       r = await gemRec(env, {
-        contents: [{ role: 'user', parts: [{ text: prompt + fixTxt + '\n\n[받아쓰기 원문 — 이 글에 있는 내용만으로 정리해. dialogue 는 이 원문을 다듬어서]\n' + script }] }],
-        generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
-      });
+        contents: [{ role: 'user', parts: [{ text: prompt + fixTxt + '\n\n[받아쓰기 원문 — 이 글에 있는 내용만으로 정리해. dialogue 는 만들지 마]\n' + script }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 4096, responseMimeType: 'application/json', responseSchema: SUM_SCHEMA }
+      }, { think: 'low', tmo: 60000, deadline: Math.max(20000, left()) });
+      if (r && r.data) r.data.dialogue = lines;   // 대화 정리 = 받아쓰기 그대로
     }
-    if (!r || r.error) {   // 받아쓰기가 안 되면 예전처럼 한 번에 정리
+    if ((!r || r.error) && tr.error && left() > 40000) {   // 받아쓰기 자체가 실패했을 때만 예전처럼 한 번에 정리
       r = await gemRec(env, {
         contents: [{ role: 'user', parts: [{ text: prompt + fixTxt }, audio] }],
-        generationConfig: { temperature: 0.2, responseMimeType: 'application/json', responseSchema: SCHEMA }
-      });
+        generationConfig: { temperature: 0.2, maxOutputTokens: 16384, responseMimeType: 'application/json', responseSchema: SCHEMA }
+      }, { think: 'low', tmo: 90000, deadline: left() - 5000 });
     }
+    if (!r) r = { error: tr.error || 'AI 정리에 실패했어요.', code: tr.code };
     if (r.error) return out({ error: r.error, code: r.code }, r.code === 'quota' ? 429 : 502);
     return out({ ok: true, model: (tr.model ? tr.model + ' → ' : '') + r.model, two: !!lines.length, by: user.email || '', at: Date.now(), ...r.data });
   }
@@ -262,7 +275,8 @@ const TR_PROMPT = `너는 한국어 회의 녹음 받아쓰기 담당자야. 첨
 - 화자가 바뀌면 줄을 나눠. 이름을 모르면 "화자1","화자2".
 - 숫자·날짜·시간·사람 이름·장소는 특히 정확하게. 잘 안 들리면 지어내지 말고 "(잘 안 들림)".
 - 아래 용어 사전과 [고친 말 사전]에 있는 말과 비슷하게 들리면 사전의 바른 말로 적어.
-- 개인 전화번호·주민번호는 "(개인정보 생략)".`;
+- 개인 전화번호·주민번호는 "(개인정보 생략)".
+- 사람 말소리가 없거나(잡음·음악·기계음만) 전혀 알아들을 수 없으면 lines 를 빈 배열로. 절대 지어내지 마.`;
 const TR_SCHEMA = { type: 'OBJECT', properties: { lines: { type: 'ARRAY', items: { type: 'OBJECT', properties: { s: { type: 'STRING' }, t: { type: 'STRING' } }, required: ['s', 't'] } } }, required: ['lines'] };
 
 /* 기준 AI용: 가벼운 모델 두 개에 동시에 묻고 먼저 온 답을 씀 → 한쪽이 붐벼도 기다리지 않음 (사용량은 2배) */
@@ -305,23 +319,49 @@ async function gemTimed(env, body, models, deadlineMs) {
   const r = await gemini(env, body);   // 마지막: 가벼운 모델(빠름)
   return r.error ? { error: r.error + (last ? ' (' + last + ')' : ''), status: r.status } : r;
 }
-/* 녹음 정리용 Gemini 호출: 정확도 좋은 모델부터, 사용량이 막히거나 안 되면 다음 모델 */
-async function gemRec(env, body) {
-  let last = '', quota = false;
+/* 녹음 정리용 Gemini 호출: 정확도 좋은 모델부터. 모델마다 시간 제한(tmo) → 늦으면 바로 다음 모델, 전체 제한(deadline)
+   think: 'min'(받아쓰기: 생각 최소) / 'low'(정리: 짧게). 모델이 이 설정을 거절하면 설정 없이 한 번 더 */
+function recThink(m, think) {
+  if (!think) return null;
+  if (/^gemini-3/.test(m)) return { thinkingLevel: think === 'min' ? 'minimal' : 'low' };
+  if (/^gemini-2\.5-flash/.test(m)) return { thinkingBudget: think === 'min' ? 0 : 512 };
+  return null;
+}
+async function gemRec(env, body, opt = {}) {
+  let last = '', quota = false; const end = Date.now() + (opt.deadline || 240000);
   for (const m of [...new Set([...REC_MODELS, ...(env.MODEL ? [env.MODEL] : []), ...MODELS])]) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(body)
-    });
-    if (r.status === 404) { last = `모델 ${m} 없음`; continue; }
-    const j = await r.json().catch(() => ({}));
-    if (r.status === 429) { quota = true; last = '사용량 초과'; continue; }
-    if (!r.ok) {
-      last = (j.error && j.error.message) || ('HTTP ' + r.status);
-      if (/location is not supported/i.test(last)) return { error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요.', code: 'location' };
-      continue;
+    let tc = recThink(m, opt.think);
+    for (let k = 0; k < 2; k++) {
+      const leftMs = end - Date.now(); if (leftMs < 8000) return { error: 'AI 정리가 너무 오래 걸려 멈췄어요. 잠시 후 [다시 정리]를 눌러 주세요.' + (last ? ' (' + last + ')' : '') };
+      const ac = new AbortController(), tt = setTimeout(() => ac.abort(), Math.min(opt.tmo || 120000, leftMs));
+      const b = tc ? { ...body, generationConfig: { ...body.generationConfig, thinkingConfig: tc } } : body;
+      let r, j;
+      try {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_KEY }, body: JSON.stringify(b), signal: ac.signal
+        });
+        j = await r.json().catch(() => ({}));
+      } catch (e) { clearTimeout(tt); last = `${m} 시간 초과`; break; }
+      clearTimeout(tt);
+      if (r.status === 404) { last = `모델 ${m} 없음`; break; }
+      if (r.status === 429) { quota = true; last = '사용량 초과'; break; }
+      if (!r.ok) {
+        last = (j.error && j.error.message) || ('HTTP ' + r.status);
+        if (/location is not supported/i.test(last)) return { error: 'AI 서버가 Gemini를 쓸 수 없는 지역에서 실행됐어요.', code: 'location' };
+        if (tc && r.status === 400 && /think|Unknown name|Invalid|not supported/i.test(last)) { tc = null; continue; }   // 생각 설정 거절 → 설정 없이 다시
+        break;
+      }
+      const c0 = (j.candidates || [])[0] || {};
+      const txt = (c0.content || {}).parts?.map(p => p.thought ? '' : (p.text || '')).join('') || '';
+      try { return { data: JSON.parse(txt), model: m }; }
+      catch (e) {
+        if (c0.finishReason === 'MAX_TOKENS') {   // 길이 상한에서 끊김(반복 고장) → 받아쓰기는 끊긴 데까지 살림
+          const got = [...txt.matchAll(/\{\s*"s"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"t"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)].map(x => ({ s: JSON.parse('"' + x[1] + '"'), t: JSON.parse('"' + x[2] + '"') }));
+          if (got.length) return { data: { lines: got }, model: m + '(잘림)' };
+        }
+        last = 'AI 응답을 읽지 못했어요.'; break;
+      }
     }
-    const txt = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
-    try { return { data: JSON.parse(txt), model: m }; } catch (e) { last = 'AI 응답을 읽지 못했어요.'; continue; }
   }
   return quota ? { error: '오늘 무료 사용량을 다 썼어요. 내일 다시 시도해 주세요.', code: 'quota' } : { error: 'AI 정리에 실패했어요: ' + last };
 }
