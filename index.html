@@ -3067,18 +3067,34 @@ function ecVcf(c){const L=['BEGIN:VCARD','VERSION:3.0',`N:${c.n};;;;`,`FN:${c.n}
 function ecSaveVcf(c){const b=new Blob([ecVcf(c)],{type:'text/vcard;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=(c.n||'명함')+'.vcf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 const ecEnc=c=>{const j=JSON.stringify(Object.fromEntries(Object.entries(c).filter(([,v])=>v)));return btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 const ecDec=h=>{try{h=h.replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(h))))}catch(e){return null}};
+/* 명함 크게 보기: 전체 화면 + 가로 고정(되는 폰), 안 되면 세로 화면에서 카드를 눕혀 크게 */
+function ecBig(c,logo){const o=document.createElement('div');o.id='ecBig';o.setAttribute('role','dialog');o.setAttribute('aria-label','명함 크게 보기');
+  o.style.cssText='position:fixed;inset:0;z-index:300;background:radial-gradient(circle at 50% 45%,#3B2F7A,#1E1B4B 70%);display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;cursor:zoom-out';
+  o.innerHTML=`<div id="ecBigIn" style="width:360px;flex-shrink:0;transform-origin:center center">${ecCardHTML(c,logo)}</div>
+   <button type="button" aria-label="닫기" style="position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;width:46px;height:46px;border:0;border-radius:23px;background:rgba(255,255,255,.18);color:#fff;font-size:20px;font-weight:900">✕</button>
+   <div id="ecBigTip" style="position:absolute;bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;opacity:.65;font-size:12px">아무 곳이나 누르면 닫혀요</div>`;
+  document.body.appendChild(o);let locked=false;const inn=o.querySelector('#ecBigIn');
+  const fit=()=>{const W=innerWidth,H=innerHeight,w=inn.offsetWidth,h=inn.offsetHeight;if(!w)return;const rot=H>W;
+    const s=rot?Math.min(H*.9/w,W*.88/h):Math.min(W*.9/w,H*.8/h);inn.style.transform=(rot?'rotate(90deg) ':'')+'scale('+s.toFixed(3)+')';
+    const t=o.querySelector('#ecBigTip');if(t)t.textContent=rot?'휴대폰을 가로로 돌려서 보세요 · 누르면 닫혀요':'아무 곳이나 누르면 닫혀요'};
+  fit();setTimeout(fit,350);addEventListener('resize',fit);
+  const close=()=>{removeEventListener('resize',fit);document.removeEventListener('fullscreenchange',fsc);try{screen.orientation.unlock()}catch(e){}
+    if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});o.remove()};
+  const fsc=()=>{if(!document.fullscreenElement&&locked)close()};document.addEventListener('fullscreenchange',fsc);
+  o.addEventListener('click',close);
+  try{const p=o.requestFullscreen&&o.requestFullscreen({navigationUI:'hide'});if(p&&p.then)p.then(()=>screen.orientation&&screen.orientation.lock?screen.orientation.lock('landscape'):null).then(()=>{locked=true;setTimeout(fit,300)}).catch(()=>{setTimeout(fit,300)})}catch(e){}}
 /* 전자명함 열기: 카드 + 전화/문자/연락처 저장/공유 + QR(누구나 열 수 있는 card.html 링크) */
 const ecUrl=c=>location.origin+location.pathname.replace(/index\.html$/,'').replace(/[^/]*$/,'')+'card.html#d='+ecEnc(c);
 async function ecOpen(m){const c=ecData(m);if(!c.n)return;const url=ecUrl(c),tel=x=>String(x).replace(/[^0-9+]/g,'');let qr='';
   try{await loadScript('lib/qrcode.js');const q=qrcode(0,'M');q.addData(url);q.make();qr=q.createSvgTag({cellSize:5,margin:2,scalable:true})}catch(e){}
   const B=(h,i,t,x='')=>`<${h?'a href="'+h+'"':'button type="button" '+x} style="background:#fff;border:1px solid #DDD6FE;border-radius:14px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#4C1D95;gap:3px;text-decoration:none"><span style="font-size:19px">${i}</span>${t}</${h?'a':'button'}>`;
-  pvOpen('🪪 '+c.n+' 전자명함',`<div class="man" style="max-width:400px;margin:0 auto">${ecCardHTML(c,EC_LOGO)}
+  pvOpen('🪪 '+c.n+' 전자명함',`<div class="man" style="max-width:400px;margin:0 auto"><div data-ec="big" role="button" aria-label="명함 크게 보기" style="cursor:zoom-in">${ecCardHTML(c,EC_LOGO)}</div><div style="text-align:center;font-size:11.5px;opacity:.7;margin-top:8px">🔍 명함을 누르면 가로로 크게 보여요</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px">${c.m?B('tel:'+tel(c.m),'📞','전화')+B('sms:'+tel(c.m),'💬','문자'):B('tel:'+tel(c.t||EC_ORG.tel),'📞','전화')+(c.e?B('mailto:'+encodeURIComponent(c.e),'✉️','메일'):'')}${B('','📇','연락처 저장','data-ec="vcf"')}${B('','📤','공유','data-ec="share"')}</div>
     ${qr?`<div style="margin-top:12px;background:#fff;color:#1E1B4B;border-radius:14px;padding:12px;display:flex;align-items:center;gap:12px;border:1px solid #EDE9FE"><div style="width:96px;flex-shrink:0">${qr}</div><div style="font-size:12px;line-height:1.55"><b style="font-size:13px">QR로 명함 주기</b><br><span style="opacity:.7">상대가 카메라로 찍으면 이 명함이 열리고 바로 연락처에 저장할 수 있어요.</span></div></div>`:''}</div>`);
   ecCur={c,url}}
 let ecCur=null;
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-ec]');if(!b||!ecCur)return;const {c,url}=ecCur;
-  if(b.dataset.ec==='vcf')return ecSaveVcf(c);
+  if(b.dataset.ec==='big')return ecBig(c,EC_LOGO);if(b.dataset.ec==='vcf')return ecSaveVcf(c);
   if(navigator.share){try{await navigator.share({title:c.n+' 전자명함',text:`${c.n} ${c.r||''} · 한국승강기안전공단 ${c.d||EC_ORG.branch}`,url})}catch(err){}return}
   try{await navigator.clipboard.writeText(url);toast('명함 링크를 복사했어요. 카톡·문자에 붙여 넣으세요.','ok')}catch(err){toast('복사하지 못했어요.','error')}});
 /* 명함 QR: settings/main.cards = {이름: 명함 링크}. 이름 옆 🪪 → 큰 QR + 명함 열기 */
