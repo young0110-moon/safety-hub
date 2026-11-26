@@ -1170,7 +1170,7 @@ html.dark.mint #lock{background:linear-gradient(180deg,#042F2E,#01140F);color:#f
     <div class="grid grid-cols-2 gap-2"><label class="block text-[12px] font-bold">직급<select id="pfRank" class="inp mt-1"></select></label><label class="block text-[12px] font-bold">부서·팀 / 담당 업무<input id="pfTeam" class="inp mt-1" maxlength="20" placeholder="예: 검사1팀"></label></div>
     <label class="block text-[12px] font-bold">연락처<input id="pfTel" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="SOS 단체 문자를 받으려면 입력"></label>
     <div class="grid grid-cols-2 gap-2"><label class="block text-[12px] font-bold">사무실 전화<input id="pfOtel" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="051-784-8502"></label><label class="block text-[12px] font-bold">팩스<input id="pfFax" class="inp mt-1" maxlength="20" inputmode="tel" placeholder="051-784-8506"></label></div>
-    <label class="block text-[12px] font-bold">이메일 <span class="opacity-60 font-normal">(선택)</span><input id="pfCmail" class="inp mt-1" type="email" maxlength="60" inputmode="email" placeholder="name@koelsa.or.kr"></label>
+    <label class="block text-[12px] font-bold">이메일 <span class="opacity-60 font-normal">(비우면 로그인 이메일)</span><input id="pfCmail" class="inp mt-1" type="email" maxlength="60" inputmode="email" placeholder="name@koelsa.or.kr"></label>
     <button type="button" id="pfCard" class="w-full min-h-[44px] rounded-xl border-2 border-purple-400/60 text-[13.5px] font-black text-purple-700 dark:text-purple-300">🪪 내 전자명함 보기 (여기 정보로 만들어져요)</button>
     <button id="pfSave" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white font-bold text-sm">프로필 저장</button>
   </div>
@@ -1516,7 +1516,7 @@ let pfDirty=false;
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#pfCard')){const m=me();if(m)ecOpen(m)}});
 document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#p-profile')&&/^pf(Name|Rank|Team|Tel|Otel|Fax|Cmail)$/.test(e.target.id))pfDirty=true});
 document.addEventListener('change',e=>{if(/^pf(Rank)$/.test(e.target.id))pfDirty=true});
-function fillProfile(){pfDirty=false;const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||'';$('#pfOtel').value=m.otel||'';$('#pfFax').value=m.fax||'';$('#pfCmail').value=m.cmail||''}
+function fillProfile(){pfDirty=false;const m=me()||{};$('#pfName').value=m.name||'';$('#pfRank').value=m.rank||'사원';$('#pfTeam').value=m.team||'';$('#pfTel').value=m.tel||'';$('#pfOtel').value=m.otel||'';$('#pfFax').value=m.fax||'';$('#pfCmail').value=m.cmail||'';$('#pfCmail').placeholder=m.email||'name@koelsa.or.kr'}
 $('#pfSave').onclick=async()=>{const name=$('#pfName').value.trim();if(!name)return toast('이름을 입력해 주세요.','error');
   const tel=$('#pfTel').value.trim(),otel=$('#pfOtel').value.trim(),fax=$('#pfFax').value.trim(),cmail=$('#pfCmail').value.trim();
   for(const v of [tel,otel,fax])if(v&&!/^[0-9+\-\s()]{7,20}$/.test(v))return toast('전화·팩스 번호는 숫자와 - 만 입력해 주세요.','error');
@@ -3017,7 +3017,7 @@ function renderMembers(){
       <label class="block text-[12px] font-bold">전화번호<input id="meTel" class="inp mt-1" type="tel" inputmode="tel" maxlength="20" placeholder="010-0000-0000" value="${esc(m.tel||'')}"></label>
       <label class="block text-[12px] font-bold">사무실 전화 <span class="opacity-60 font-normal">(비우면 지사 대표번호)</span><input id="meOtel" class="inp mt-1" type="tel" inputmode="tel" maxlength="20" placeholder="051-784-8502" value="${esc(m.otel||'')}"></label>
       <label class="block text-[12px] font-bold">팩스 <span class="opacity-60 font-normal">(비우면 지사 팩스)</span><input id="meFax" class="inp mt-1" type="tel" inputmode="tel" maxlength="20" placeholder="051-784-8506" value="${esc(m.fax||'')}"></label>
-      <label class="block text-[12px] font-bold">이메일 <span class="opacity-60 font-normal">(선택)</span><input id="meCmail" class="inp mt-1" type="email" inputmode="email" maxlength="60" placeholder="name@koelsa.or.kr" value="${esc(m.cmail||'')}"></label>
+      <label class="block text-[12px] font-bold">이메일 <span class="opacity-60 font-normal">(비우면 로그인 이메일)</span><input id="meCmail" class="inp mt-1" type="email" inputmode="email" maxlength="60" placeholder="${esc(m.email||'name@koelsa.or.kr')}" value="${esc(m.cmail||'')}"></label>
       <div class="text-[11px] opacity-70">🪪 입력한 정보로 내 전자명함이 만들어져요.</div>
       <button type="button" data-mbedit="save" class="w-full min-h-[48px] rounded-xl bg-[#6D28D9] text-white text-sm font-black">💾 저장</button></div>`
     :`<button type="button" data-mbedit="open" class="w-full flex items-center gap-3 p-3 text-left min-h-[56px]"><span class="mem-av on">${PERSON}</span><span class="flex-1 min-w-0"><b class="text-sm block truncate">${esc(m.name||'내 정보')} <span class="text-xs opacity-70">${esc(m.rank||'')}</span></b><span class="text-[11px] opacity-70 truncate block">${esc([m.team||'팀 미입력',m.tel||'전화번호 미입력'].join(' · '))}</span></span><span class="text-[12px] font-black text-purple-700 dark:text-purple-300 shrink-0">✏️ 내 정보 수정</span></button>
@@ -3043,7 +3043,7 @@ function ecFmt(v){v=String(v||'').trim();const d=v.replace(/\D/g,'');if(!d)retur
   if(/^02/.test(d))return d.length===9?d.replace(/^(02)(\d{3})(\d{4})$/,'$1-$2-$3'):d.length===10?d.replace(/^(02)(\d{4})(\d{4})$/,'$1-$2-$3'):v;
   if(d.length===11)return d.replace(/^(\d{3})(\d{4})(\d{4})$/,'$1-$2-$3');if(d.length===10)return d.replace(/^(\d{3})(\d{3})(\d{4})$/,'$1-$2-$3');
   if(d.length===8&&/^1[5-9]/.test(d))return d.replace(/^(\d{4})(\d{4})$/,'$1-$2');return v}
-function ecData(m){m=m||{};return {n:String(m.name||'').trim(),r:m.rank||'',d:String(m.team||'').trim(),m:ecFmt(m.tel),t:ecFmt(m.otel),f:ecFmt(m.fax),e:String(m.cmail||'').trim()}}
+function ecData(m){m=m||{};return {n:String(m.name||'').trim(),r:m.rank||'',d:String(m.team||'').trim(),m:ecFmt(m.tel),t:ecFmt(m.otel),f:ecFmt(m.fax),e:String(m.cmail||m.email||'').trim()}}
 function ecCardHTML(c,logo){const E=x=>String(x||'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const K=k=>`<b style="display:inline-block;width:14px;margin-right:8px;color:#111;font-weight:800">${k}</b>`,R=(k,v)=>v?`<div style="display:flex">${K(k)}<span style="flex:1;min-width:0;word-break:break-all">${v}</span></div>`:'';
   return `<div style="background:#fff;color:#1E1B4B;border-radius:18px;box-shadow:0 10px 26px rgba(60,30,120,.14);overflow:hidden;text-align:left;font-family:inherit">
